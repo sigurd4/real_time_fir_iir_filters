@@ -39,6 +39,7 @@ const C_F: f32 = 0.00000001;
 
 const L: f32 = 0.5;
 
+#[derive(Copy, Clone)]
 pub struct WahFilter
 {
     pub k: f32,

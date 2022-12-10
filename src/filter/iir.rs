@@ -1,10 +1,8 @@
 pub mod first_order_filter;
-pub mod first_order_all_pass_filter;
 pub mod second_order_filter;
 pub mod wah_filter;
 
 pub use first_order_filter::*;
-pub use first_order_all_pass_filter::*;
 pub use second_order_filter::*;
 pub use wah_filter::*;
 

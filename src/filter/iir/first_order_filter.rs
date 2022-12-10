@@ -1,5 +1,9 @@
 use super::IIRFilter;
 
+pub mod rc;
+pub mod all_pass;
+
+#[derive(Copy, Clone)]
 pub struct FirstOrderFilter
 {
     pub omega: f32,

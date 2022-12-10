@@ -1,5 +1,8 @@
 use super::IIRFilter;
 
+pub mod sallen_key;
+
+#[derive(Copy, Clone)]
 pub struct SecondOrderFilter
 {
     pub omega: f32,
