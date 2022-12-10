@@ -1,7 +1,12 @@
 use super::IIRFilter;
 
 pub mod rc;
+pub mod lr;
 pub mod all_pass;
+
+pub use rc::*;
+pub use lr::*;
+pub use all_pass::*;
 
 #[derive(Copy, Clone)]
 pub struct FirstOrderFilter

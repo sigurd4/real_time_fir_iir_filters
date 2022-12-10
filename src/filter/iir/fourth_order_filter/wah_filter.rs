@@ -1,4 +1,4 @@
-use super::IIRFilter;
+use crate::iir::IIRFilter;
 
 const R_I: f32 = 78000.0;
 const R_S: f32 = 1500.0;
