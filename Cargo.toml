@@ -3,7 +3,7 @@ name = "real_time_fir_iir_filters"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-description = "Real-time FIR and IIR filters designed use with vst's"
+description = "Real-time FIR and IIR filters designed for use with vst's"
 repository = "https://github.com/sigurd4/real_time_fir_iir_filters"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
