@@ -2,11 +2,13 @@ pub mod first_order_filter;
 pub mod second_order_filter;
 pub mod third_order_filter;
 pub mod fourth_order_filter;
+pub mod sos_filter;
 
 pub use first_order_filter::*;
 pub use second_order_filter::*;
 pub use third_order_filter::*;
 pub use fourth_order_filter::*;
+pub use sos_filter::*;
 pub use wah_filter::*;
 
 pub trait IIRFilter<const N: usize, const M: usize>

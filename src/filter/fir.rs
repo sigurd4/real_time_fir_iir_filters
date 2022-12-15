@@ -1,3 +1,7 @@
+pub mod sos_filter;
+
+pub use sos_filter::*;
+
 pub trait FIRFilter<const N: usize, const M: usize>
 where
     [(); N + 1]:
