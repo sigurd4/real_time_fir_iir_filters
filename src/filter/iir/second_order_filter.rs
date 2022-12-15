@@ -3,10 +3,12 @@ use super::IIRFilter;
 pub mod rlc;
 pub mod sallen_key;
 pub mod butterworth;
+pub mod pid;
 
 pub use rlc::*;
 pub use sallen_key::*;
 pub use butterworth::*;
+pub use pid::*;
 
 #[derive(Copy, Clone)]
 pub struct SecondOrderFilter
