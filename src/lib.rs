@@ -27,10 +27,9 @@ moddef::moddef!(
     flat(pub) mod {
         filter_any,
         filter_kind,
+        filter_static,
         filter_static_coefficients,
         filter_static_internals,
-        filter_static_order,
-        filter_static_stages,
         filter
     },
     flat mod {
@@ -70,19 +69,13 @@ macro_rules! static_filter_impl {
             const OUTPUTS: usize = $outputs;
         }
         
-        impl<F, $($generics),*> FilterStaticOrder<F> for $type
-        where
-            F: Float, $($where)*
-        {
-            const ORDER: usize = $order;
-        }
-        
-        impl<F, $($generics),*> FilterStaticStages<F> for $type
+        impl<F, $($generics),*> FilterStatic<F> for $type
         where
             F: Float, $($where)*
         {
             const BUFFERED_OUTPUTS: bool = $buffered_outputs;
             const SOS_STAGES: usize = $extra_stages;
+            const ORDER: usize = $order;
         }
     };
 }

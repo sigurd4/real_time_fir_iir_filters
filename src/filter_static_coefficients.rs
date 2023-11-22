@@ -1,6 +1,6 @@
 use super::*;
 
-pub trait FilterStaticCoefficients<F>: FilterStaticStages<F> + FilterStaticOrder<F>
+pub trait FilterStaticCoefficients<F>: FilterStatic<F>
 where
     F: Float
 {
