@@ -112,10 +112,9 @@ mod tests
             )>
     {
         const N: usize = 256;
-        const OMEGA1: [f64; N] = (core::f64::EPSILON..core::f64::consts::PI).linspace_array();
-        const OMEGA2: [f64; N] = (-core::f64::consts::PI..core::f64::consts::PI).linspace_array();
-
-        let omega = (if two_sided {OMEGA2} else {OMEGA1}).map(|omega| f!(omega));
+        let omega: [F; N] = (if two_sided {-core::f64::consts::PI} else {core::f64::EPSILON}..core::f64::consts::PI)
+            .linspace_array()
+            .map(|omega| f!(omega));
 
         let sampling_frequency = f!(44100.0);
 
@@ -154,7 +153,7 @@ mod tests
             plot::plot_bode(
                 &format!("Frequency response of '{}', o = {}, fs = {}", filter_name, output_number, sampling_frequency),
                 &format!("{}/{}{}.png", PLOT_TARGET, file_name_no_extension, output_number),
-                omega.zip(freq_response),
+                omega.zip2(freq_response),
             )?
         }
         Ok(())
