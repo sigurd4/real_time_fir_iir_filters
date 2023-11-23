@@ -9,7 +9,6 @@
 #![feature(const_mut_refs)]
 #![feature(const_option)]
 #![feature(const_fn_floating_point_arithmetic)]
-#![feature(array_zip)]
 #![feature(iter_array_chunks)]
 #![feature(iter_next_chunk)]
 #![feature(inline_const)]
