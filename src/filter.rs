@@ -35,7 +35,7 @@ where
     [(); Self::ORDER + 1]:,
     [(); Self::SOS_STAGES]:,
     [(); Self::OUTPUTS*Self::BUFFERED_OUTPUTS as usize + !Self::BUFFERED_OUTPUTS as usize]:,
-    [F; Self::ORDER + 1 - 1]: Into<[F; Self::ORDER]>
+    [(); Self::ORDER + 1 - 1]:
 {
     fn filter(&mut self, rate: F, x: F) -> [F; Self::OUTPUTS]
     {
@@ -49,12 +49,12 @@ where
             F: Float + AddAssign + ZeroConst,
             [(); ORDER + 1]:,
             [(); OUTPUTS*A as usize + !A as usize]:,
-            [F; ORDER + 1 - 1]: Into<[F; ORDER]>
+            [(); ORDER + 1 - 1]:
         {
             let aw0: [_; OUTPUTS*A as usize + !A as usize] = x.zip2(a.zip2(w.each_ref())).map(|(x, (a, &w))| {
                 let ([a0], a_cont) = a.split_array::<1>();
                 
-                (a0, x - w.mul_dot(a_cont.into())/a0)
+                (a0, x - w.mul_dot(unsafe {a_cont.try_reformulate_length().unwrap_unchecked()})/a0)
             });
 
             w.each_mut()
