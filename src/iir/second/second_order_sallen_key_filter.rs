@@ -98,23 +98,23 @@ where
         ([], [
             [
                 g*(g),
-                g*(f!(2.0)*g),
+                g*f!(2.0),
                 g*(g),
             ],
             [
-                c1*g*r1*rate*(f!(2.0)*c1*g*r1*rate),
+                c1*g*r1*rate*f!(2.0),
                 f!(0.0),
-                c1*g*r1*rate*(-f!(2.0)*c1*g*r1*rate),
+                c1*g*r1*rate*(-f!(2.0)),
             ],
             [
-                c2*g*r2*rate*(f!(2.0)*c2*g*r2*rate),
+                c2*g*r2*rate*(f!(2.0)),
                 f!(0.0),
-                c2*g*r2*rate*(-f!(2.0)*c2*g*r2*rate),
+                c2*g*r2*rate*(-f!(2.0)),
             ],
             [
-                c1*c2*g*r1*r2*rate2*(f!(4.0)*c1*c2*g*r1*r2*rate2),
-                c1*c2*g*r1*r2*rate2*(-f!(8.0)*c1*c2*g*r1*r2*rate2),
-                c1*c2*g*r1*r2*rate2*(f!(4.0)*c1*c2*g*r1*r2*rate2),
+                c1*c2*g*r1*r2*rate2*(f!(4.0)),
+                c1*c2*g*r1*r2*rate2*(-f!(8.0)),
+                c1*c2*g*r1*r2*rate2*(f!(4.0)),
             ]
         ])
     }
@@ -153,19 +153,6 @@ where
         ]))
     }
 }
-
-/*
-let b0 = [
-];
-let a0 = ;
-let b1 = ;
-let a1 = ;
-let b2 = ;
-let a2 = ;
-let b3 = ;
-let a3 = ;
-
-*/
 
 impl<F, R1, R2, C1, C2> FilterStaticInternals<F> for SecondOrderSallenKeyFilter<F, R1, R2, C1, C2>
 where
