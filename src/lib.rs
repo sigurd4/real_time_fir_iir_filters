@@ -153,7 +153,7 @@ mod tests
             plot::plot_bode(
                 &format!("Frequency response of '{}', o = {}, fs = {}", filter_name, output_number, sampling_frequency),
                 &format!("{}/{}{}.png", PLOT_TARGET, file_name_no_extension, output_number),
-                omega.zip2(freq_response),
+                omega.zip(freq_response),
             )?
         }
         Ok(())

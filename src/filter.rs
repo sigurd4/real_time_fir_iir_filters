@@ -1,6 +1,6 @@
 use std::{ops::{MulAssign, AddAssign}, fmt::Debug};
 
-use array_math::{ArrayMath, ArrayOps, SliceOps};
+use array_math::{ArrayMath, ArrayOps, slice_ops::SliceOps};
 use num::Complex;
 use num_identities_const::ZeroConst;
 
@@ -51,17 +51,17 @@ where
             [(); OUTPUTS*A as usize + !A as usize]:,
             [(); ORDER + 1 - 1]:
         {
-            let aw0: [_; OUTPUTS*A as usize + !A as usize] = x.zip2(a.zip2(w.each_ref())).map(|(x, (a, &w))| {
+            let aw0: [_; OUTPUTS*A as usize + !A as usize] = x.zip(a.zip(w.each_ref())).map(|(x, (a, &w))| {
                 let ([a0], a_cont) = a.split_array::<1>();
                 
                 (a0, x - w.mul_dot(unsafe {a_cont.try_reformulate_length().unwrap_unchecked()})/a0)
             });
 
             w.each_mut()
-                .zip2(aw0)
+                .zip(aw0)
                 .try_reformulate_length()
                 .map(|waw0| {
-                    b.zip2(waw0)
+                    b.zip(waw0)
                         .map(|(b, (w, (a0, w0)))| {
                             let y = (*w)
                                 .rchain([w0])
@@ -98,16 +98,26 @@ where
         {
             let y = {
                 let x = x.try_reformulate_length()
-                    .unwrap_or_else(|x| [unsafe {x.try_into_single_item().unwrap_unchecked()}; _]);
+                    .unwrap_or_else(|x| {
+                        let [x] = unsafe {
+                            x.try_reformulate_length().unwrap_unchecked()
+                        };
+                        [x; _]
+                    });
                 let w = (*w).try_reformulate_length()
-                    .unwrap_or_else(|w| [unsafe {w.try_into_single_item().unwrap_unchecked()}; _]);
-                b.zip2(w.zip2(x))
+                    .unwrap_or_else(|w| {
+                        let [w] = unsafe {
+                            w.try_reformulate_length().unwrap_unchecked()
+                        };
+                        [w; _]
+                    });
+                b.zip(w.zip(x))
                     .map(|(b, (w, w0))| w.rchain([w0])
                         .mul_dot(b)
                     )
             };
             for (w, w0) in w.each_mut()
-                .zip2(x)
+                .zip(x)
             {
                 w.shift_right(w0);
             }
@@ -128,13 +138,12 @@ where
             Some((a_stages, a_output)) => {
                 if let Some(y) = y.try_reformulate_length_mut()
                 {
-                    for (w_stages, (b_stages, a_stages)) in w_stages.zip2(b_stages.zip2(a_stages))
+                    for (w_stages, (b_stages, a_stages)) in w_stages.zip(b_stages.zip(a_stages))
                     {
                         for (y, (w_stage, (b_stage, a_stage))) in y.each_mut()
-                            .zip2(w_stages.each_mut().zip2(b_stages.zip2(a_stages)))
+                            .zip(w_stages.each_mut().zip(b_stages.zip(a_stages)))
                         {
-                            *y = filter_once_iir::<F, 2, 1, false>([*y], core::array::from_mut(w_stage), [b_stage], [a_stage])
-                                .into_single_item()
+                            [*y] = filter_once_iir::<F, 2, 1, false>([*y], core::array::from_mut(w_stage), [b_stage], [a_stage])
                         }
                     }
                 }
@@ -144,13 +153,12 @@ where
             None => {
                 if let Some(y) = y.try_reformulate_length_mut()
                 {     
-                    for (w_stage, b_stage) in w_stages.zip2(b_stages)
+                    for (w_stage, b_stage) in w_stages.zip(b_stages)
                     {
                         for (y, (w_stage, b_stage)) in y.each_mut()
-                            .zip2(w_stage.each_mut().zip2(b_stage))
+                            .zip(w_stage.each_mut().zip(b_stage))
                         {
-                            *y = filter_once_fir::<F, 2, 1, false>([*y], core::array::from_mut(w_stage), [b_stage])
-                                .into_single_item()
+                            [*y] = filter_once_fir::<F, 2, 1, false>([*y], core::array::from_mut(w_stage), [b_stage])
                         }
                     }
                 }
@@ -243,8 +251,8 @@ where
                     
                 if let Some(h_stages) = &h_stages
                 {
-                    b_output.zip2(a_output)
-                        .zip2(h_stages.each_ref())
+                    b_output.zip(a_output)
+                        .zip(h_stages.each_ref())
                         .map(|((b_output, a_output), h_stages)| {
                             let h_output = z_response_once_iir(&z_inv_n, b_output, a_output);
                             h_stages.iter()
@@ -256,7 +264,7 @@ where
                 }
                 else
                 {
-                    b_output.zip2(a_output)
+                    b_output.zip(a_output)
                         .map(|(b_output, a_output)| {
                             z_response_once_iir(&z_inv_n, b_output, a_output)
                         })
@@ -279,7 +287,7 @@ where
                     
                 if let Some(h_stages) = h_stages
                 {
-                    b_output.zip2(h_stages)
+                    b_output.zip(h_stages)
                         .map(|(b_output, h_stages)| {
                             let h_output = z_response_once_fir(&z_inv_n, b_output);
                             h_stages.into_iter()

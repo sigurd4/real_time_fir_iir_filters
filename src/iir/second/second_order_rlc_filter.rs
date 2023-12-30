@@ -2,6 +2,37 @@ use array_math::ArrayOps;
 
 use super::*;
 
+/// # Configurations
+/// ```
+/// 0:
+///     X-[R]-[L]-Y
+///               |
+///              [C]
+///               |
+///              GND
+/// 1:
+///     X-[R]-Y
+///           |
+///          [L]
+///           |
+///          [C]
+///           |
+///          GND
+/// 2:
+///     X-[C]-[L]-Y
+///               |
+///              [R]
+///               |
+///              GND
+/// 3:
+///     X-[C]-Y
+///           |
+///          [L]
+///           |
+///          [R]
+///           |
+///          GND
+/// ```
 #[derive(Copy, Clone)]
 pub struct SecondOrderRLCFilter<F, R = F, L = F, C = F>
 where
@@ -45,20 +76,10 @@ where
     {
         *(&self.c).deref()
     }
-    
-    pub fn omega(&self) -> F
-    {
-        (self.l()*self.c()).sqrt().recip()
-    }
-
-    pub fn zeta(&self) -> F
-    {
-        f!(0.5)*self.r()*(self.c()/self.l()).sqrt()
-    }
 }
 
 iir2_impl!(
-    <R, L, C> SecondOrderRLCFilter<F, R, L, C>: 3: false =>
+    <R, L, C> SecondOrderRLCFilter<F, R, L, C>: 4: false =>
     SecondOrderRLCFilter<f32>;
     SecondOrderRLCFilter<f64>
     where
@@ -67,13 +88,60 @@ iir2_impl!(
         C: Param<F>
 );
 
-second_order_parameterization!(
-    <R, L, C> SecondOrderRLCFilter<F, R, L, C>
-    where
-        R: Param<F>,
-        L: Param<F>,
-        C: Param<F>
-);
+impl<F, R, L, C> FilterStaticCoefficients<F> for SecondOrderRLCFilter<F, R, L, C>
+where
+    F: Float,
+    R: Param<F>,
+    L: Param<F>,
+    C: Param<F>,
+{
+    fn b(&self, rate: F) -> ([[[F; 3]; Self::OUTPUTS*Self::BUFFERED_OUTPUTS as usize]; Self::SOS_STAGES], [[F; Self::ORDER + 1]; Self::OUTPUTS])
+    {
+        let rate2 = rate*rate;
+
+        let r = self.r();
+        let l = self.l();
+        let c = self.c();
+
+        ([], [
+            [
+                f!(1.0),
+                f!(2.0),
+                f!(1.0),
+            ],
+            [
+                f!(1.0) + f!(4.0)*c*l*rate2,
+                f!(2.0) - f!(8.0)*c*l*rate2,
+                f!(1.0) + f!(4.0)*c*l*rate2,
+            ],
+            [
+                c*r*rate*f!(2.0),
+                f!(0.0),
+                c*r*rate*f!(-2.0),
+            ],
+            [
+                c*rate*(f!(4.0)*l*rate + f!(2.0)*r),
+                c*l*rate2*f!(-8.0),
+                c*rate*(f!(4.0)*l*rate - f!(2.0)*r),
+            ],
+        ])
+    }
+
+    fn a(&self, rate: F) -> Option<([[[F; 3]; Self::OUTPUTS*Self::BUFFERED_OUTPUTS as usize]; Self::SOS_STAGES], [[F; Self::ORDER + 1]; Self::OUTPUTS*Self::BUFFERED_OUTPUTS as usize + !Self::BUFFERED_OUTPUTS as usize])>
+    {
+        let rate2 = rate*rate;
+
+        let r = self.r();
+        let l = self.l();
+        let c = self.c();
+
+        Some(([], [[
+            f!(1.0) + f!(4.0)*c*l*rate2 + f!(2.0)*c*r*rate,
+            f!(2.0) - f!(8.0)*c*l*rate2,
+            f!(1.0) + f!(4.0)*c*l*rate2 - f!(2.0)*c*r*rate,
+        ]]))
+    }
+}
 
 impl<F, R, L, C> FilterStaticInternals<F> for SecondOrderRLCFilter<F, R, L, C>
 where

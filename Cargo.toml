@@ -11,10 +11,10 @@ repository = "https://github.com/sigurd4/real_time_fir_iir_filters"
 [dependencies]
 num = "0.4.1"
 moddef = "0.2.2"
-array_math = "0.1.5"
+array_math = "0.2.5"
 num_identities_const = "0.1.0"
-float_approx_math = "0.1.7"
-polynomial_ops = "0.1.6"
+float_approx_math = "0.1.8"
+polynomial_ops = "0.1.7"
 static_assertions = "1.1.0"
 
 [dev-dependencies]
