@@ -23,6 +23,8 @@ where
     }
 
     fn z_response<I: IntoIterator<Item = Complex<F>>>(&mut self, rate: F, z: I) -> [Vec<Complex<F>>; Self::OUTPUTS];
+
+    fn reset(&mut self);
 }
 
 impl<F, T> Filter<F> for T
@@ -302,6 +304,30 @@ where
                             z_response_once_fir(&z_inv_n, b_output)
                         })
                 }
+            }
+        }
+    }
+    
+    fn reset(&mut self)
+    {
+        let (w_stages, w_outputs) = self.w();
+
+        for w in w_stages
+        {
+            for w in w.iter_mut()
+            {
+                for w in w.iter_mut()
+                {
+                    *w = F::zero()
+                }
+            }
+        }
+
+        for w in w_outputs.iter_mut()
+        {
+            for w in w.iter_mut()
+            {
+                *w = F::zero()
             }
         }
     }
