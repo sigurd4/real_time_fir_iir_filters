@@ -232,13 +232,13 @@ where
             Some((a_stages, a_output)) => {
                 let a_output = ArrayOps::fill(|i| a_output[i % a_output.len()]);
 
-                let h_stages: Option<[Vec<Complex<F>>; Self::OUTPUTS]> = None;/*b_stages
+                let h_stages: Option<[Vec<Complex<F>>; Self::OUTPUTS]> = b_stages
                     .zip(a_stages)
                     .into_iter()
                     .filter_map(|(b_stage, a_stage)| b_stage.zip(a_stage)
                             .try_reformulate_length_ref()
                             .map(|&ba_stage| ba_stage
-                                .map(|(b_stage, a_stage)| z_response_once_iir::<F, 2, _>(&z_inv_n_3, b_stage, a_stage))
+                                .map(|(b_stage, a_stage)| z_response_once_iir::<F, 2>(&z_inv_n_3, b_stage, a_stage))
                             )
                         )
                     .reduce(|a, b| a.zip(b)
@@ -247,7 +247,7 @@ where
                             .map(|(a, b)| a*b)
                             .collect()
                         )
-                    );*/
+                    );
                     
                 if let Some(h_stages) = &h_stages
                 {
@@ -271,10 +271,10 @@ where
                 }
             },
             None => {
-                let h_stages: Option<[Vec<Complex<F>>; Self::OUTPUTS]> = None;/*b_stages.into_iter()
+                let h_stages: Option<[Vec<Complex<F>>; Self::OUTPUTS]> = b_stages.into_iter()
                     .filter_map(|b_stage| b_stage.try_reformulate_length_ref()
                             .map(|&b_stage| b_stage
-                                .map(|b_stage| z_response_once_fir::<F, 2, _>(&z_inv_n_3, b_stage))
+                                .map(|b_stage| z_response_once_fir::<F, 2>(&z_inv_n_3, b_stage))
                             )
                         )
                     .reduce(|a, b| a.zip(b)
@@ -283,7 +283,7 @@ where
                             .map(|(a, b)| a*b)
                             .collect()
                         )
-                    );*/
+                    );
                     
                 if let Some(h_stages) = h_stages
                 {
