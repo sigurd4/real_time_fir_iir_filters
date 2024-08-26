@@ -7,6 +7,7 @@
 #![feature(receiver_trait)]
 #![feature(decl_macro)]
 #![feature(const_refs_to_cell)]
+#![feature(const_mut_refs)]
 
 #![feature(generic_const_exprs)]
 #![feature(specialization)]

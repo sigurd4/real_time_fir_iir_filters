@@ -47,14 +47,24 @@ impl<T> Param<T>
             has_maybe_changed: true
         }
     }
-    pub fn get(&self) -> &T
+    pub fn assign(&mut self, value: T)
+    where
+        T: PartialEq
     {
-        self.value.borrow()
+        if self.value != value
+        {
+            self.has_maybe_changed = true;
+            self.value = value
+        }
     }
-    pub fn get_mut(&mut self) -> &mut T
+    pub const fn get(&self) -> &T
+    {
+        &self.value
+    }
+    pub const fn get_mut(&mut self) -> &mut T
     {
         self.has_maybe_changed = true;
-        self.value.borrow_mut()
+        &mut self.value
     }
     pub const fn into_value(self) -> T
     {
