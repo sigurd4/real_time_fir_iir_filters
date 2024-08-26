@@ -210,13 +210,8 @@ macro_rules! def_rtf {
             P: $param_trait<F = F>
         {
             pub param: P,
-            pub internals: Internals<F>
+            pub internals: real_time_fir_iir_filters::internals::RtfInternalsGiven<F, $outputs, $buffered_outputs, $sos_stages, $order, $is_iir>
         }
-        
-        type Internals<F> = real_time_fir_iir_filters::internals::RtfInternalsGiven<F, $outputs, $buffered_outputs, $sos_stages, $order, $is_iir>;
-        /*type B<F> = real_time_fir_iir_filters::internals::binternals!(F, $outputs, $buffered_outputs, $sos_stages, $order);
-        type A<F> = real_time_fir_iir_filters::internals::ainternals!(F, $outputs, $buffered_outputs, $sos_stages, $order);*/
-        
         
         impl<F, P> $name<F, P>
         where
@@ -227,7 +222,7 @@ macro_rules! def_rtf {
             {
                 Self {
                     param,
-                    internals: Internals::new()
+                    internals: real_time_fir_iir_filters::internals::RtfInternalsGiven::<F, $outputs, $buffered_outputs, $sos_stages, $order, $is_iir>::new()
                 }
             }
         }
@@ -271,11 +266,11 @@ macro_rules! def_rtf {
                 self.param
             }
             
-            fn get_internals(&self) -> (&Internals<F>, &Self::Param)
+            fn get_internals(&self) -> (&real_time_fir_iir_filters::internals::RtfInternalsGiven<F, $outputs, $buffered_outputs, $sos_stages, $order, $is_iir>, &Self::Param)
             {
                 (&self.internals, &self.param)
             }
-            fn get_internals_mut(&mut self) -> (&mut Internals<F>, &mut Self::Param)
+            fn get_internals_mut(&mut self) -> (&mut real_time_fir_iir_filters::internals::RtfInternalsGiven<F, $outputs, $buffered_outputs, $sos_stages, $order, $is_iir>, &mut Self::Param)
             {
                 (&mut self.internals, &mut self.param)
             }
