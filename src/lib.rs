@@ -154,7 +154,7 @@ macro_rules! def_param {
         $(where
             $($where)+)?
         $({
-            $(pub $var: crate::param::Param<$ty>),*
+            $(pub $var: real_time_fir_iir_filters::param::Param<$ty>),*
         })?
         impl$(<$($gg),*>)? $type$(<$($gg),*>)?
         $(where
