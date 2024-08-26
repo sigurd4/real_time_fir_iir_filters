@@ -3,7 +3,7 @@ use core::f64::consts::FRAC_1_SQRT_2;
 use bytemuck::Pod;
 use num::Float;
 
-use crate::{f, iir::first::{FirstOrderFilterParam, Omega}};
+use crate::{f, real_time_fir_iir_filters, iir::first::{FirstOrderFilterParam, Omega}};
 
 pub trait ButterworthFilterParam: FirstOrderFilterParam
 {

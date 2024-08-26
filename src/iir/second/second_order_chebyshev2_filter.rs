@@ -2,7 +2,7 @@ use std::f64::consts::SQRT_2;
 
 use num::{Float, One};
 
-use crate::f;
+use crate::{f, real_time_fir_iir_filters};
 
 use super::{OmegaEpsilon, OmegaEpsilonXi, ChebyshevFilterParam, SecondOrderEllipticFilter};
 

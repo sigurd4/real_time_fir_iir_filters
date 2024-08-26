@@ -1,7 +1,7 @@
 use bytemuck::Pod;
 use num::{Float, Zero};
 
-use crate::{f, iir::first::{FirstOrderLRFilter, FirstOrderLRFilterParam, FirstOrderRCFilterParam}, param::FilterParam};
+use crate::{f, real_time_fir_iir_filters, iir::first::{FirstOrderLRFilter, FirstOrderLRFilterParam, FirstOrderRCFilterParam}, param::FilterParam};
 
 pub trait SecondOrderRLCFilterParam: FilterParam
 {

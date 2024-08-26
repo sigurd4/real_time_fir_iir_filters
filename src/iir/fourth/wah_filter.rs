@@ -1,7 +1,7 @@
 use bytemuck::Pod;
 use num::Float;
 
-use crate::{f, param::FilterParam};
+use crate::{f, real_time_fir_iir_filters, param::FilterParam};
 
 pub trait WahFilterParam: FilterParam
 {

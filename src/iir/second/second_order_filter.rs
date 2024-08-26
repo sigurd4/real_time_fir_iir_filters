@@ -3,7 +3,7 @@ use core::f32::consts::FRAC_1_SQRT_2;
 use bytemuck::Pod;
 use num::Float;
 
-use crate::{f, param::FilterParam};
+use crate::{f, real_time_fir_iir_filters, param::FilterParam};
 
 use super::{ButterworthFilterParam, SecondOrderButterworthFilter};
 

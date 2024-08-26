@@ -1,7 +1,7 @@
 use bytemuck::Pod;
 use num::{Float, One, Zero};
 
-use crate::{f, iir::second::SecondOrderSallenKeyFilterParam, param::FilterParam, private::NotSame};
+use crate::{f, real_time_fir_iir_filters, iir::second::SecondOrderSallenKeyFilterParam, param::FilterParam, private::NotSame};
 
 pub trait ThirdOrderSallenKeyFilterParam: FilterParam
 {

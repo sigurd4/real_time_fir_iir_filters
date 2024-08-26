@@ -12,6 +12,8 @@
 #![feature(generic_const_exprs)]
 #![feature(specialization)]
 
+pub(crate) use crate as real_time_fir_iir_filters;
+
 moddef::moddef!(
     pub mod {
         fir for cfg(feature = "filters"),
@@ -123,6 +125,7 @@ pub const fn max_len(a: usize, b: usize) -> usize
 }
 
 #[allow(unused)]
+#[macro_export]
 macro_rules! f {
     ($x:expr; $($f:tt)*) => {
         <$($f)* as num::NumCast>::from($x).unwrap()
@@ -131,11 +134,9 @@ macro_rules! f {
         f!($x; F)
     };
 }
-#[allow(unused)]
-pub(crate) use f;
 
 // Should be a derive macro
-#[allow(unused)]
+#[macro_export]
 macro_rules! def_param {
     (
         $({
@@ -162,11 +163,11 @@ macro_rules! def_param {
             pub const fn new($($($var: $ty),*)?) -> Self
             {
                 Self $({
-                    $($var: crate::param::Param::new($var)),*
+                    $($var: real_time_fir_iir_filters::param::Param::new($var)),*
                 })?
             }
         }
-        impl$(<$($gg),*>)? crate::param::Parameterization for $type$(<$($gg),*>)?
+        impl$(<$($gg),*>)? real_time_fir_iir_filters::param::Parameterization for $type$(<$($gg),*>)?
         $(where
             $($where)+)?
         {
@@ -181,9 +182,8 @@ macro_rules! def_param {
         }
     };
 }
-#[allow(unused)]
-pub(crate) use def_param;
 
+#[macro_export]
 macro_rules! def_rtf {
     (
         $({
@@ -213,9 +213,9 @@ macro_rules! def_rtf {
             pub internals: Internals<F>
         }
         
-        type Internals<F> = crate::internals::RtfInternalsGiven<F, $outputs, $buffered_outputs, $sos_stages, $order, $is_iir>;
-        /*type B<F> = crate::internals::binternals!(F, $outputs, $buffered_outputs, $sos_stages, $order);
-        type A<F> = crate::internals::ainternals!(F, $outputs, $buffered_outputs, $sos_stages, $order);*/
+        type Internals<F> = real_time_fir_iir_filters::internals::RtfInternalsGiven<F, $outputs, $buffered_outputs, $sos_stages, $order, $is_iir>;
+        /*type B<F> = real_time_fir_iir_filters::internals::binternals!(F, $outputs, $buffered_outputs, $sos_stages, $order);
+        type A<F> = real_time_fir_iir_filters::internals::ainternals!(F, $outputs, $buffered_outputs, $sos_stages, $order);*/
         
         
         impl<F, P> $name<F, P>
@@ -232,7 +232,7 @@ macro_rules! def_rtf {
             }
         }
         
-        impl<F, P> crate::rtf::RtfBase for $name<F, P>
+        impl<F, P> real_time_fir_iir_filters::rtf::RtfBase for $name<F, P>
         where
             F: num::Float + bytemuck::Pod,
             P: $param_trait<F = F>
@@ -243,7 +243,7 @@ macro_rules! def_rtf {
             const OUTPUTS: usize = $outputs;
         }
 
-        impl<F, P> crate::static_rtf::StaticRtfBase for $name<F, P>
+        impl<F, P> real_time_fir_iir_filters::static_rtf::StaticRtfBase for $name<F, P>
         where
             F: num::Float + bytemuck::Pod,
             P: $param_trait<F = F>
@@ -281,15 +281,13 @@ macro_rules! def_rtf {
             }
 
             fn make_coeffs($arg_param: &Self::Param, $arg_rate: Self::F) -> (
-                crate::internals::binternals!(F, $outputs, $buffered_outputs, $sos_stages, $order),
-                [crate::internals::ainternals!(F, $outputs, $buffered_outputs, $sos_stages, $order); $is_iir as usize]
+                real_time_fir_iir_filters::internals::binternals!(F, $outputs, $buffered_outputs, $sos_stages, $order),
+                [real_time_fir_iir_filters::internals::ainternals!(F, $outputs, $buffered_outputs, $sos_stages, $order); $is_iir as usize]
             )
             $make_coeffs
         }
     };
 }
-#[allow(unused)]
-pub(crate) use def_rtf;
 
 #[cfg(test)]
 mod tests

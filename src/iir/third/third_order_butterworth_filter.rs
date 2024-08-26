@@ -1,4 +1,4 @@
-use crate::{f, iir::{first::Omega, second::ButterworthFilterParam}};
+use crate::{f, real_time_fir_iir_filters, iir::{first::Omega, second::ButterworthFilterParam}};
 
 // TODO: Do it in SOS
 crate::def_rtf!(
