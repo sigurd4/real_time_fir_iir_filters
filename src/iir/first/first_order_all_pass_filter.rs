@@ -1,90 +1,82 @@
-use array_math::ArrayOps;
+use bytemuck::Pod;
+use num::Float;
 
-use super::*;
+use crate::{f, param::FilterParam, private::NotSame};
 
-pub struct FirstOrderAllPassFilter<F, Tau = F>
-where
-    F: Float,
-    Tau: Param<F>
+pub trait FirstOrderAllPassFilterParam: FilterParam
 {
-    pub tau: Tau,
-    pub w: [F; 1]
+    fn tau(&self) -> Self::F;
 }
 
-impl<F, Tau> FirstOrderAllPassFilter<F, Tau>
+crate::def_param!(
+    Tau<F> {
+        tau: F
+    }
+    where
+        F: Float + Pod
+);
+impl<F> FilterParam for Tau<F>
 where
-    F: Float,
-    Tau: Param<F>
+    F: Float + Pod
 {
-    pub fn new(tau: Tau) -> Self
+    type F = F;
+}
+impl<F> FirstOrderAllPassFilterParam for Tau<F>
+where
+    F: Float + Pod
+{
+    fn tau(&self) -> Self::F
     {
-        Self {
-            tau,
-            w: [F::zero(); 1]
+        *self.tau
+    }
+}
+impl<P> From<P> for Tau<P::F>
+where
+    P: FirstOrderAllPassFilterParam + NotSame<Tau<P::F>>
+{
+    fn from(value: P) -> Self
+    {
+        Tau::new(value.tau())
+    }
+}
+
+crate::def_rtf!(
+    FirstOrderAllPassFilter
+    {
+        type Param: FirstOrderAllPassFilterParam = Tau;
+
+        const OUTPUTS: usize = 1;
+        const BUFFERED_OUTPUTS: bool = false;
+        const SOS_STAGES: usize = 0;
+        const ORDER: usize = 1;
+        const IS_IIR: bool = true;
+
+        fn make_coeffs(param, rate) -> _
+        {
+            let tau = param.tau();
+            (
+                ([], [[
+                    f!(2.0)*tau*rate - f!(1.0),
+                    f!(1.0) - f!(2.0)*tau*rate
+                ]]),
+                [([], [[
+                    f!(1.0) + f!(2.0)*tau*rate,
+                    f!(1.0) - f!(2.0)*tau*rate
+                ]])]
+            )
         }
     }
-
-    fn tau(&self) -> F
-    {
-        *(&self.tau).deref()
-    }
-}
-
-iir1_impl!(
-    <Tau> FirstOrderAllPassFilter<F, Tau>: 1: false =>
-    FirstOrderAllPassFilter<f32>;
-    FirstOrderAllPassFilter<f64>
-    where
-        Tau: Param<F>
 );
-
-impl<F, Tau> FilterStaticCoefficients<F> for FirstOrderAllPassFilter<F, Tau>
-where
-    F: Float,
-    Tau: Param<F>,
-    [(); Self::ORDER + 1]:,
-    [(); Self::OUTPUTS*Self::BUFFERED_OUTPUTS as usize + !Self::BUFFERED_OUTPUTS as usize]:
-{
-    fn b(&self, rate: F) -> ([[[F; 3]; 0]; 0], [[F; 2]; 1])
-    {
-        let tau = self.tau();
-        ([], [[
-            f!(2.0)*tau*rate - f!(1.0),
-            f!(1.0) - f!(2.0)*tau*rate
-        ]])
-    }
-
-    fn a(&self, rate: F) -> Option<([[[F; 3]; 0]; 0], [[F; 2]; 1])>
-    {
-        let tau = self.tau();
-        Some(([], [[
-            f!(1.0) + f!(2.0)*tau*rate,
-            f!(1.0) - f!(2.0)*tau*rate
-        ]]))
-    }
-}
-
-impl<F, Tau> FilterStaticInternals<F> for FirstOrderAllPassFilter<F, Tau>
-where
-    F: Float,
-    Tau: Param<F>,
-    [(); Self::OUTPUTS*Self::BUFFERED_OUTPUTS as usize + !Self::BUFFERED_OUTPUTS as usize]:
-{
-    fn w(&mut self) -> ([&mut [[F; 2]; 0]; 0], &mut [[F; 1]; 1])
-    {
-        ([], core::array::from_mut(&mut self.w))
-    }
-}
 
 #[cfg(test)]
 mod test
 {
-    use super::FirstOrderAllPassFilter;
+    use super::{FirstOrderAllPassFilter, Tau};
 
     #[test]
     fn plot()
     {
-        let mut filter = FirstOrderAllPassFilter::new(0.001);
+        let mut filter = FirstOrderAllPassFilter::new(Tau::new(0.001));
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

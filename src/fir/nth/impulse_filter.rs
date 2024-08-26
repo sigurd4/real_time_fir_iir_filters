@@ -1,6 +1,5 @@
 use num::Float;
 
-use super::*;
 
 pub struct ImpulseFilter<F, const N: usize>
 where

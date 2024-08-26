@@ -9,16 +9,14 @@ repository = "https://github.com/sigurd4/real_time_fir_iir_filters"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-num = "0.4.1"
+num = "0.4.3"
 moddef = "0.2.2"
-array_math = "0.2.9"
-num_identities_const = "0.1.0"
-float_approx_math = "0.1.9"
-polynomial_ops = "0.1.8"
 static_assertions = "1.1.0"
+bytemuck = "1.17.0"
+slice_ops = "0.1.10"
 
 [dev-dependencies]
-plotters = "0.3.5"
+plotters = "0.3.6"
 linspace = "0.1.1"
 
 [features]

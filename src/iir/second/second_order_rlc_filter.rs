@@ -1,173 +1,160 @@
-use array_math::ArrayOps;
+use bytemuck::Pod;
+use num::{Float, Zero};
 
-use super::*;
+use crate::{f, iir::first::{FirstOrderLRFilter, FirstOrderLRFilterParam, FirstOrderRCFilterParam}, param::FilterParam};
 
-/// # Configurations
-/// ```
-/// 0:
-///     X-[R]-[L]-Y
-///               |
-///              [C]
-///               |
-///              GND
-/// 1:
-///     X-[R]-Y
-///           |
-///          [L]
-///           |
-///          [C]
-///           |
-///          GND
-/// 2:
-///     X-[C]-[L]-Y
-///               |
-///              [R]
-///               |
-///              GND
-/// 3:
-///     X-[C]-Y
-///           |
-///          [L]
-///           |
-///          [R]
-///           |
-///          GND
-/// ```
-#[derive(Copy, Clone)]
-pub struct SecondOrderRLCFilter<F, R = F, L = F, C = F>
-where
-    F: Float,
-    R: Param<F>,
-    L: Param<F>,
-    C: Param<F>
+pub trait SecondOrderRLCFilterParam: FilterParam
 {
-    pub r: R,
-    pub l: L,
-    pub c: C,
-    pub w: [F; 2]
+    fn r(&self) -> Self::F;
+    fn l(&self) -> Self::F;
+    fn c(&self) -> Self::F;
 }
 
-impl<F, R, L, C> SecondOrderRLCFilter<F, R, L, C>
+crate::def_param!(
+    RLC<F> {
+        r: F,
+        l: F,
+        c: F
+    } where
+        F: Float + Pod
+);
+impl<F> FilterParam for RLC<F>
 where
-    F: Float,
-    R: Param<F>,
-    L: Param<F>,
-    C: Param<F>
+    F: Float + Pod
 {
-    pub fn new(r: R, l: L, c: C) -> Self
+    type F = F;
+}
+impl<F> SecondOrderRLCFilterParam for RLC<F>
+where
+    F: Float + Pod
+{
+    fn r(&self) -> Self::F
     {
-        Self {
-            r,
-            l,
-            c,
-            w: [F::zero(); 2]
+        *self.r
+    }
+    fn l(&self) -> Self::F
+    {
+        *self.l
+    }
+    fn c(&self) -> Self::F
+    {
+        *self.c
+    }
+}
+
+impl<P> From<P> for RLC<P::F>
+where
+    P: FirstOrderRCFilterParam
+{
+    fn from(value: P) -> Self
+    {
+        RLC::new(value.r(), Zero::zero(), value.c())
+    }
+}
+impl<F, P> From<FirstOrderLRFilter<F, P>> for SecondOrderRLCFilter<F, P>
+where
+    F: Float + Pod,
+    P: FirstOrderLRFilterParam<F = F>
+{
+    fn from(value: FirstOrderLRFilter<F, P>) -> Self
+    {
+        SecondOrderRLCFilter::new(value.param)
+    }
+}
+
+crate::def_rtf!(
+    {
+        /// # Configurations
+        /// ```
+        /// 0) LOW-PASS:
+        ///     X-[R]-[L]-Y
+        ///               |
+        ///              [C]
+        ///               |
+        ///              GND
+        /// 1) BAND-STOP:
+        ///     X-[R]-Y
+        ///           |
+        ///          [L]
+        ///           |
+        ///          [C]
+        ///           |
+        ///          GND
+        /// 2) BAND-PASS:
+        ///     X-[C]-[L]-Y
+        ///               |
+        ///              [R]
+        ///               |
+        ///              GND
+        /// 3) HIGH-PASS:
+        ///     X-[C]-Y
+        ///           |
+        ///          [L]
+        ///           |
+        ///          [R]
+        ///           |
+        ///          GND
+        /// ```
+    }
+    SecondOrderRLCFilter
+    {
+        type Param: SecondOrderRLCFilterParam = RLC;
+
+        const OUTPUTS: usize = 4;
+        const BUFFERED_OUTPUTS: bool = false;
+        const SOS_STAGES: usize = 0;
+        const ORDER: usize = 2;
+        const IS_IIR: bool = true;
+
+        fn make_coeffs(param, rate) -> _
+        {
+            let rate2 = rate*rate;
+    
+            let r = param.r();
+            let l = param.l();
+            let c = param.c();
+            (
+                ([], [
+                    [
+                        f!(1.0),
+                        f!(2.0),
+                        f!(1.0),
+                    ],
+                    [
+                        f!(1.0) + f!(4.0)*c*l*rate2,
+                        f!(2.0) - f!(8.0)*c*l*rate2,
+                        f!(1.0) + f!(4.0)*c*l*rate2,
+                    ],
+                    [
+                        c*r*rate*f!(2.0),
+                        f!(0.0),
+                        c*r*rate*f!(-2.0),
+                    ],
+                    [
+                        c*rate*(f!(4.0)*l*rate + f!(2.0)*r),
+                        c*l*rate2*f!(-8.0),
+                        c*rate*(f!(4.0)*l*rate - f!(2.0)*r),
+                    ],
+                ]),
+                [([], [[
+                    f!(1.0) + f!(4.0)*c*l*rate2 + f!(2.0)*c*r*rate,
+                    f!(2.0) - f!(8.0)*c*l*rate2,
+                    f!(1.0) + f!(4.0)*c*l*rate2 - f!(2.0)*c*r*rate,
+                ]])]
+            )
         }
     }
-
-    pub fn r(&self) -> F
-    {
-        *(&self.r).deref()
-    }
-    pub fn l(&self) -> F
-    {
-        *(&self.l).deref()
-    }
-    pub fn c(&self) -> F
-    {
-        *(&self.c).deref()
-    }
-}
-
-iir2_impl!(
-    <R, L, C> SecondOrderRLCFilter<F, R, L, C>: 4: false =>
-    SecondOrderRLCFilter<f32>;
-    SecondOrderRLCFilter<f64>
-    where
-        R: Param<F>,
-        L: Param<F>,
-        C: Param<F>
 );
-
-impl<F, R, L, C> FilterStaticCoefficients<F> for SecondOrderRLCFilter<F, R, L, C>
-where
-    F: Float,
-    R: Param<F>,
-    L: Param<F>,
-    C: Param<F>,
-{
-    fn b(&self, rate: F) -> ([[[F; 3]; Self::OUTPUTS*Self::BUFFERED_OUTPUTS as usize]; Self::SOS_STAGES], [[F; Self::ORDER + 1]; Self::OUTPUTS])
-    {
-        let rate2 = rate*rate;
-
-        let r = self.r();
-        let l = self.l();
-        let c = self.c();
-
-        ([], [
-            [
-                f!(1.0),
-                f!(2.0),
-                f!(1.0),
-            ],
-            [
-                f!(1.0) + f!(4.0)*c*l*rate2,
-                f!(2.0) - f!(8.0)*c*l*rate2,
-                f!(1.0) + f!(4.0)*c*l*rate2,
-            ],
-            [
-                c*r*rate*f!(2.0),
-                f!(0.0),
-                c*r*rate*f!(-2.0),
-            ],
-            [
-                c*rate*(f!(4.0)*l*rate + f!(2.0)*r),
-                c*l*rate2*f!(-8.0),
-                c*rate*(f!(4.0)*l*rate - f!(2.0)*r),
-            ],
-        ])
-    }
-
-    fn a(&self, rate: F) -> Option<([[[F; 3]; Self::OUTPUTS*Self::BUFFERED_OUTPUTS as usize]; Self::SOS_STAGES], [[F; Self::ORDER + 1]; Self::OUTPUTS*Self::BUFFERED_OUTPUTS as usize + !Self::BUFFERED_OUTPUTS as usize])>
-    {
-        let rate2 = rate*rate;
-
-        let r = self.r();
-        let l = self.l();
-        let c = self.c();
-
-        Some(([], [[
-            f!(1.0) + f!(4.0)*c*l*rate2 + f!(2.0)*c*r*rate,
-            f!(2.0) - f!(8.0)*c*l*rate2,
-            f!(1.0) + f!(4.0)*c*l*rate2 - f!(2.0)*c*r*rate,
-        ]]))
-    }
-}
-
-impl<F, R, L, C> FilterStaticInternals<F> for SecondOrderRLCFilter<F, R, L, C>
-where
-    F: Float,
-    R: Param<F>,
-    L: Param<F>,
-    C: Param<F>,
-    [(); Self::OUTPUTS*Self::BUFFERED_OUTPUTS as usize + !Self::BUFFERED_OUTPUTS as usize]:
-{
-    fn w(&mut self) -> ([&mut [[F; 2]; 0]; 0], &mut [[F; 2]; 1])
-    {
-        ([], core::array::from_mut(&mut self.w))
-    }
-}
 
 #[cfg(test)]
 mod test
 {
-    use std::f64::consts::TAU;
-
-    use super::SecondOrderRLCFilter;
+    use super::{SecondOrderRLCFilter, RLC};
 
     #[test]
     fn plot()
     {
-        let mut filter = SecondOrderRLCFilter::new(1000.0, 0.01, 0.000000033);
+        let mut filter = SecondOrderRLCFilter::new(RLC::new(1000.0, 0.01, 0.000000033));
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

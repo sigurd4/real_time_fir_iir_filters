@@ -1,7 +1,7 @@
 /*moddef::moddef!(
     flat(pub) mod {
-        inverse_filter
+        inverse,
+        cascade,
+        paralell
     }
 );*/
-
-use super::*;

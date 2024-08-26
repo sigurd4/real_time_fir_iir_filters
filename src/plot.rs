@@ -2,8 +2,6 @@
 
 use std::{f64::{consts::{TAU, PI}, EPSILON}, ops::{Range, AddAssign, SubAssign}, fmt::Debug};
 
-use array_math::ArrayOps;
-use float_approx_math::{ApproxCos, ApproxSin};
 use linspace::LinspaceArray;
 use num::{Complex, Float, traits::AsPrimitive, NumCast};
 use plotters::{prelude::*, element::PointCollection, coord::{ranged3d::{ProjectionMatrixBuilder, ProjectionMatrix, Cartesian3d}, ranged1d::{ValueFormatter, DefaultFormatting, AsRangedCoord, NoDefaultFormatting}}, style::full_palette::PURPLE, chart::MeshStyle};

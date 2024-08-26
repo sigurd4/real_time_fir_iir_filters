@@ -1,29 +1,27 @@
 use bytemuck::Pod;
-use num::Float;
+use num::{Float, Zero};
 
-use crate::{f, param::FilterParam, private::NotSame};
+use crate::{f, iir::second::{PIDFilter, PIDFilterParam}, param::FilterParam, private::NotSame};
 
-pub trait PIDFilterParam: FilterParam
+pub trait PIFilterParam: FilterParam
 {
     fn p(&self) -> Self::F;
     fn i(&self) -> Self::F;
-    fn d(&self) -> Self::F;
 }
 crate::def_param!(
-    PID<F> {
+    PI<F> {
         p: F,
-        i: F,
-        d: F
+        i: F
     } where
         F: Float + Pod
 );
-impl<F> FilterParam for PID<F>
+impl<F> FilterParam for PI<F>
 where
     F: Float + Pod
 {
     type F = F;
 }
-impl<F> PIDFilterParam for PID<F>
+impl<F> PIFilterParam for PI<F>
 where
     F: Float + Pod
 {
@@ -35,47 +33,58 @@ where
     {
         *self.i
     }
+}
+impl<P> PIDFilterParam for P
+where
+    P: PIFilterParam
+{
+    #[doc(hidden)]
+    fn p(&self) -> Self::F
+    {
+        self.p()
+    }
+    #[doc(hidden)]
+    fn i(&self) -> Self::F
+    {
+        self.i()
+    }
     fn d(&self) -> Self::F
     {
-        *self.d
+        Zero::zero()
     }
 }
-impl<P> From<P> for PID<P::F>
+impl<P> From<P> for PI<P::F>
 where
-    P: PIDFilterParam + NotSame<Self>
+    P: PIFilterParam + NotSame<PI<P::F>>
 {
     fn from(value: P) -> Self
     {
-        PID::new(value.p(), value.i(), value.d())
+        PI::new(value.p(), value.i())
     }
 }
 
 crate::def_rtf!(
-    PIDFilter
+    PIFilter
     {
-        type Param: PIDFilterParam = PID;
+        type Param: PIFilterParam = PI;
 
         const OUTPUTS: usize = 1;
         const BUFFERED_OUTPUTS: bool = false;
         const SOS_STAGES: usize = 0;
-        const ORDER: usize = 2;
+        const ORDER: usize = 1;
         const IS_IIR: bool = true;
 
         fn make_coeffs(param, rate) -> _
         {
-            let rate2 = rate*rate;
             let p = param.p();
             let i = param.i();
-            let d = param.d();
             (
                 ([], [[
-                    f!(4.0)*rate2*d + f!(2.0)*rate*p + i,
-                    f!(-8.0)*rate2*d + f!(2.0)*i,
-                    f!(4.0)*rate2*d - f!(2.0)*rate*p + i,
+                    f!(2.0)*rate*p + i,
+                    f!(-2.0)*rate*p + i
                 ]]),
                 [([], [[
                     f!(2.0)*rate,
-                    f!(0.0),
                     f!(-2.0)*rate
                 ]])]
             )
@@ -83,15 +92,26 @@ crate::def_rtf!(
     }
 );
 
+impl<F, P> From<PIFilter<F, P>> for PIDFilter<F, P>
+where
+    F: Float + Pod,
+    P: PIFilterParam<F = F>
+{
+    fn from(value: PIFilter<F, P>) -> Self
+    {
+        PIDFilter::new(value.param)
+    }
+}
+
 #[cfg(test)]
 mod test
 {
-    use super::{PIDFilter, PID};
+    use super::{PIFilter, PI};
 
     #[test]
     fn plot()
     {
-        let mut filter = PIDFilter::new(PID::new(1.0, 0.001, 0.00001));
+        let mut filter = PIFilter::new(PI::new(1.0, 0.001));
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

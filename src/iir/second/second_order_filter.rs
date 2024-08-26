@@ -1,113 +1,96 @@
-use array_math::ArrayOps;
+use core::f32::consts::FRAC_1_SQRT_2;
 
-use super::*;
+use bytemuck::Pod;
+use num::Float;
 
-#[derive(Copy, Clone)]
-pub struct SecondOrderFilter<F, Omega = F, Zeta = F>
-where
-    F: Float,
-    Omega: Param<F>,
-    Zeta: Param<F>
+use crate::{f, param::FilterParam};
+
+use super::{ButterworthFilterParam, SecondOrderButterworthFilter};
+
+pub trait SecondOrderFilterParam: FilterParam + Into<OmegaZeta<Self::F>>
 {
-    pub omega: Omega,
-    pub zeta: Zeta,
-    pub w: [F; 2]
+    fn omega(&self) -> Self::F;
+    fn zeta(&self) -> Self::F;
+}
+crate::def_param!(
+    OmegaZeta<F> {
+        omega: F,
+        zeta: F
+    } where
+        F: Float + Pod
+);
+impl<F> FilterParam for OmegaZeta<F>
+where
+    F: Float + Pod
+{
+    type F = F;
+}
+impl<F> SecondOrderFilterParam for OmegaZeta<F>
+where
+    F: Float + Pod
+{
+    fn omega(&self) -> Self::F
+    {
+        *self.omega
+    }
+    fn zeta(&self) -> Self::F
+    {
+        *self.zeta
+    }
 }
 
-impl<F, Omega, Zeta> SecondOrderFilter<F, Omega, Zeta>
-where
-    F: Float,
-    Omega: Param<F>,
-    Zeta: Param<F>
-{
-    pub fn new(omega: Omega, zeta: Zeta) -> Self
+crate::def_rtf!(
+    SecondOrderFilter
     {
-        Self {
-            omega,
-            zeta,
-            w: [F::one(); 2]
+        type Param: SecondOrderFilterParam = OmegaZeta;
+
+        const OUTPUTS: usize = 3;
+        const BUFFERED_OUTPUTS: bool = false;
+        const SOS_STAGES: usize = 0;
+        const ORDER: usize = 2;
+        const IS_IIR: bool = true;
+
+        fn make_coeffs(param, rate) -> _
+        {
+            let omega = param.omega();
+            let omega2 = omega*omega;
+            let zeta = param.zeta();
+            let rate2 = rate*rate;
+            (
+                ([], [
+                    [
+                        omega2,
+                        omega2*f!(2.0),
+                        omega2
+                    ],
+                    [
+                        rate*omega*f!(2.0),
+                        f!(0.0; F),
+                        rate*omega*f!(-2.0),
+                    ],
+                    [
+                        rate2*f!(4.0),
+                        rate2*f!(-8.0),
+                        rate2*f!(4.0)
+                    ]
+                ]),
+                [([], [[
+                    rate2*f!(4.0) + rate*zeta*omega*f!(4.0) + omega2,
+                    omega2*f!(2.0) - rate2*f!(8.0),
+                    rate2*f!(4.0) - rate*zeta*omega*f!(4.0) + omega2
+                ]])]
+            )
         }
     }
-    
-    pub fn omega(&self) -> F
-    {
-        *(&self.omega).deref()
-    }
-
-    pub fn zeta(&self) -> F
-    {
-        *(&self.zeta).deref()
-    }
-}
-
-iir2_impl!(
-    <Omega, Zeta> SecondOrderFilter<F, Omega, Zeta>: 3: false =>
-    SecondOrderFilter<f32>;
-    SecondOrderFilter<f64>
-    where
-        Omega: Param<F>,
-        Zeta: Param<F>
 );
 
-impl<F, Omega, Zeta> FilterStaticCoefficients<F> for SecondOrderFilter<F, Omega, Zeta>
+impl<P> From<SecondOrderButterworthFilter<P::F, P>> for SecondOrderFilter<P::F>
 where
-    F: Float,
-    Omega: Param<F>,
-    Zeta: Param<F>,
+    P: ButterworthFilterParam
 {
-    fn b(&self, rate: F) -> ([[[F; 3]; 0]; 0], [[F; 3]; 3])
+    fn from(value: SecondOrderButterworthFilter<P::F, P>) -> Self
     {
-        let omega = self.omega();
-        let omega2 = omega*omega;
-
-        let rate2 = rate*rate;
-        ([], [
-            [
-                omega2,
-                omega2*f!(2.0),
-                omega2
-            ],
-            [
-                rate*omega*f!(2.0),
-                f!(0.0; F),
-                rate*omega*f!(-2.0),
-            ],
-            [
-                rate2*f!(4.0),
-                rate2*f!(-8.0),
-                rate2*f!(4.0)
-            ]
-        ])
-    }
-
-    fn a(&self, rate: F) -> Option<([[[F; 3]; 0]; 0], [[F; 3]; 1])>
-    {
-        let omega = self.omega();
-        let omega2 = omega*omega;
-
-        let zeta = self.zeta();
-
-        let rate2 = rate*rate;
-        Some(([], [
-            [
-                rate2*f!(4.0) + rate*zeta*omega*f!(4.0) + omega2,
-                omega2*f!(2.0) - rate2*f!(8.0),
-                rate2*f!(4.0) - rate*zeta*omega*f!(4.0) + omega2
-            ]
-        ]))
-    }
-}
-
-impl<F, Omega, Zeta> FilterStaticInternals<F> for SecondOrderFilter<F, Omega, Zeta>
-where
-    F: Float,
-    Omega: Param<F>,
-    Zeta: Param<F>,
-    [(); Self::OUTPUTS*Self::BUFFERED_OUTPUTS as usize + !Self::BUFFERED_OUTPUTS as usize]:
-{
-    fn w(&mut self) -> ([&mut [[F; 2]; 0]; 0], &mut [[F; 2]; 1])
-    {
-        ([], core::array::from_mut(&mut self.w))
+        SecondOrderFilter::new(OmegaZeta::new(value.param.omega(), f!(FRAC_1_SQRT_2; P::F)))
     }
 }
 
@@ -116,12 +99,12 @@ mod test
 {
     use std::f64::consts::TAU;
 
-    use super::SecondOrderFilter;
+    use super::{OmegaZeta, SecondOrderFilter};
 
     #[test]
     fn plot()
     {
-        let mut filter = SecondOrderFilter::new(10000.0*TAU, 1.0);
+        let mut filter = SecondOrderFilter::new(OmegaZeta::new(10000.0*TAU, 1.0));
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

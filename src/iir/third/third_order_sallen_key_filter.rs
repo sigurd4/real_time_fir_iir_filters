@@ -1,271 +1,336 @@
-use array_math::ArrayOps;
+use bytemuck::Pod;
+use num::{Float, One, Zero};
 
-use super::*;
+use crate::{f, iir::second::SecondOrderSallenKeyFilterParam, param::FilterParam, private::NotSame};
 
-#[derive(Copy, Clone)]
-pub struct ThirdOrderSallenKeyFilter<F, R1 = F, R2 = F, R3 = F, C1 = F, C2 = F, C3 = F, G = F>
-where
-    F: Float,
-    R1: Param<F>,
-    R2: Param<F>,
-    R3: Param<F>,
-    C1: Param<F>,
-    C2: Param<F>,
-    C3: Param<F>,
-    G: Param<F>
+pub trait ThirdOrderSallenKeyFilterParam: FilterParam
 {
-    pub r1: R1,
-    pub r2: R2,
-    pub r3: R3,
-    pub c1: C1,
-    pub c2: C2,
-    pub c3: C3,
-    pub g: G,
-    pub w: [[F; 3]; 8]
+    fn r1(&self) -> Self::F;
+    fn c1(&self) -> Self::F;
+    fn r2(&self) -> Self::F;
+    fn c2(&self) -> Self::F;
+    fn r3(&self) -> Self::F;
+    fn c3(&self) -> Self::F;
+    fn g(&self) -> Self::F;
 }
 
-impl<F, R1, R2, R3, C1, C2, C3, G> ThirdOrderSallenKeyFilter<F, R1, R2, R3, C1, C2, C3, G>
+crate::def_param!(
+    RC3GSallenKey<F> {
+        r1: F,
+        c1: F,
+        r2: F,
+        c2: F,
+        r3: F,
+        c3: F,
+        g: F
+    } where
+        F: Float + Pod
+);
+impl<F> FilterParam for RC3GSallenKey<F>
 where
-    F: Float,
-    R1: Param<F>,
-    R2: Param<F>,
-    R3: Param<F>,
-    C1: Param<F>,
-    C2: Param<F>,
-    C3: Param<F>,
-    G: Param<F>
+    F: Float + Pod
 {
-    pub fn new(r1: R1, r2: R2, r3: R3, c1: C1, c2: C2, c3: C3, g: G) -> Self
+    type F = F;
+}
+impl<F> ThirdOrderSallenKeyFilterParam for RC3GSallenKey<F>
+where
+    F: Float + Pod
+{
+    fn r1(&self) -> Self::F
     {
-        Self
+        *self.r1
+    }
+    fn c1(&self) -> Self::F
+    {
+        *self.c1
+    }
+    fn r2(&self) -> Self::F
+    {
+        *self.r2
+    }
+    fn c2(&self) -> Self::F
+    {
+        *self.c2
+    }
+    fn r3(&self) -> Self::F
+    {
+        *self.r3
+    }
+    fn c3(&self) -> Self::F
+    {
+        *self.c3
+    }
+    fn g(&self) -> Self::F
+    {
+        *self.g
+    }
+}
+/*impl<P> ThirdOrderSallenKeyFilterParam for P
+where
+    P: FirstOrderRCFilterParam
+{
+    fn r1(&self) -> Self::F
+    {
+        self.r()
+    }
+    fn c1(&self) -> Self::F
+    {
+        self.c()
+    }
+    fn r2(&self) -> Self::F
+    {
+        Zero::zero()
+    }
+    fn c2(&self) -> Self::F
+    {
+        Zero::zero()
+    }
+    fn r3(&self) -> Self::F
+    {
+        Zero::zero()
+    }
+    fn c3(&self) -> Self::F
+    {
+        Zero::zero()
+    }
+    fn g(&self) -> Self::F
+    {
+        One::one()
+    }
+}*/
+impl<P> ThirdOrderSallenKeyFilterParam for P
+where
+    P: SecondOrderSallenKeyFilterParam
+{
+    fn r1(&self) -> Self::F
+    {
+        Zero::zero()
+    }
+    fn c1(&self) -> Self::F
+    {
+        Zero::zero()
+    }
+    fn r2(&self) -> Self::F
+    {
+        SecondOrderSallenKeyFilterParam::r1(self)
+    }
+    fn c2(&self) -> Self::F
+    {
+        SecondOrderSallenKeyFilterParam::c1(self)
+    }
+    fn r3(&self) -> Self::F
+    {
+        SecondOrderSallenKeyFilterParam::r2(self)
+    }
+    fn c3(&self) -> Self::F
+    {
+        SecondOrderSallenKeyFilterParam::c2(self)
+    }
+    fn g(&self) -> Self::F
+    {
+        SecondOrderSallenKeyFilterParam::g(self)
+    }
+}
+
+crate::def_param!(
+    RC3SallenKey<F> {
+        r1: F,
+        c1: F,
+        r2: F,
+        c2: F,
+        r3: F,
+        c3: F
+    } where
+        F: Float + Pod
+);
+impl<F> FilterParam for RC3SallenKey<F>
+where
+    F: Float + Pod
+{
+    type F = F;
+}
+impl<F> ThirdOrderSallenKeyFilterParam for RC3SallenKey<F>
+where
+    F: Float + Pod
+{
+    fn r1(&self) -> Self::F
+    {
+        *self.r1
+    }
+    fn c1(&self) -> Self::F
+    {
+        *self.c1
+    }
+    fn r2(&self) -> Self::F
+    {
+        *self.r2
+    }
+    fn c2(&self) -> Self::F
+    {
+        *self.c2
+    }
+    fn r3(&self) -> Self::F
+    {
+        *self.r3
+    }
+    fn c3(&self) -> Self::F
+    {
+        *self.c3
+    }
+    fn g(&self) -> Self::F
+    {
+        One::one()
+    }
+}
+
+// TODO: Do it in SOS
+crate::def_rtf!(
+    ThirdOrderSallenKeyFilter
+    {
+        type Param: ThirdOrderSallenKeyFilterParam = RC3GSallenKey;
+
+        const OUTPUTS: usize = 8;
+        const BUFFERED_OUTPUTS: bool = true;
+        const SOS_STAGES: usize = 0;
+        const ORDER: usize = 3;
+        const IS_IIR: bool = true;
+
+        fn make_coeffs(param, rate) -> _
         {
-            r1,
-            r2,
-            r3,
-            c1,
-            c2,
-            c3,
-            g,
-            w: [[F::zero(); 3]; 8]
+            let rate2 = rate*rate;
+            let rate3 = rate2*rate;
+    
+            let r1 = param.r1();
+            let c1 = param.c1();
+            let r2 = param.r2();
+            let c2 = param.c2();
+            let r3 = param.r3();
+            let c3 = param.c3();
+            let g = param.g();
+            (
+                ([], [
+                    [
+                        g*r2*f!(1.0),
+                        g*r2*f!(3.0),
+                        g*r2*f!(3.0),
+                        g*r2*f!(1.0),
+                    ],
+                    [
+                        c1*g*r1*r2*rate*f!(2.0),
+                        c1*g*r1*r2*rate*f!(2.0),
+                        c1*g*r1*r2*rate*f!(-2.0),
+                        c1*g*r1*r2*rate*f!(-2.0),
+                    ],
+                    [
+                        c2*g*r2*rate*f!(2.0),
+                        c2*g*r2*rate*f!(2.0),
+                        c2*g*r2*rate*f!(-2.0),
+                        c2*g*r2*rate*f!(-2.0),
+                    ],
+                    [
+                        c1*c2*g*r1*r2*rate2*f!(4.0),
+                        c1*c2*g*r1*r2*rate2*f!(-4.0),
+                        c1*c2*g*r1*r2*rate2*f!(-4.0),
+                        c1*c2*g*r1*r2*rate2*f!(4.0),
+                    ],
+                    [
+                        c3*g*r2*r3*rate*f!(2.0),
+                        c3*g*r2*r3*rate*f!(2.0),
+                        c3*g*r2*r3*rate*f!(-2.0),
+                        c3*g*r2*r3*rate*f!(-2.0),
+                    ],
+                    [
+                        c1*c3*g*r1*r2*r3*rate2*f!(4.0),
+                        c1*c3*g*r1*r2*r3*rate2*f!(-4.0),
+                        c1*c3*g*r1*r2*r3*rate2*f!(-4.0),
+                        c1*c3*g*r1*r2*r3*rate2*f!(4.0),
+                    ],
+                    [
+                        c2*c3*g*r2*r3*rate2*f!(4.0),
+                        c2*c3*g*r2*r3*rate2*f!(-4.0),
+                        c2*c3*g*r2*r3*rate2*f!(-4.0),
+                        c2*c3*g*r2*r3*rate2*f!(4.0),
+                    ],
+                    [
+                        c1*c2*c3*g*r1*r2*r3*rate3*f!(8.0),
+                        c1*c2*c3*g*r1*r2*r3*rate3*f!(-24.0),
+                        c1*c2*c3*g*r1*r2*r3*rate3*f!(24.0),
+                        c1*c2*c3*g*r1*r2*r3*rate3*f!(-8.0),
+                    ],
+                ]),
+                [([], [
+                    [
+                        f!(8.0)*c1*c2*c3*r1*r2*r2*r3*rate3 + f!(4.0)*c1*c2*r1*r2*r2*rate2 - f!(4.0)*c1*c2*g*r1*r2*r2*rate2 + f!(4.0)*c1*c3*r1*r2*r3*rate2 + f!(4.0)*c1*c3*r1*r2*r2*rate2 + f!(2.0)*c1*r1*r2*rate + f!(4.0)*c2*c3*r2*r2*r3*rate2 + f!(4.0)*c2*c3*r1*r2*r3*rate2 + f!(2.0)*c2*r2*r2*rate + f!(2.0)*c2*r1*r2*rate - f!(2.0)*c2*g*r2*r2*rate - f!(2.0)*c2*g*r1*r2*rate + f!(2.0)*c3*r2*r3*rate + f!(2.0)*c3*r2*r2*rate + f!(4.0)*c3*r1*r3*rate + f!(2.0)*c3*r1*r2*rate + r2 + f!(2.0)*r1,
+                        -f!(24.0)*c1*c2*c3*r1*r2*r2*r3*rate3 - f!(4.0)*c1*c2*r1*r2*r2*rate2 + f!(4.0)*c1*c2*g*r1*r2*r2*rate2 - f!(4.0)*c1*c3*r1*r2*r3*rate2 - f!(4.0)*c1*c3*r1*r2*r2*rate2 + f!(2.0)*c1*r1*r2*rate - f!(4.0)*c2*c3*r2*r2*r3*rate2 - f!(4.0)*c2*c3*r1*r2*r3*rate2 + f!(2.0)*c2*r2*r2*rate + f!(2.0)*c2*r1*r2*rate - f!(2.0)*c2*g*r2*r2*rate - f!(2.0)*c2*g*r1*r2*rate + f!(2.0)*c3*r2*r3*rate + f!(2.0)*c3*r2*r2*rate + f!(4.0)*c3*r1*r3*rate + f!(2.0)*c3*r1*r2*rate + f!(3.0)*r2 + f!(6.0)*r1,
+                        f!(24.0)*c1*c2*c3*r1*r2*r2*r3*rate3 - f!(4.0)*c1*c2*r1*r2*r2*rate2 + f!(4.0)*c1*c2*g*r1*r2*r2*rate2 - f!(4.0)*c1*c3*r1*r2*r3*rate2 - f!(4.0)*c1*c3*r1*r2*r2*rate2 - f!(2.0)*c1*r1*r2*rate - f!(4.0)*c2*c3*r2*r2*r3*rate2 - f!(4.0)*c2*c3*r1*r2*r3*rate2 - f!(2.0)*c2*r2*r2*rate - f!(2.0)*c2*r1*r2*rate + f!(2.0)*c2*g*r2*r2*rate + f!(2.0)*c2*g*r1*r2*rate - f!(2.0)*c3*r2*r3*rate - f!(2.0)*c3*r2*r2*rate - f!(4.0)*c3*r1*r3*rate - f!(2.0)*c3*r1*r2*rate + f!(3.0)*r2 + f!(6.0)*r1,
+                        -f!(8.0)*c1*c2*c3*r1*r2*r2*r3*rate3 + f!(4.0)*c1*c2*r1*r2*r2*rate2 - f!(4.0)*c1*c2*g*r1*r2*r2*rate2 + f!(4.0)*c1*c3*r1*r2*r3*rate2 + f!(4.0)*c1*c3*r1*r2*r2*rate2 - f!(2.0)*c1*r1*r2*rate + f!(4.0)*c2*c3*r2*r2*r3*rate2 + f!(4.0)*c2*c3*r1*r2*r3*rate2 - f!(2.0)*c2*r2*r2*rate - f!(2.0)*c2*r1*r2*rate + f!(2.0)*c2*g*r2*r2*rate + f!(2.0)*c2*g*r1*r2*rate - f!(2.0)*c3*r2*r3*rate - f!(2.0)*c3*r2*r2*rate - f!(4.0)*c3*r1*r3*rate - f!(2.0)*c3*r1*r2*rate + r2 + f!(2.0)*r1,
+                    ],
+                    [
+                        f!(8.0)*c1*c2*c3*r1*r2*r2*r3*rate3 + f!(4.0)*c1*c2*r1*r2*r2*rate2 - f!(4.0)*c1*c2*g*r1*r2*r2*rate2 + f!(4.0)*c1*c3*r1*r2*r3*rate2 + f!(4.0)*c1*c3*r1*r2*r2*rate2 + f!(2.0)*c1*r1*r2*rate + f!(4.0)*c2*c3*r1*r2*r3*rate2 + f!(4.0)*c2*c3*r2*r2*r3*rate2 + f!(2.0)*c2*r1*r2*rate + f!(2.0)*c2*r2*r2*rate - f!(2.0)*c2*g*r1*r2*rate - f!(2.0)*c2*g*r2*r2*rate + f!(4.0)*c3*r1*r3*rate + f!(2.0)*c3*r1*r2*rate + f!(2.0)*c3*r2*r3*rate + f!(2.0)*c3*r2*r2*rate + f!(2.0)*r1 + r2,
+                        -f!(24.0)*c1*c2*c3*r1*r2*r2*r3*rate3 - f!(4.0)*c1*c2*r1*r2*r2*rate2 + f!(4.0)*c1*c2*g*r1*r2*r2*rate2 - f!(4.0)*c1*c3*r1*r2*r3*rate2 - f!(4.0)*c1*c3*r1*r2*r2*rate2 + f!(2.0)*c1*r1*r2*rate - f!(4.0)*c2*c3*r1*r2*r3*rate2 - f!(4.0)*c2*c3*r2*r2*r3*rate2 + f!(2.0)*c2*r1*r2*rate + f!(2.0)*c2*r2*r2*rate - f!(2.0)*c2*g*r1*r2*rate - f!(2.0)*c2*g*r2*r2*rate + f!(4.0)*c3*r1*r3*rate + f!(2.0)*c3*r1*r2*rate + f!(2.0)*c3*r2*r3*rate + f!(2.0)*c3*r2*r2*rate + f!(6.0)*r1 + f!(3.0)*r2,
+                        f!(24.0)*c1*c2*c3*r1*r2*r2*r3*rate3 - f!(4.0)*c1*c2*r1*r2*r2*rate2 + f!(4.0)*c1*c2*g*r1*r2*r2*rate2 - f!(4.0)*c1*c3*r1*r2*r3*rate2 - f!(4.0)*c1*c3*r1*r2*r2*rate2 - f!(2.0)*c1*r1*r2*rate - f!(4.0)*c2*c3*r1*r2*r3*rate2 - f!(4.0)*c2*c3*r2*r2*r3*rate2 - f!(2.0)*c2*r1*r2*rate - f!(2.0)*c2*r2*r2*rate + f!(2.0)*c2*g*r1*r2*rate + f!(2.0)*c2*g*r2*r2*rate - f!(4.0)*c3*r1*r3*rate - f!(2.0)*c3*r1*r2*rate - f!(2.0)*c3*r2*r3*rate - f!(2.0)*c3*r2*r2*rate + f!(6.0)*r1 + f!(3.0)*r2,
+                        -f!(8.0)*c1*c2*c3*r1*r2*r2*r3*rate3 + f!(4.0)*c1*c2*r1*r2*r2*rate2 - f!(4.0)*c1*c2*g*r1*r2*r2*rate2 + f!(4.0)*c1*c3*r1*r2*r3*rate2 + f!(4.0)*c1*c3*r1*r2*r2*rate2 - f!(2.0)*c1*r1*r2*rate + f!(4.0)*c2*c3*r1*r2*r3*rate2 + f!(4.0)*c2*c3*r2*r2*r3*rate2 - f!(2.0)*c2*r1*r2*rate - f!(2.0)*c2*r2*r2*rate + f!(2.0)*c2*g*r1*r2*rate + f!(2.0)*c2*g*r2*r2*rate - f!(4.0)*c3*r1*r3*rate - f!(2.0)*c3*r1*r2*rate - f!(2.0)*c3*r2*r3*rate - f!(2.0)*c3*r2*r2*rate + f!(2.0)*r1 + r2,
+                    ],
+                    [
+                        f!(4.0)*c1*c3*r1*r2*rate2 + f!(4.0)*c1*c3*r1*r3*rate2 + f!(2.0)*c1*r1*rate - f!(2.0)*c1*g*r1*rate + f!(8.0)*c1*c2*c3*r1*r2*r3*rate3 + f!(4.0)*c1*c2*r1*r2*rate2 + f!(2.0)*c3*r2*rate + f!(2.0)*c3*r3*rate + f!(1.0) - g + f!(4.0)*c2*c3*r2*r3*rate2 + f!(4.0)*c2*c3*r1*r2*rate2 + f!(4.0)*c2*c3*r1*r3*rate2 + f!(2.0)*c2*r2*rate + f!(2.0)*c2*r1*rate - f!(2.0)*c2*g*r1*rate + f!(16.0)*c2*c2*c3*r1*r2*r3*rate3 + f!(8.0)*c2*c2*r1*r2*rate2,
+                        -f!(4.0)*c1*c3*r1*r2*rate2 - f!(4.0)*c1*c3*r1*r3*rate2 + f!(2.0)*c1*r1*rate - f!(2.0)*c1*g*r1*rate - f!(24.0)*c1*c2*c3*r1*r2*r3*rate3 - f!(4.0)*c1*c2*r1*r2*rate2 + f!(2.0)*c3*r2*rate + f!(2.0)*c3*r3*rate + f!(3.0) - f!(3.0)*g - f!(4.0)*c2*c3*r2*r3*rate2 - f!(4.0)*c2*c3*r1*r2*rate2 - f!(4.0)*c2*c3*r1*r3*rate2 + f!(2.0)*c2*r2*rate + f!(2.0)*c2*r1*rate - f!(2.0)*c2*g*r1*rate - f!(48.0)*c2*c2*c3*r1*r2*r3*rate3 - f!(8.0)*c2*c2*r1*r2*rate2,
+                        -f!(4.0)*c1*c3*r1*r2*rate2 - f!(4.0)*c1*c3*r1*r3*rate2 - f!(2.0)*c1*r1*rate + f!(2.0)*c1*g*r1*rate + f!(24.0)*c1*c2*c3*r1*r2*r3*rate3 - f!(4.0)*c1*c2*r1*r2*rate2 - f!(2.0)*c3*r2*rate - f!(2.0)*c3*r3*rate + f!(3.0) - f!(3.0)*g - f!(4.0)*c2*c3*r2*r3*rate2 - f!(4.0)*c2*c3*r1*r2*rate2 - f!(4.0)*c2*c3*r1*r3*rate2 - f!(2.0)*c2*r2*rate - f!(2.0)*c2*r1*rate + f!(2.0)*c2*g*r1*rate + f!(48.0)*c2*c2*c3*r1*r2*r3*rate3 - f!(8.0)*c2*c2*r1*r2*rate2,
+                        f!(4.0)*c1*c3*r1*r2*rate2 + f!(4.0)*c1*c3*r1*r3*rate2 - f!(2.0)*c1*r1*rate + f!(2.0)*c1*g*r1*rate - f!(8.0)*c1*c2*c3*r1*r2*r3*rate3 + f!(4.0)*c1*c2*r1*r2*rate2 - f!(2.0)*c3*r2*rate - f!(2.0)*c3*r3*rate + f!(1.0) - g + f!(4.0)*c2*c3*r2*r3*rate2 + f!(4.0)*c2*c3*r1*r2*rate2 + f!(4.0)*c2*c3*r1*r3*rate2 - f!(2.0)*c2*r2*rate - f!(2.0)*c2*r1*rate + f!(2.0)*c2*g*r1*rate - f!(16.0)*c2*c2*c3*r1*r2*r3*rate3 + f!(8.0)*c2*c2*r1*r2*rate2,
+                    ],
+                    [
+                        f!(4.0)*c1*c3*r1*r2*rate2 + f!(4.0)*c1*c3*r1*r3*rate2 + f!(2.0)*c1*r1*rate - f!(2.0)*c1*g*r1*rate + f!(8.0)*c1*c2*c3*r1*r2*r3*rate3 + f!(4.0)*c1*c2*r1*r2*rate2 + f!(2.0)*c3*r2*rate + f!(2.0)*c3*r3*rate + f!(1.0) - g + f!(4.0)*c2*c3*r1*r2*rate2 + f!(4.0)*c2*c3*r1*r3*rate2 + f!(4.0)*c2*c3*r2*r3*rate2 + f!(2.0)*c2*r1*rate + f!(2.0)*c2*r2*rate - f!(2.0)*c2*g*r1*rate + f!(16.0)*c2*c2*c3*r1*r2*r3*rate3 + f!(8.0)*c2*c2*r1*r2*rate2,
+                        -f!(4.0)*c1*c3*r1*r2*rate2 - f!(4.0)*c1*c3*r1*r3*rate2 + f!(2.0)*c1*r1*rate - f!(2.0)*c1*g*r1*rate - f!(24.0)*c1*c2*c3*r1*r2*r3*rate3 - f!(4.0)*c1*c2*r1*r2*rate2 + f!(2.0)*c3*r2*rate + f!(2.0)*c3*r3*rate + f!(3.0) - f!(3.0)*g - f!(4.0)*c2*c3*r1*r2*rate2 - f!(4.0)*c2*c3*r1*r3*rate2 - f!(4.0)*c2*c3*r2*r3*rate2 + f!(2.0)*c2*r1*rate + f!(2.0)*c2*r2*rate - f!(2.0)*c2*g*r1*rate - f!(48.0)*c2*c2*c3*r1*r2*r3*rate3 - f!(8.0)*c2*c2*r1*r2*rate2,
+                        -f!(4.0)*c1*c3*r1*r2*rate2 - f!(4.0)*c1*c3*r1*r3*rate2 - f!(2.0)*c1*r1*rate + f!(2.0)*c1*g*r1*rate + f!(24.0)*c1*c2*c3*r1*r2*r3*rate3 - f!(4.0)*c1*c2*r1*r2*rate2 - f!(2.0)*c3*r2*rate - f!(2.0)*c3*r3*rate + f!(3.0) - f!(3.0)*g - f!(4.0)*c2*c3*r1*r2*rate2 - f!(4.0)*c2*c3*r1*r3*rate2 - f!(4.0)*c2*c3*r2*r3*rate2 - f!(2.0)*c2*r1*rate - f!(2.0)*c2*r2*rate + f!(2.0)*c2*g*r1*rate + f!(48.0)*c2*c2*c3*r1*r2*r3*rate3 - f!(8.0)*c2*c2*r1*r2*rate2,
+                        f!(4.0)*c1*c3*r1*r2*rate2 + f!(4.0)*c1*c3*r1*r3*rate2 - f!(2.0)*c1*r1*rate + f!(2.0)*c1*g*r1*rate - f!(8.0)*c1*c2*c3*r1*r2*r3*rate3 + f!(4.0)*c1*c2*r1*r2*rate2 - f!(2.0)*c3*r2*rate - f!(2.0)*c3*r3*rate + f!(1.0) - g + f!(4.0)*c2*c3*r1*r2*rate2 + f!(4.0)*c2*c3*r1*r3*rate2 + f!(4.0)*c2*c3*r2*r3*rate2 - f!(2.0)*c2*r1*rate - f!(2.0)*c2*r2*rate + f!(2.0)*c2*g*r1*rate - f!(16.0)*c2*c2*c3*r1*r2*r3*rate3 + f!(8.0)*c2*c2*r1*r2*rate2,
+                    ],
+                    [
+                        f!(4.0)*c1*c2*r1*r2*r2*rate2 + f!(8.0)*c1*c2*c3*r1*r2*r2*r3*rate3 - f!(8.0)*c1*c2*c3*g*r1*r2*r2*r3*rate3 + f!(2.0)*c1*r1*r2*rate + f!(4.0)*c1*c3*r1*r2*r3*rate2 + f!(4.0)*c1*c3*r1*r2*r2*rate2 + f!(2.0)*c2*r2*r2*rate + f!(2.0)*c2*r1*r2*rate + f!(4.0)*c2*c3*r2*r2*r3*rate2 + f!(4.0)*c2*c3*r1*r2*r3*rate2 - f!(4.0)*c2*c3*g*r2*r2*r3*rate2 - f!(4.0)*c2*c3*g*r1*r2*r3*rate2 + r2 + f!(2.0)*r1 + f!(2.0)*c3*r2*r3*rate + f!(2.0)*c3*r2*r2*rate + f!(4.0)*c3*r1*r3*rate + f!(2.0)*c3*r1*r2*rate,
+                        -f!(4.0)*c1*c2*r1*r2*r2*rate2 - f!(24.0)*c1*c2*c3*r1*r2*r2*r3*rate3 + f!(24.0)*c1*c2*c3*g*r1*r2*r2*r3*rate3 + f!(2.0)*c1*r1*r2*rate - f!(4.0)*c1*c3*r1*r2*r3*rate2 - f!(4.0)*c1*c3*r1*r2*r2*rate2 + f!(2.0)*c2*r2*r2*rate + f!(2.0)*c2*r1*r2*rate - f!(4.0)*c2*c3*r2*r2*r3*rate2 - f!(4.0)*c2*c3*r1*r2*r3*rate2 + f!(4.0)*c2*c3*g*r2*r2*r3*rate2 + f!(4.0)*c2*c3*g*r1*r2*r3*rate2 + f!(3.0)*r2 + f!(6.0)*r1 + f!(2.0)*c3*r2*r3*rate + f!(2.0)*c3*r2*r2*rate + f!(4.0)*c3*r1*r3*rate + f!(2.0)*c3*r1*r2*rate,
+                        -f!(4.0)*c1*c2*r1*r2*r2*rate2 + f!(24.0)*c1*c2*c3*r1*r2*r2*r3*rate3 - f!(24.0)*c1*c2*c3*g*r1*r2*r2*r3*rate3 - f!(2.0)*c1*r1*r2*rate - f!(4.0)*c1*c3*r1*r2*r3*rate2 - f!(4.0)*c1*c3*r1*r2*r2*rate2 - f!(2.0)*c2*r2*r2*rate - f!(2.0)*c2*r1*r2*rate - f!(4.0)*c2*c3*r2*r2*r3*rate2 - f!(4.0)*c2*c3*r1*r2*r3*rate2 + f!(4.0)*c2*c3*g*r2*r2*r3*rate2 + f!(4.0)*c2*c3*g*r1*r2*r3*rate2 + f!(3.0)*r2 + f!(6.0)*r1 - f!(2.0)*c3*r2*r3*rate - f!(2.0)*c3*r2*r2*rate - f!(4.0)*c3*r1*r3*rate - f!(2.0)*c3*r1*r2*rate,
+                        f!(4.0)*c1*c2*r1*r2*r2*rate2 - f!(8.0)*c1*c2*c3*r1*r2*r2*r3*rate3 + f!(8.0)*c1*c2*c3*g*r1*r2*r2*r3*rate3 - f!(2.0)*c1*r1*r2*rate + f!(4.0)*c1*c3*r1*r2*r3*rate2 + f!(4.0)*c1*c3*r1*r2*r2*rate2 - f!(2.0)*c2*r2*r2*rate - f!(2.0)*c2*r1*r2*rate + f!(4.0)*c2*c3*r2*r2*r3*rate2 + f!(4.0)*c2*c3*r1*r2*r3*rate2 - f!(4.0)*c2*c3*g*r2*r2*r3*rate2 - f!(4.0)*c2*c3*g*r1*r2*r3*rate2 + r2 + f!(2.0)*r1 - f!(2.0)*c3*r2*r3*rate - f!(2.0)*c3*r2*r2*rate - f!(4.0)*c3*r1*r3*rate - f!(2.0)*c3*r1*r2*rate,
+                    ],
+                    [
+                        f!(4.0)*c1*c2*r1*r2*r2*rate2 + f!(8.0)*c1*c2*c3*r1*r2*r2*r3*rate3 - f!(8.0)*c1*c2*c3*g*r1*r2*r2*r3*rate3 + f!(2.0)*c1*r1*r2*rate + f!(4.0)*c1*c3*r1*r2*r3*rate2 + f!(4.0)*c1*c3*r1*r2*r2*rate2 + f!(2.0)*c2*r1*r2*rate + f!(2.0)*c2*r2*r2*rate + f!(4.0)*c2*c3*r1*r2*r3*rate2 + f!(4.0)*c2*c3*r2*r2*r3*rate2 - f!(4.0)*c2*c3*g*r1*r2*r3*rate2 - f!(4.0)*c2*c3*g*r2*r2*r3*rate2 + f!(2.0)*r1 + r2 + f!(4.0)*c3*r1*r3*rate + f!(2.0)*c3*r1*r2*rate + f!(2.0)*c3*r2*r3*rate + f!(2.0)*c3*r2*r2*rate,
+                        -f!(4.0)*c1*c2*r1*r2*r2*rate2 - f!(24.0)*c1*c2*c3*r1*r2*r2*r3*rate3 + f!(24.0)*c1*c2*c3*g*r1*r2*r2*r3*rate3 + f!(2.0)*c1*r1*r2*rate - f!(4.0)*c1*c3*r1*r2*r3*rate2 - f!(4.0)*c1*c3*r1*r2*r2*rate2 + f!(2.0)*c2*r1*r2*rate + f!(2.0)*c2*r2*r2*rate - f!(4.0)*c2*c3*r1*r2*r3*rate2 - f!(4.0)*c2*c3*r2*r2*r3*rate2 + f!(4.0)*c2*c3*g*r1*r2*r3*rate2 + f!(4.0)*c2*c3*g*r2*r2*r3*rate2 + f!(6.0)*r1 + f!(3.0)*r2 + f!(4.0)*c3*r1*r3*rate + f!(2.0)*c3*r1*r2*rate + f!(2.0)*c3*r2*r3*rate + f!(2.0)*c3*r2*r2*rate,
+                        -f!(4.0)*c1*c2*r1*r2*r2*rate2 + f!(24.0)*c1*c2*c3*r1*r2*r2*r3*rate3 - f!(24.0)*c1*c2*c3*g*r1*r2*r2*r3*rate3 - f!(2.0)*c1*r1*r2*rate - f!(4.0)*c1*c3*r1*r2*r3*rate2 - f!(4.0)*c1*c3*r1*r2*r2*rate2 - f!(2.0)*c2*r1*r2*rate - f!(2.0)*c2*r2*r2*rate - f!(4.0)*c2*c3*r1*r2*r3*rate2 - f!(4.0)*c2*c3*r2*r2*r3*rate2 + f!(4.0)*c2*c3*g*r1*r2*r3*rate2 + f!(4.0)*c2*c3*g*r2*r2*r3*rate2 + f!(6.0)*r1 + f!(3.0)*r2 - f!(4.0)*c3*r1*r3*rate - f!(2.0)*c3*r1*r2*rate - f!(2.0)*c3*r2*r3*rate - f!(2.0)*c3*r2*r2*rate,
+                        f!(4.0)*c1*c2*r1*r2*r2*rate2 - f!(8.0)*c1*c2*c3*r1*r2*r2*r3*rate3 + f!(8.0)*c1*c2*c3*g*r1*r2*r2*r3*rate3 - f!(2.0)*c1*r1*r2*rate + f!(4.0)*c1*c3*r1*r2*r3*rate2 + f!(4.0)*c1*c3*r1*r2*r2*rate2 - f!(2.0)*c2*r1*r2*rate - f!(2.0)*c2*r2*r2*rate + f!(4.0)*c2*c3*r1*r2*r3*rate2 + f!(4.0)*c2*c3*r2*r2*r3*rate2 - f!(4.0)*c2*c3*g*r1*r2*r3*rate2 - f!(4.0)*c2*c3*g*r2*r2*r3*rate2 + f!(2.0)*r1 + r2 - f!(4.0)*c3*r1*r3*rate - f!(2.0)*c3*r1*r2*rate - f!(2.0)*c3*r2*r3*rate - f!(2.0)*c3*r2*r2*rate,
+                    ],
+                    [
+                        f!(2.0)*c1*r1*rate + f!(4.0)*c1*c3*r1*r2*rate2 + f!(4.0)*c1*c3*r1*r3*rate2 - f!(4.0)*c1*c3*g*r1*r3*rate2 + f!(4.0)*c1*c2*r1*r2*rate2 + f!(8.0)*c1*c2*c3*r1*r2*r3*rate3 + f!(1.0) + f!(2.0)*c3*r2*rate + f!(2.0)*c3*r3*rate - f!(2.0)*c3*g*r3*rate + f!(2.0)*c2*r2*rate + f!(2.0)*c2*r1*rate + f!(4.0)*c2*c3*r2*r3*rate2 + f!(4.0)*c2*c3*r1*r2*rate2 + f!(4.0)*c2*c3*r1*r3*rate2 - f!(4.0)*c2*c3*g*r1*r3*rate2 + f!(8.0)*c2*c2*r1*r2*rate2 + f!(16.0)*c2*c2*c3*r1*r2*r3*rate3,
+                        f!(2.0)*c1*r1*rate - f!(4.0)*c1*c3*r1*r2*rate2 - f!(4.0)*c1*c3*r1*r3*rate2 + f!(4.0)*c1*c3*g*r1*r3*rate2 - f!(4.0)*c1*c2*r1*r2*rate2 - f!(24.0)*c1*c2*c3*r1*r2*r3*rate3 + f!(3.0) + f!(2.0)*c3*r2*rate + f!(2.0)*c3*r3*rate - f!(2.0)*c3*g*r3*rate + f!(2.0)*c2*r2*rate + f!(2.0)*c2*r1*rate - f!(4.0)*c2*c3*r2*r3*rate2 - f!(4.0)*c2*c3*r1*r2*rate2 - f!(4.0)*c2*c3*r1*r3*rate2 + f!(4.0)*c2*c3*g*r1*r3*rate2 - f!(8.0)*c2*c2*r1*r2*rate2 - f!(48.0)*c2*c2*c3*r1*r2*r3*rate3,
+                        -f!(2.0)*c1*r1*rate - f!(4.0)*c1*c3*r1*r2*rate2 - f!(4.0)*c1*c3*r1*r3*rate2 + f!(4.0)*c1*c3*g*r1*r3*rate2 - f!(4.0)*c1*c2*r1*r2*rate2 + f!(24.0)*c1*c2*c3*r1*r2*r3*rate3 + f!(3.0) - f!(2.0)*c3*r2*rate - f!(2.0)*c3*r3*rate + f!(2.0)*c3*g*r3*rate - f!(2.0)*c2*r2*rate - f!(2.0)*c2*r1*rate - f!(4.0)*c2*c3*r2*r3*rate2 - f!(4.0)*c2*c3*r1*r2*rate2 - f!(4.0)*c2*c3*r1*r3*rate2 + f!(4.0)*c2*c3*g*r1*r3*rate2 - f!(8.0)*c2*c2*r1*r2*rate2 + f!(48.0)*c2*c2*c3*r1*r2*r3*rate3,
+                        -f!(2.0)*c1*r1*rate + f!(4.0)*c1*c3*r1*r2*rate2 + f!(4.0)*c1*c3*r1*r3*rate2 - f!(4.0)*c1*c3*g*r1*r3*rate2 + f!(4.0)*c1*c2*r1*r2*rate2 - f!(8.0)*c1*c2*c3*r1*r2*r3*rate3 + f!(1.0) - f!(2.0)*c3*r2*rate - f!(2.0)*c3*r3*rate + f!(2.0)*c3*g*r3*rate - f!(2.0)*c2*r2*rate - f!(2.0)*c2*r1*rate + f!(4.0)*c2*c3*r2*r3*rate2 + f!(4.0)*c2*c3*r1*r2*rate2 + f!(4.0)*c2*c3*r1*r3*rate2 - f!(4.0)*c2*c3*g*r1*r3*rate2 + f!(8.0)*c2*c2*r1*r2*rate2 - f!(16.0)*c2*c2*c3*r1*r2*r3*rate3,
+                    ],
+                    [
+                        f!(2.0)*c1*r1*rate + f!(4.0)*c1*c3*r1*r2*rate2 + f!(4.0)*c1*c3*r1*r3*rate2 - f!(4.0)*c1*c3*g*r1*r3*rate2 + f!(4.0)*c1*c2*r1*r2*rate2 + f!(8.0)*c1*c2*c3*r1*r2*r3*rate3 + f!(1.0) + f!(2.0)*c3*r2*rate + f!(2.0)*c3*r3*rate - f!(2.0)*c3*g*r3*rate + f!(2.0)*c2*r1*rate + f!(2.0)*c2*r2*rate + f!(4.0)*c2*c3*r1*r2*rate2 + f!(4.0)*c2*c3*r1*r3*rate2 + f!(4.0)*c2*c3*r2*r3*rate2 - f!(4.0)*c2*c3*g*r1*r3*rate2 + f!(8.0)*c2*c2*r1*r2*rate2 + f!(16.0)*c2*c2*c3*r1*r2*r3*rate3,
+                        f!(2.0)*c1*r1*rate - f!(4.0)*c1*c3*r1*r2*rate2 - f!(4.0)*c1*c3*r1*r3*rate2 + f!(4.0)*c1*c3*g*r1*r3*rate2 - f!(4.0)*c1*c2*r1*r2*rate2 - f!(24.0)*c1*c2*c3*r1*r2*r3*rate3 + f!(3.0) + f!(2.0)*c3*r2*rate + f!(2.0)*c3*r3*rate - f!(2.0)*c3*g*r3*rate + f!(2.0)*c2*r1*rate + f!(2.0)*c2*r2*rate - f!(4.0)*c2*c3*r1*r2*rate2 - f!(4.0)*c2*c3*r1*r3*rate2 - f!(4.0)*c2*c3*r2*r3*rate2 + f!(4.0)*c2*c3*g*r1*r3*rate2 - f!(8.0)*c2*c2*r1*r2*rate2 - f!(48.0)*c2*c2*c3*r1*r2*r3*rate3,
+                        -f!(2.0)*c1*r1*rate - f!(4.0)*c1*c3*r1*r2*rate2 - f!(4.0)*c1*c3*r1*r3*rate2 + f!(4.0)*c1*c3*g*r1*r3*rate2 - f!(4.0)*c1*c2*r1*r2*rate2 + f!(24.0)*c1*c2*c3*r1*r2*r3*rate3 + f!(3.0) - f!(2.0)*c3*r2*rate - f!(2.0)*c3*r3*rate + f!(2.0)*c3*g*r3*rate - f!(2.0)*c2*r1*rate - f!(2.0)*c2*r2*rate - f!(4.0)*c2*c3*r1*r2*rate2 - f!(4.0)*c2*c3*r1*r3*rate2 - f!(4.0)*c2*c3*r2*r3*rate2 + f!(4.0)*c2*c3*g*r1*r3*rate2 - f!(8.0)*c2*c2*r1*r2*rate2 + f!(48.0)*c2*c2*c3*r1*r2*r3*rate3,
+                        -f!(2.0)*c1*r1*rate + f!(4.0)*c1*c3*r1*r2*rate2 + f!(4.0)*c1*c3*r1*r3*rate2 - f!(4.0)*c1*c3*g*r1*r3*rate2 + f!(4.0)*c1*c2*r1*r2*rate2 - f!(8.0)*c1*c2*c3*r1*r2*r3*rate3 + f!(1.0) - f!(2.0)*c3*r2*rate - f!(2.0)*c3*r3*rate + f!(2.0)*c3*g*r3*rate - f!(2.0)*c2*r1*rate - f!(2.0)*c2*r2*rate + f!(4.0)*c2*c3*r1*r2*rate2 + f!(4.0)*c2*c3*r1*r3*rate2 + f!(4.0)*c2*c3*r2*r3*rate2 - f!(4.0)*c2*c3*g*r1*r3*rate2 + f!(8.0)*c2*c2*r1*r2*rate2 - f!(16.0)*c2*c2*c3*r1*r2*r3*rate3,
+                    ],
+                ])]
+            )
         }
     }
-    
-    
-    pub fn r1(&self) -> F
-    {
-        *(&self.r1).deref()
-    }
-    pub fn r2(&self) -> F
-    {
-        *(&self.r2).deref()
-    }
-    pub fn r3(&self) -> F
-    {
-        *(&self.r3).deref()
-    }
-    pub fn c1(&self) -> F
-    {
-        *(&self.c1).deref()
-    }
-    pub fn c2(&self) -> F
-    {
-        *(&self.c2).deref()
-    }
-    pub fn c3(&self) -> F
-    {
-        *(&self.c3).deref()
-    }
-    pub fn g(&self) -> F
-    {
-        *(&self.g).deref()
-    }
-}
-
-iir3_impl!(
-    <R1, R2, R3, C1, C2, C3, G> ThirdOrderSallenKeyFilter<F, R1, R2, R3, C1, C2, C3, G>: 8: true =>
-    ThirdOrderSallenKeyFilter<f32>;
-    ThirdOrderSallenKeyFilter<f64>
-    where
-        R1: Param<F>,
-        R2: Param<F>,
-        R3: Param<F>,
-        C1: Param<F>,
-        C2: Param<F>,
-        C3: Param<F>,
-        G: Param<F>
 );
-
-impl<F, R1, R2, R3, C1, C2, C3> FilterStaticCoefficients<F> for ThirdOrderSallenKeyFilter<F, R1, R2, R3, C1, C2, C3>
+impl<P> From<P> for RC3GSallenKey<P::F>
 where
-    F: Float,
-    R1: Param<F>,
-    R2: Param<F>,
-    R3: Param<F>,
-    C1: Param<F>,
-    C2: Param<F>,
-    C3: Param<F>,
-    [(); Self::ORDER + 1]:,
-    [(); Self::OUTPUTS*Self::BUFFERED_OUTPUTS as usize + !Self::BUFFERED_OUTPUTS as usize]:
+    P: ThirdOrderSallenKeyFilterParam + NotSame<RC3GSallenKey<P::F>>
 {
-    fn b(&self, rate: F) -> ([[[F; 3]; 8]; 0], [[F; 4]; 8])
+    fn from(value: P) -> Self
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = self.r1();
-        let r2 = self.r2();
-        let r3 = self.r3();
-        let c1 = self.c1();
-        let c2 = self.c2();
-        let c3 = self.c3();
-        let g = self.g();
-        
-        ([], [
-            [
-                g*r2*f!(1.0),
-                g*r2*f!(3.0),
-                g*r2*f!(3.0),
-                g*r2*f!(1.0),
-            ],
-            [
-                c1*g*r1*r2*rate*f!(2.0),
-                c1*g*r1*r2*rate*f!(2.0),
-                c1*g*r1*r2*rate*f!(-2.0),
-                c1*g*r1*r2*rate*f!(-2.0),
-            ],
-            [
-                c2*g*r2*rate*f!(2.0),
-                c2*g*r2*rate*f!(2.0),
-                c2*g*r2*rate*f!(-2.0),
-                c2*g*r2*rate*f!(-2.0),
-            ],
-            [
-                c1*c2*g*r1*r2*rate2*f!(4.0),
-                c1*c2*g*r1*r2*rate2*f!(-4.0),
-                c1*c2*g*r1*r2*rate2*f!(-4.0),
-                c1*c2*g*r1*r2*rate2*f!(4.0),
-            ],
-            [
-                c3*g*r2*r3*rate*f!(2.0),
-                c3*g*r2*r3*rate*f!(2.0),
-                c3*g*r2*r3*rate*f!(-2.0),
-                c3*g*r2*r3*rate*f!(-2.0),
-            ],
-            [
-                c1*c3*g*r1*r2*r3*rate2*f!(4.0),
-                c1*c3*g*r1*r2*r3*rate2*f!(-4.0),
-                c1*c3*g*r1*r2*r3*rate2*f!(-4.0),
-                c1*c3*g*r1*r2*r3*rate2*f!(4.0),
-            ],
-            [
-                c2*c3*g*r2*r3*rate2*f!(4.0),
-                c2*c3*g*r2*r3*rate2*f!(-4.0),
-                c2*c3*g*r2*r3*rate2*f!(-4.0),
-                c2*c3*g*r2*r3*rate2*f!(4.0),
-            ],
-            [
-                c1*c2*c3*g*r1*r2*r3*rate3*f!(8.0),
-                c1*c2*c3*g*r1*r2*r3*rate3*f!(-24.0),
-                c1*c2*c3*g*r1*r2*r3*rate3*f!(24.0),
-                c1*c2*c3*g*r1*r2*r3*rate3*f!(-8.0),
-            ],
-        ])
-    }
-    
-    fn a(&self, rate: F) -> Option<([[[F; 3]; 8]; 0], [[F; 4]; 8])>
-    {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = self.r1();
-        let r2 = self.r2();
-        let r3 = self.r3();
-        let c1 = self.c1();
-        let c2 = self.c2();
-        let c3 = self.c3();
-        let g = self.g();
-
-        Some(([], [
-            [
-                f!(8.0)*c1*c2*c3*r1*r2*r2*r3*rate3 + f!(4.0)*c1*c2*r1*r2*r2*rate2 - f!(4.0)*c1*c2*g*r1*r2*r2*rate2 + f!(4.0)*c1*c3*r1*r2*r3*rate2 + f!(4.0)*c1*c3*r1*r2*r2*rate2 + f!(2.0)*c1*r1*r2*rate + f!(4.0)*c2*c3*r2*r2*r3*rate2 + f!(4.0)*c2*c3*r1*r2*r3*rate2 + f!(2.0)*c2*r2*r2*rate + f!(2.0)*c2*r1*r2*rate - f!(2.0)*c2*g*r2*r2*rate - f!(2.0)*c2*g*r1*r2*rate + f!(2.0)*c3*r2*r3*rate + f!(2.0)*c3*r2*r2*rate + f!(4.0)*c3*r1*r3*rate + f!(2.0)*c3*r1*r2*rate + r2 + f!(2.0)*r1,
-                -f!(24.0)*c1*c2*c3*r1*r2*r2*r3*rate3 - f!(4.0)*c1*c2*r1*r2*r2*rate2 + f!(4.0)*c1*c2*g*r1*r2*r2*rate2 - f!(4.0)*c1*c3*r1*r2*r3*rate2 - f!(4.0)*c1*c3*r1*r2*r2*rate2 + f!(2.0)*c1*r1*r2*rate - f!(4.0)*c2*c3*r2*r2*r3*rate2 - f!(4.0)*c2*c3*r1*r2*r3*rate2 + f!(2.0)*c2*r2*r2*rate + f!(2.0)*c2*r1*r2*rate - f!(2.0)*c2*g*r2*r2*rate - f!(2.0)*c2*g*r1*r2*rate + f!(2.0)*c3*r2*r3*rate + f!(2.0)*c3*r2*r2*rate + f!(4.0)*c3*r1*r3*rate + f!(2.0)*c3*r1*r2*rate + f!(3.0)*r2 + f!(6.0)*r1,
-                f!(24.0)*c1*c2*c3*r1*r2*r2*r3*rate3 - f!(4.0)*c1*c2*r1*r2*r2*rate2 + f!(4.0)*c1*c2*g*r1*r2*r2*rate2 - f!(4.0)*c1*c3*r1*r2*r3*rate2 - f!(4.0)*c1*c3*r1*r2*r2*rate2 - f!(2.0)*c1*r1*r2*rate - f!(4.0)*c2*c3*r2*r2*r3*rate2 - f!(4.0)*c2*c3*r1*r2*r3*rate2 - f!(2.0)*c2*r2*r2*rate - f!(2.0)*c2*r1*r2*rate + f!(2.0)*c2*g*r2*r2*rate + f!(2.0)*c2*g*r1*r2*rate - f!(2.0)*c3*r2*r3*rate - f!(2.0)*c3*r2*r2*rate - f!(4.0)*c3*r1*r3*rate - f!(2.0)*c3*r1*r2*rate + f!(3.0)*r2 + f!(6.0)*r1,
-                -f!(8.0)*c1*c2*c3*r1*r2*r2*r3*rate3 + f!(4.0)*c1*c2*r1*r2*r2*rate2 - f!(4.0)*c1*c2*g*r1*r2*r2*rate2 + f!(4.0)*c1*c3*r1*r2*r3*rate2 + f!(4.0)*c1*c3*r1*r2*r2*rate2 - f!(2.0)*c1*r1*r2*rate + f!(4.0)*c2*c3*r2*r2*r3*rate2 + f!(4.0)*c2*c3*r1*r2*r3*rate2 - f!(2.0)*c2*r2*r2*rate - f!(2.0)*c2*r1*r2*rate + f!(2.0)*c2*g*r2*r2*rate + f!(2.0)*c2*g*r1*r2*rate - f!(2.0)*c3*r2*r3*rate - f!(2.0)*c3*r2*r2*rate - f!(4.0)*c3*r1*r3*rate - f!(2.0)*c3*r1*r2*rate + r2 + f!(2.0)*r1,
-            ],
-            [
-                f!(8.0)*c1*c2*c3*r1*r2*r2*r3*rate3 + f!(4.0)*c1*c2*r1*r2*r2*rate2 - f!(4.0)*c1*c2*g*r1*r2*r2*rate2 + f!(4.0)*c1*c3*r1*r2*r3*rate2 + f!(4.0)*c1*c3*r1*r2*r2*rate2 + f!(2.0)*c1*r1*r2*rate + f!(4.0)*c2*c3*r1*r2*r3*rate2 + f!(4.0)*c2*c3*r2*r2*r3*rate2 + f!(2.0)*c2*r1*r2*rate + f!(2.0)*c2*r2*r2*rate - f!(2.0)*c2*g*r1*r2*rate - f!(2.0)*c2*g*r2*r2*rate + f!(4.0)*c3*r1*r3*rate + f!(2.0)*c3*r1*r2*rate + f!(2.0)*c3*r2*r3*rate + f!(2.0)*c3*r2*r2*rate + f!(2.0)*r1 + r2,
-                -f!(24.0)*c1*c2*c3*r1*r2*r2*r3*rate3 - f!(4.0)*c1*c2*r1*r2*r2*rate2 + f!(4.0)*c1*c2*g*r1*r2*r2*rate2 - f!(4.0)*c1*c3*r1*r2*r3*rate2 - f!(4.0)*c1*c3*r1*r2*r2*rate2 + f!(2.0)*c1*r1*r2*rate - f!(4.0)*c2*c3*r1*r2*r3*rate2 - f!(4.0)*c2*c3*r2*r2*r3*rate2 + f!(2.0)*c2*r1*r2*rate + f!(2.0)*c2*r2*r2*rate - f!(2.0)*c2*g*r1*r2*rate - f!(2.0)*c2*g*r2*r2*rate + f!(4.0)*c3*r1*r3*rate + f!(2.0)*c3*r1*r2*rate + f!(2.0)*c3*r2*r3*rate + f!(2.0)*c3*r2*r2*rate + f!(6.0)*r1 + f!(3.0)*r2,
-                f!(24.0)*c1*c2*c3*r1*r2*r2*r3*rate3 - f!(4.0)*c1*c2*r1*r2*r2*rate2 + f!(4.0)*c1*c2*g*r1*r2*r2*rate2 - f!(4.0)*c1*c3*r1*r2*r3*rate2 - f!(4.0)*c1*c3*r1*r2*r2*rate2 - f!(2.0)*c1*r1*r2*rate - f!(4.0)*c2*c3*r1*r2*r3*rate2 - f!(4.0)*c2*c3*r2*r2*r3*rate2 - f!(2.0)*c2*r1*r2*rate - f!(2.0)*c2*r2*r2*rate + f!(2.0)*c2*g*r1*r2*rate + f!(2.0)*c2*g*r2*r2*rate - f!(4.0)*c3*r1*r3*rate - f!(2.0)*c3*r1*r2*rate - f!(2.0)*c3*r2*r3*rate - f!(2.0)*c3*r2*r2*rate + f!(6.0)*r1 + f!(3.0)*r2,
-                -f!(8.0)*c1*c2*c3*r1*r2*r2*r3*rate3 + f!(4.0)*c1*c2*r1*r2*r2*rate2 - f!(4.0)*c1*c2*g*r1*r2*r2*rate2 + f!(4.0)*c1*c3*r1*r2*r3*rate2 + f!(4.0)*c1*c3*r1*r2*r2*rate2 - f!(2.0)*c1*r1*r2*rate + f!(4.0)*c2*c3*r1*r2*r3*rate2 + f!(4.0)*c2*c3*r2*r2*r3*rate2 - f!(2.0)*c2*r1*r2*rate - f!(2.0)*c2*r2*r2*rate + f!(2.0)*c2*g*r1*r2*rate + f!(2.0)*c2*g*r2*r2*rate - f!(4.0)*c3*r1*r3*rate - f!(2.0)*c3*r1*r2*rate - f!(2.0)*c3*r2*r3*rate - f!(2.0)*c3*r2*r2*rate + f!(2.0)*r1 + r2,
-            ],
-            [
-                f!(4.0)*c1*c3*r1*r2*rate2 + f!(4.0)*c1*c3*r1*r3*rate2 + f!(2.0)*c1*r1*rate - f!(2.0)*c1*g*r1*rate + f!(8.0)*c1*c2*c3*r1*r2*r3*rate3 + f!(4.0)*c1*c2*r1*r2*rate2 + f!(2.0)*c3*r2*rate + f!(2.0)*c3*r3*rate + f!(1.0) - g + f!(4.0)*c2*c3*r2*r3*rate2 + f!(4.0)*c2*c3*r1*r2*rate2 + f!(4.0)*c2*c3*r1*r3*rate2 + f!(2.0)*c2*r2*rate + f!(2.0)*c2*r1*rate - f!(2.0)*c2*g*r1*rate + f!(16.0)*c2*c2*c3*r1*r2*r3*rate3 + f!(8.0)*c2*c2*r1*r2*rate2,
-                -f!(4.0)*c1*c3*r1*r2*rate2 - f!(4.0)*c1*c3*r1*r3*rate2 + f!(2.0)*c1*r1*rate - f!(2.0)*c1*g*r1*rate - f!(24.0)*c1*c2*c3*r1*r2*r3*rate3 - f!(4.0)*c1*c2*r1*r2*rate2 + f!(2.0)*c3*r2*rate + f!(2.0)*c3*r3*rate + f!(3.0) - f!(3.0)*g - f!(4.0)*c2*c3*r2*r3*rate2 - f!(4.0)*c2*c3*r1*r2*rate2 - f!(4.0)*c2*c3*r1*r3*rate2 + f!(2.0)*c2*r2*rate + f!(2.0)*c2*r1*rate - f!(2.0)*c2*g*r1*rate - f!(48.0)*c2*c2*c3*r1*r2*r3*rate3 - f!(8.0)*c2*c2*r1*r2*rate2,
-                -f!(4.0)*c1*c3*r1*r2*rate2 - f!(4.0)*c1*c3*r1*r3*rate2 - f!(2.0)*c1*r1*rate + f!(2.0)*c1*g*r1*rate + f!(24.0)*c1*c2*c3*r1*r2*r3*rate3 - f!(4.0)*c1*c2*r1*r2*rate2 - f!(2.0)*c3*r2*rate - f!(2.0)*c3*r3*rate + f!(3.0) - f!(3.0)*g - f!(4.0)*c2*c3*r2*r3*rate2 - f!(4.0)*c2*c3*r1*r2*rate2 - f!(4.0)*c2*c3*r1*r3*rate2 - f!(2.0)*c2*r2*rate - f!(2.0)*c2*r1*rate + f!(2.0)*c2*g*r1*rate + f!(48.0)*c2*c2*c3*r1*r2*r3*rate3 - f!(8.0)*c2*c2*r1*r2*rate2,
-                f!(4.0)*c1*c3*r1*r2*rate2 + f!(4.0)*c1*c3*r1*r3*rate2 - f!(2.0)*c1*r1*rate + f!(2.0)*c1*g*r1*rate - f!(8.0)*c1*c2*c3*r1*r2*r3*rate3 + f!(4.0)*c1*c2*r1*r2*rate2 - f!(2.0)*c3*r2*rate - f!(2.0)*c3*r3*rate + f!(1.0) - g + f!(4.0)*c2*c3*r2*r3*rate2 + f!(4.0)*c2*c3*r1*r2*rate2 + f!(4.0)*c2*c3*r1*r3*rate2 - f!(2.0)*c2*r2*rate - f!(2.0)*c2*r1*rate + f!(2.0)*c2*g*r1*rate - f!(16.0)*c2*c2*c3*r1*r2*r3*rate3 + f!(8.0)*c2*c2*r1*r2*rate2,
-            ],
-            [
-                f!(4.0)*c1*c3*r1*r2*rate2 + f!(4.0)*c1*c3*r1*r3*rate2 + f!(2.0)*c1*r1*rate - f!(2.0)*c1*g*r1*rate + f!(8.0)*c1*c2*c3*r1*r2*r3*rate3 + f!(4.0)*c1*c2*r1*r2*rate2 + f!(2.0)*c3*r2*rate + f!(2.0)*c3*r3*rate + f!(1.0) - g + f!(4.0)*c2*c3*r1*r2*rate2 + f!(4.0)*c2*c3*r1*r3*rate2 + f!(4.0)*c2*c3*r2*r3*rate2 + f!(2.0)*c2*r1*rate + f!(2.0)*c2*r2*rate - f!(2.0)*c2*g*r1*rate + f!(16.0)*c2*c2*c3*r1*r2*r3*rate3 + f!(8.0)*c2*c2*r1*r2*rate2,
-                -f!(4.0)*c1*c3*r1*r2*rate2 - f!(4.0)*c1*c3*r1*r3*rate2 + f!(2.0)*c1*r1*rate - f!(2.0)*c1*g*r1*rate - f!(24.0)*c1*c2*c3*r1*r2*r3*rate3 - f!(4.0)*c1*c2*r1*r2*rate2 + f!(2.0)*c3*r2*rate + f!(2.0)*c3*r3*rate + f!(3.0) - f!(3.0)*g - f!(4.0)*c2*c3*r1*r2*rate2 - f!(4.0)*c2*c3*r1*r3*rate2 - f!(4.0)*c2*c3*r2*r3*rate2 + f!(2.0)*c2*r1*rate + f!(2.0)*c2*r2*rate - f!(2.0)*c2*g*r1*rate - f!(48.0)*c2*c2*c3*r1*r2*r3*rate3 - f!(8.0)*c2*c2*r1*r2*rate2,
-                -f!(4.0)*c1*c3*r1*r2*rate2 - f!(4.0)*c1*c3*r1*r3*rate2 - f!(2.0)*c1*r1*rate + f!(2.0)*c1*g*r1*rate + f!(24.0)*c1*c2*c3*r1*r2*r3*rate3 - f!(4.0)*c1*c2*r1*r2*rate2 - f!(2.0)*c3*r2*rate - f!(2.0)*c3*r3*rate + f!(3.0) - f!(3.0)*g - f!(4.0)*c2*c3*r1*r2*rate2 - f!(4.0)*c2*c3*r1*r3*rate2 - f!(4.0)*c2*c3*r2*r3*rate2 - f!(2.0)*c2*r1*rate - f!(2.0)*c2*r2*rate + f!(2.0)*c2*g*r1*rate + f!(48.0)*c2*c2*c3*r1*r2*r3*rate3 - f!(8.0)*c2*c2*r1*r2*rate2,
-                f!(4.0)*c1*c3*r1*r2*rate2 + f!(4.0)*c1*c3*r1*r3*rate2 - f!(2.0)*c1*r1*rate + f!(2.0)*c1*g*r1*rate - f!(8.0)*c1*c2*c3*r1*r2*r3*rate3 + f!(4.0)*c1*c2*r1*r2*rate2 - f!(2.0)*c3*r2*rate - f!(2.0)*c3*r3*rate + f!(1.0) - g + f!(4.0)*c2*c3*r1*r2*rate2 + f!(4.0)*c2*c3*r1*r3*rate2 + f!(4.0)*c2*c3*r2*r3*rate2 - f!(2.0)*c2*r1*rate - f!(2.0)*c2*r2*rate + f!(2.0)*c2*g*r1*rate - f!(16.0)*c2*c2*c3*r1*r2*r3*rate3 + f!(8.0)*c2*c2*r1*r2*rate2,
-            ],
-            [
-                f!(4.0)*c1*c2*r1*r2*r2*rate2 + f!(8.0)*c1*c2*c3*r1*r2*r2*r3*rate3 - f!(8.0)*c1*c2*c3*g*r1*r2*r2*r3*rate3 + f!(2.0)*c1*r1*r2*rate + f!(4.0)*c1*c3*r1*r2*r3*rate2 + f!(4.0)*c1*c3*r1*r2*r2*rate2 + f!(2.0)*c2*r2*r2*rate + f!(2.0)*c2*r1*r2*rate + f!(4.0)*c2*c3*r2*r2*r3*rate2 + f!(4.0)*c2*c3*r1*r2*r3*rate2 - f!(4.0)*c2*c3*g*r2*r2*r3*rate2 - f!(4.0)*c2*c3*g*r1*r2*r3*rate2 + r2 + f!(2.0)*r1 + f!(2.0)*c3*r2*r3*rate + f!(2.0)*c3*r2*r2*rate + f!(4.0)*c3*r1*r3*rate + f!(2.0)*c3*r1*r2*rate,
-                -f!(4.0)*c1*c2*r1*r2*r2*rate2 - f!(24.0)*c1*c2*c3*r1*r2*r2*r3*rate3 + f!(24.0)*c1*c2*c3*g*r1*r2*r2*r3*rate3 + f!(2.0)*c1*r1*r2*rate - f!(4.0)*c1*c3*r1*r2*r3*rate2 - f!(4.0)*c1*c3*r1*r2*r2*rate2 + f!(2.0)*c2*r2*r2*rate + f!(2.0)*c2*r1*r2*rate - f!(4.0)*c2*c3*r2*r2*r3*rate2 - f!(4.0)*c2*c3*r1*r2*r3*rate2 + f!(4.0)*c2*c3*g*r2*r2*r3*rate2 + f!(4.0)*c2*c3*g*r1*r2*r3*rate2 + f!(3.0)*r2 + f!(6.0)*r1 + f!(2.0)*c3*r2*r3*rate + f!(2.0)*c3*r2*r2*rate + f!(4.0)*c3*r1*r3*rate + f!(2.0)*c3*r1*r2*rate,
-                -f!(4.0)*c1*c2*r1*r2*r2*rate2 + f!(24.0)*c1*c2*c3*r1*r2*r2*r3*rate3 - f!(24.0)*c1*c2*c3*g*r1*r2*r2*r3*rate3 - f!(2.0)*c1*r1*r2*rate - f!(4.0)*c1*c3*r1*r2*r3*rate2 - f!(4.0)*c1*c3*r1*r2*r2*rate2 - f!(2.0)*c2*r2*r2*rate - f!(2.0)*c2*r1*r2*rate - f!(4.0)*c2*c3*r2*r2*r3*rate2 - f!(4.0)*c2*c3*r1*r2*r3*rate2 + f!(4.0)*c2*c3*g*r2*r2*r3*rate2 + f!(4.0)*c2*c3*g*r1*r2*r3*rate2 + f!(3.0)*r2 + f!(6.0)*r1 - f!(2.0)*c3*r2*r3*rate - f!(2.0)*c3*r2*r2*rate - f!(4.0)*c3*r1*r3*rate - f!(2.0)*c3*r1*r2*rate,
-                f!(4.0)*c1*c2*r1*r2*r2*rate2 - f!(8.0)*c1*c2*c3*r1*r2*r2*r3*rate3 + f!(8.0)*c1*c2*c3*g*r1*r2*r2*r3*rate3 - f!(2.0)*c1*r1*r2*rate + f!(4.0)*c1*c3*r1*r2*r3*rate2 + f!(4.0)*c1*c3*r1*r2*r2*rate2 - f!(2.0)*c2*r2*r2*rate - f!(2.0)*c2*r1*r2*rate + f!(4.0)*c2*c3*r2*r2*r3*rate2 + f!(4.0)*c2*c3*r1*r2*r3*rate2 - f!(4.0)*c2*c3*g*r2*r2*r3*rate2 - f!(4.0)*c2*c3*g*r1*r2*r3*rate2 + r2 + f!(2.0)*r1 - f!(2.0)*c3*r2*r3*rate - f!(2.0)*c3*r2*r2*rate - f!(4.0)*c3*r1*r3*rate - f!(2.0)*c3*r1*r2*rate,
-            ],
-            [
-                f!(4.0)*c1*c2*r1*r2*r2*rate2 + f!(8.0)*c1*c2*c3*r1*r2*r2*r3*rate3 - f!(8.0)*c1*c2*c3*g*r1*r2*r2*r3*rate3 + f!(2.0)*c1*r1*r2*rate + f!(4.0)*c1*c3*r1*r2*r3*rate2 + f!(4.0)*c1*c3*r1*r2*r2*rate2 + f!(2.0)*c2*r1*r2*rate + f!(2.0)*c2*r2*r2*rate + f!(4.0)*c2*c3*r1*r2*r3*rate2 + f!(4.0)*c2*c3*r2*r2*r3*rate2 - f!(4.0)*c2*c3*g*r1*r2*r3*rate2 - f!(4.0)*c2*c3*g*r2*r2*r3*rate2 + f!(2.0)*r1 + r2 + f!(4.0)*c3*r1*r3*rate + f!(2.0)*c3*r1*r2*rate + f!(2.0)*c3*r2*r3*rate + f!(2.0)*c3*r2*r2*rate,
-                -f!(4.0)*c1*c2*r1*r2*r2*rate2 - f!(24.0)*c1*c2*c3*r1*r2*r2*r3*rate3 + f!(24.0)*c1*c2*c3*g*r1*r2*r2*r3*rate3 + f!(2.0)*c1*r1*r2*rate - f!(4.0)*c1*c3*r1*r2*r3*rate2 - f!(4.0)*c1*c3*r1*r2*r2*rate2 + f!(2.0)*c2*r1*r2*rate + f!(2.0)*c2*r2*r2*rate - f!(4.0)*c2*c3*r1*r2*r3*rate2 - f!(4.0)*c2*c3*r2*r2*r3*rate2 + f!(4.0)*c2*c3*g*r1*r2*r3*rate2 + f!(4.0)*c2*c3*g*r2*r2*r3*rate2 + f!(6.0)*r1 + f!(3.0)*r2 + f!(4.0)*c3*r1*r3*rate + f!(2.0)*c3*r1*r2*rate + f!(2.0)*c3*r2*r3*rate + f!(2.0)*c3*r2*r2*rate,
-                -f!(4.0)*c1*c2*r1*r2*r2*rate2 + f!(24.0)*c1*c2*c3*r1*r2*r2*r3*rate3 - f!(24.0)*c1*c2*c3*g*r1*r2*r2*r3*rate3 - f!(2.0)*c1*r1*r2*rate - f!(4.0)*c1*c3*r1*r2*r3*rate2 - f!(4.0)*c1*c3*r1*r2*r2*rate2 - f!(2.0)*c2*r1*r2*rate - f!(2.0)*c2*r2*r2*rate - f!(4.0)*c2*c3*r1*r2*r3*rate2 - f!(4.0)*c2*c3*r2*r2*r3*rate2 + f!(4.0)*c2*c3*g*r1*r2*r3*rate2 + f!(4.0)*c2*c3*g*r2*r2*r3*rate2 + f!(6.0)*r1 + f!(3.0)*r2 - f!(4.0)*c3*r1*r3*rate - f!(2.0)*c3*r1*r2*rate - f!(2.0)*c3*r2*r3*rate - f!(2.0)*c3*r2*r2*rate,
-                f!(4.0)*c1*c2*r1*r2*r2*rate2 - f!(8.0)*c1*c2*c3*r1*r2*r2*r3*rate3 + f!(8.0)*c1*c2*c3*g*r1*r2*r2*r3*rate3 - f!(2.0)*c1*r1*r2*rate + f!(4.0)*c1*c3*r1*r2*r3*rate2 + f!(4.0)*c1*c3*r1*r2*r2*rate2 - f!(2.0)*c2*r1*r2*rate - f!(2.0)*c2*r2*r2*rate + f!(4.0)*c2*c3*r1*r2*r3*rate2 + f!(4.0)*c2*c3*r2*r2*r3*rate2 - f!(4.0)*c2*c3*g*r1*r2*r3*rate2 - f!(4.0)*c2*c3*g*r2*r2*r3*rate2 + f!(2.0)*r1 + r2 - f!(4.0)*c3*r1*r3*rate - f!(2.0)*c3*r1*r2*rate - f!(2.0)*c3*r2*r3*rate - f!(2.0)*c3*r2*r2*rate,
-            ],
-            [
-                f!(2.0)*c1*r1*rate + f!(4.0)*c1*c3*r1*r2*rate2 + f!(4.0)*c1*c3*r1*r3*rate2 - f!(4.0)*c1*c3*g*r1*r3*rate2 + f!(4.0)*c1*c2*r1*r2*rate2 + f!(8.0)*c1*c2*c3*r1*r2*r3*rate3 + f!(1.0) + f!(2.0)*c3*r2*rate + f!(2.0)*c3*r3*rate - f!(2.0)*c3*g*r3*rate + f!(2.0)*c2*r2*rate + f!(2.0)*c2*r1*rate + f!(4.0)*c2*c3*r2*r3*rate2 + f!(4.0)*c2*c3*r1*r2*rate2 + f!(4.0)*c2*c3*r1*r3*rate2 - f!(4.0)*c2*c3*g*r1*r3*rate2 + f!(8.0)*c2*c2*r1*r2*rate2 + f!(16.0)*c2*c2*c3*r1*r2*r3*rate3,
-                f!(2.0)*c1*r1*rate - f!(4.0)*c1*c3*r1*r2*rate2 - f!(4.0)*c1*c3*r1*r3*rate2 + f!(4.0)*c1*c3*g*r1*r3*rate2 - f!(4.0)*c1*c2*r1*r2*rate2 - f!(24.0)*c1*c2*c3*r1*r2*r3*rate3 + f!(3.0) + f!(2.0)*c3*r2*rate + f!(2.0)*c3*r3*rate - f!(2.0)*c3*g*r3*rate + f!(2.0)*c2*r2*rate + f!(2.0)*c2*r1*rate - f!(4.0)*c2*c3*r2*r3*rate2 - f!(4.0)*c2*c3*r1*r2*rate2 - f!(4.0)*c2*c3*r1*r3*rate2 + f!(4.0)*c2*c3*g*r1*r3*rate2 - f!(8.0)*c2*c2*r1*r2*rate2 - f!(48.0)*c2*c2*c3*r1*r2*r3*rate3,
-                -f!(2.0)*c1*r1*rate - f!(4.0)*c1*c3*r1*r2*rate2 - f!(4.0)*c1*c3*r1*r3*rate2 + f!(4.0)*c1*c3*g*r1*r3*rate2 - f!(4.0)*c1*c2*r1*r2*rate2 + f!(24.0)*c1*c2*c3*r1*r2*r3*rate3 + f!(3.0) - f!(2.0)*c3*r2*rate - f!(2.0)*c3*r3*rate + f!(2.0)*c3*g*r3*rate - f!(2.0)*c2*r2*rate - f!(2.0)*c2*r1*rate - f!(4.0)*c2*c3*r2*r3*rate2 - f!(4.0)*c2*c3*r1*r2*rate2 - f!(4.0)*c2*c3*r1*r3*rate2 + f!(4.0)*c2*c3*g*r1*r3*rate2 - f!(8.0)*c2*c2*r1*r2*rate2 + f!(48.0)*c2*c2*c3*r1*r2*r3*rate3,
-                -f!(2.0)*c1*r1*rate + f!(4.0)*c1*c3*r1*r2*rate2 + f!(4.0)*c1*c3*r1*r3*rate2 - f!(4.0)*c1*c3*g*r1*r3*rate2 + f!(4.0)*c1*c2*r1*r2*rate2 - f!(8.0)*c1*c2*c3*r1*r2*r3*rate3 + f!(1.0) - f!(2.0)*c3*r2*rate - f!(2.0)*c3*r3*rate + f!(2.0)*c3*g*r3*rate - f!(2.0)*c2*r2*rate - f!(2.0)*c2*r1*rate + f!(4.0)*c2*c3*r2*r3*rate2 + f!(4.0)*c2*c3*r1*r2*rate2 + f!(4.0)*c2*c3*r1*r3*rate2 - f!(4.0)*c2*c3*g*r1*r3*rate2 + f!(8.0)*c2*c2*r1*r2*rate2 - f!(16.0)*c2*c2*c3*r1*r2*r3*rate3,
-            ],
-            [
-                f!(2.0)*c1*r1*rate + f!(4.0)*c1*c3*r1*r2*rate2 + f!(4.0)*c1*c3*r1*r3*rate2 - f!(4.0)*c1*c3*g*r1*r3*rate2 + f!(4.0)*c1*c2*r1*r2*rate2 + f!(8.0)*c1*c2*c3*r1*r2*r3*rate3 + f!(1.0) + f!(2.0)*c3*r2*rate + f!(2.0)*c3*r3*rate - f!(2.0)*c3*g*r3*rate + f!(2.0)*c2*r1*rate + f!(2.0)*c2*r2*rate + f!(4.0)*c2*c3*r1*r2*rate2 + f!(4.0)*c2*c3*r1*r3*rate2 + f!(4.0)*c2*c3*r2*r3*rate2 - f!(4.0)*c2*c3*g*r1*r3*rate2 + f!(8.0)*c2*c2*r1*r2*rate2 + f!(16.0)*c2*c2*c3*r1*r2*r3*rate3,
-                f!(2.0)*c1*r1*rate - f!(4.0)*c1*c3*r1*r2*rate2 - f!(4.0)*c1*c3*r1*r3*rate2 + f!(4.0)*c1*c3*g*r1*r3*rate2 - f!(4.0)*c1*c2*r1*r2*rate2 - f!(24.0)*c1*c2*c3*r1*r2*r3*rate3 + f!(3.0) + f!(2.0)*c3*r2*rate + f!(2.0)*c3*r3*rate - f!(2.0)*c3*g*r3*rate + f!(2.0)*c2*r1*rate + f!(2.0)*c2*r2*rate - f!(4.0)*c2*c3*r1*r2*rate2 - f!(4.0)*c2*c3*r1*r3*rate2 - f!(4.0)*c2*c3*r2*r3*rate2 + f!(4.0)*c2*c3*g*r1*r3*rate2 - f!(8.0)*c2*c2*r1*r2*rate2 - f!(48.0)*c2*c2*c3*r1*r2*r3*rate3,
-                -f!(2.0)*c1*r1*rate - f!(4.0)*c1*c3*r1*r2*rate2 - f!(4.0)*c1*c3*r1*r3*rate2 + f!(4.0)*c1*c3*g*r1*r3*rate2 - f!(4.0)*c1*c2*r1*r2*rate2 + f!(24.0)*c1*c2*c3*r1*r2*r3*rate3 + f!(3.0) - f!(2.0)*c3*r2*rate - f!(2.0)*c3*r3*rate + f!(2.0)*c3*g*r3*rate - f!(2.0)*c2*r1*rate - f!(2.0)*c2*r2*rate - f!(4.0)*c2*c3*r1*r2*rate2 - f!(4.0)*c2*c3*r1*r3*rate2 - f!(4.0)*c2*c3*r2*r3*rate2 + f!(4.0)*c2*c3*g*r1*r3*rate2 - f!(8.0)*c2*c2*r1*r2*rate2 + f!(48.0)*c2*c2*c3*r1*r2*r3*rate3,
-                -f!(2.0)*c1*r1*rate + f!(4.0)*c1*c3*r1*r2*rate2 + f!(4.0)*c1*c3*r1*r3*rate2 - f!(4.0)*c1*c3*g*r1*r3*rate2 + f!(4.0)*c1*c2*r1*r2*rate2 - f!(8.0)*c1*c2*c3*r1*r2*r3*rate3 + f!(1.0) - f!(2.0)*c3*r2*rate - f!(2.0)*c3*r3*rate + f!(2.0)*c3*g*r3*rate - f!(2.0)*c2*r1*rate - f!(2.0)*c2*r2*rate + f!(4.0)*c2*c3*r1*r2*rate2 + f!(4.0)*c2*c3*r1*r3*rate2 + f!(4.0)*c2*c3*r2*r3*rate2 - f!(4.0)*c2*c3*g*r1*r3*rate2 + f!(8.0)*c2*c2*r1*r2*rate2 - f!(16.0)*c2*c2*c3*r1*r2*r3*rate3,
-            ],
-        ]))
-    }
-}
-
-impl<F, R1, R2, R3, C1, C2, C3> FilterStaticInternals<F> for ThirdOrderSallenKeyFilter<F, R1, R2, R3, C1, C2, C3>
-where
-    F: Float,
-    R1: Param<F>,
-    R2: Param<F>,
-    R3: Param<F>,
-    C1: Param<F>,
-    C2: Param<F>,
-    C3: Param<F>,
-    [(); Self::OUTPUTS*Self::BUFFERED_OUTPUTS as usize + !Self::BUFFERED_OUTPUTS as usize]:
-{
-    fn w(&mut self) -> ([&mut [[F; 2]; 8]; 0], &mut [[F; 3]; 8])
-    {
-        ([], &mut self.w)
+        RC3GSallenKey::new(value.r1(), value.c1(), value.r2(), value.c2(), value.r3(), value.c3(), value.g())
     }
 }
 
 #[cfg(test)]
 mod test
 {
-    use std::f64::consts::TAU;
-
-    use super::ThirdOrderSallenKeyFilter;
+    use super::{RC3GSallenKey, ThirdOrderSallenKeyFilter};
 
     #[test]
     fn plot()
     {
-        let mut filter = ThirdOrderSallenKeyFilter::new(470.0, 15.0e3, 16.0e3, 47.0e-9, 2.7e-9, 2.7e-9, 1.3846153846153846);
+        let mut filter = ThirdOrderSallenKeyFilter::new(RC3GSallenKey::new(470.0, 15.0e3, 16.0e3, 47.0e-9, 2.7e-9, 2.7e-9, 1.3846153846153846));
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

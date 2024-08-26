@@ -1,93 +1,301 @@
-#![feature(generic_const_exprs)]
 #![feature(generic_arg_infer)]
 #![feature(trait_alias)]
 #![feature(associated_const_equality)]
-#![feature(specialization)]
-#![feature(const_trait_impl)]
-#![feature(array_methods)]
-#![feature(const_closures)]
-#![feature(const_mut_refs)]
-#![feature(const_option)]
 #![feature(const_fn_floating_point_arithmetic)]
-#![feature(iter_array_chunks)]
-#![feature(iter_next_chunk)]
-#![feature(inline_const)]
 #![feature(associated_type_bounds)]
-#![feature(step_trait)]
 #![feature(split_array)]
+#![feature(receiver_trait)]
+#![feature(decl_macro)]
+#![feature(const_refs_to_cell)]
+
+#![feature(generic_const_exprs)]
+#![feature(specialization)]
 
 moddef::moddef!(
     pub mod {
         fir for cfg(feature = "filters"),
-        iir for cfg(feature = "filters")
-    }
-);
-moddef::moddef!(
-    flat(pub) mod {
-        filter_any,
-        filter_kind,
-        filter_static,
-        filter_static_coefficients,
-        filter_static_internals,
-        filter
-    },
-    flat mod {
+        iir for cfg(feature = "filters"),
+
+        internals,
         param,
-        plot for cfg(test)
+        rtf,
+        static_rtf
+    },
+    mod {
+        plot for cfg(test),
+        util
     }
 );
 
-use num::Float;
+mod private
+{
+    use crate::iir::first::{FirstOrderLRFilterParam, FirstOrderRCFilterParam};
 
-#[macro_export]
+    trait MaybeSame<T>
+    where
+        T: ?Sized
+    {
+        const IS_SAME: bool;
+    }
+    impl<T, U> MaybeSame<T> for U
+    where
+        T: ?Sized,
+        U: ?Sized
+    {
+        default const IS_SAME: bool = false;
+    }
+    impl<T> MaybeSame<T> for T
+    where
+        T: ?Sized
+    {
+        const IS_SAME: bool = true;
+    }
+
+    pub(crate) trait NotSame<T>
+    where
+        T: ?Sized
+    {
+
+    }
+    impl<T, U> NotSame<T> for U
+    where
+        T: ?Sized,
+        U: MaybeSame<T, IS_SAME = false> + ?Sized
+    {
+
+    }
+
+    macro_rules! not_trait_trait {
+        ($trait:ident => $maybe:ident => $not:ident) => {
+            trait $maybe
+            {
+                const IS_IMPL: bool;
+            }
+            impl<T> $maybe for T
+            where
+                T: ?Sized
+            {
+                default const IS_IMPL: bool = false;
+            }
+            impl<T> $maybe for T
+            where
+                T: ?Sized + $trait
+            {
+                const IS_IMPL: bool = true;
+            }
+    
+            pub trait $not
+            {
+    
+            }
+            impl<T> $not for T
+            where
+                T: $maybe<IS_IMPL = false> + ?Sized
+            {
+    
+            }
+        }
+    }
+
+    not_trait_trait!(
+        FirstOrderLRFilterParam
+        => MaybeFirstOrderLRFilterParam
+        => NotFirstOrderLRFilterParam
+    );
+    not_trait_trait!(
+        FirstOrderRCFilterParam
+        => MaybeFirstOrderRCFilterParam
+        => NotFirstOrderRCFilterParam
+    );
+}
+
+pub const fn max_len(a: usize, b: usize) -> usize
+{
+    if b > a
+    {
+        b
+    }
+    else
+    {
+        a
+    }
+}
+
+#[allow(unused)]
 macro_rules! f {
-    ($x:expr; $f:tt) => {
-        <$f>::from($x).unwrap()
+    ($x:expr; $($f:tt)*) => {
+        <$($f)* as num::NumCast>::from($x).unwrap()
     };
     ($x:expr) => {
         f!($x; F)
-    }
+    };
 }
+#[allow(unused)]
+pub(crate) use f;
 
-#[macro_export]
-macro_rules! static_filter_impl {
+// Should be a derive macro
+#[allow(unused)]
+macro_rules! def_param {
     (
-        < $($generics:ident),* > $type:ty :
-        $kind:tt,
-        $outputs:literal: $buffered_outputs:literal,
-        $order:literal,
-        $extra_stages:literal
-        where
-            $($where:tt)*
+        $({
+            $($docs:tt)+
+        })?
+        $type:ident$(<$($gg:ident),+$(,)?>)? $({
+            $($var:ident: $ty:ty),+$(,)?
+        })?
+        $(where
+            $($where:tt)+)?
     ) => {
-        impl<F, $($generics),*> FilterAny<F> for $type
-        where
-            F: Float, $($where)*
+        $($($docs)*)?
+        pub struct $type$(<$($gg),*>)?
+        $(where
+            $($where)+)?
+        $({
+            $(pub $var: crate::param::Param<$ty>),*
+        })?
+        impl$(<$($gg),*>)? $type$(<$($gg),*>)?
+        $(where
+            $($where)+)?
         {
-            const KIND: FilterKind = FilterKind::$kind;
-            const OUTPUTS: usize = $outputs;
+            pub const fn new($($($var: $ty),*)?) -> Self
+            {
+                Self $({
+                    $($var: crate::param::Param::new($var)),*
+                })?
+            }
         }
-        
-        impl<F, $($generics),*> FilterStatic<F> for $type
-        where
-            F: Float, $($where)*
+        impl$(<$($gg),*>)? crate::param::Parameterization for $type$(<$($gg),*>)?
+        $(where
+            $($where)+)?
         {
-            const BUFFERED_OUTPUTS: bool = $buffered_outputs;
-            const SOS_STAGES: usize = $extra_stages;
-            const ORDER: usize = $order;
+            fn is_unchanged(&self) -> bool
+            {
+                true $($(&& self.$var.is_unchanged())*)?
+            }
+            fn set_unchanged(&mut self)
+            {
+                $($(self.$var.set_unchanged();)*)?
+            }
         }
     };
 }
+#[allow(unused)]
+pub(crate) use def_param;
+
+macro_rules! def_rtf {
+    (
+        $({
+            $($docs:tt)+
+        })?
+        $name:ident
+        {
+            type Param: $param_trait:ident = $param_default:ident;
+            const OUTPUTS: usize = $outputs:literal;
+            const BUFFERED_OUTPUTS: bool = $buffered_outputs:literal;
+            const SOS_STAGES: usize = $sos_stages:literal;
+            const ORDER: usize = $order:literal;
+            const IS_IIR: bool = $is_iir:literal;
+
+            fn make_coeffs($arg_param:ident, $arg_rate:ident) -> _
+            $make_coeffs:block
+        }
+    ) => {
+        $($($docs)*)?
+        #[derive(Clone, Copy, Debug)]
+        pub struct $name<F, P = $param_default<F>>
+        where
+            F: num::Float + bytemuck::Pod,
+            P: $param_trait<F = F>
+        {
+            pub param: P,
+            pub internals: Internals<F>
+        }
+        
+        type Internals<F> = crate::internals::RtfInternalsGiven<F, $outputs, $buffered_outputs, $sos_stages, $order, $is_iir>;
+        /*type B<F> = crate::internals::binternals!(F, $outputs, $buffered_outputs, $sos_stages, $order);
+        type A<F> = crate::internals::ainternals!(F, $outputs, $buffered_outputs, $sos_stages, $order);*/
+        
+        
+        impl<F, P> $name<F, P>
+        where
+            F: num::Float + bytemuck::Pod,
+            P: $param_trait<F = F>
+        {
+            pub const fn new(param: P) -> Self
+            {
+                Self {
+                    param,
+                    internals: Internals::new()
+                }
+            }
+        }
+        
+        impl<F, P> crate::rtf::RtfBase for $name<F, P>
+        where
+            F: num::Float + bytemuck::Pod,
+            P: $param_trait<F = F>
+        {
+            type F = F;
+        
+            const IS_IIR: bool = $is_iir;
+            const OUTPUTS: usize = $outputs;
+        }
+
+        impl<F, P> crate::static_rtf::StaticRtfBase for $name<F, P>
+        where
+            F: num::Float + bytemuck::Pod,
+            P: $param_trait<F = F>
+        {
+            type Param = P;
+
+            const BUFFERED_OUTPUTS: bool = $buffered_outputs;
+            const SOS_STAGES: usize = $sos_stages;
+            const ORDER: usize = $order;
+            
+            fn from_param(param: Self::Param) -> Self
+            {
+                Self::new(param)
+            }
+            fn get_param(&self) -> &Self::Param
+            {
+                &self.param
+            }
+            fn get_param_mut(&mut self) -> &mut Self::Param
+            {
+                &mut self.param
+            }
+            fn into_param(self) -> Self::Param
+            {
+                self.param
+            }
+            
+            fn get_internals(&self) -> (&Internals<F>, &Self::Param)
+            {
+                (&self.internals, &self.param)
+            }
+            fn get_internals_mut(&mut self) -> (&mut Internals<F>, &mut Self::Param)
+            {
+                (&mut self.internals, &mut self.param)
+            }
+
+            fn make_coeffs($arg_param: &Self::Param, $arg_rate: Self::F) -> (
+                crate::internals::binternals!(F, $outputs, $buffered_outputs, $sos_stages, $order),
+                [crate::internals::ainternals!(F, $outputs, $buffered_outputs, $sos_stages, $order); $is_iir as usize]
+            )
+            $make_coeffs
+        }
+    };
+}
+#[allow(unused)]
+pub(crate) use def_rtf;
 
 #[cfg(test)]
 mod tests
 {
-    use array_math::ArrayOps;
-
     use linspace::LinspaceArray;
-    use num::{Float, Complex};
+    use num::{Complex, Float};
     use plotters::{prelude::{DynElement, BitMapBackend}, coord::ranged1d::{AsRangedCoord, ValueFormatter}, element::PointCollection};
-    use crate::{plot, Filter};
+    use crate::{plot, rtf::Rtf};
     use core::ops::Range;
     use std::{fmt::{Debug, Display}, ops::{AddAssign, SubAssign}};
 
@@ -99,9 +307,8 @@ mod tests
     ) -> Result<(), Box<dyn std::error::Error>>
     where
         F: Display + Debug,
-
-        T: Filter<F>,
-        [(); T::OUTPUTS]:,
+        T: Rtf<F = F>,
+        [(); T::OUTPUTS - 1]:,
         
         F: Float + AddAssign + SubAssign + 'static,
         Range<F>: AsRangedCoord<CoordDescType: ValueFormatter<<Range<F> as AsRangedCoord>::Value>, Value: Debug + Clone>,
@@ -118,7 +325,8 @@ mod tests
 
         let sampling_frequency = f!(44100.0);
 
-        let freq_response = filter.frequency_response(sampling_frequency, omega.into_iter());
+        let freq_response = omega.into_iter()
+            .map(|omega| filter.frequency_response(sampling_frequency, omega));
 
         let filter_name = core::any::type_name::<T>()
             .split_terminator("::")
@@ -146,14 +354,29 @@ mod tests
                 vec![c]
             }).collect();
 
+        let freq_response = {
+            let mut h: [_; T::OUTPUTS] = core::array::from_fn(|_| Box::new([Complex::from(F::zero()); N]));
+
+            for (i, hh) in freq_response.into_iter()
+                .enumerate()
+            {
+                for (h, hh) in h.iter_mut()
+                    .zip(hh)
+                {
+                    h[i] = hh;
+                }
+            }
+
+            h
+        };
+
         for (output_number, freq_response) in freq_response.into_iter()
-            .map(|freq_response| freq_response.into_iter().next_chunk().unwrap())
             .enumerate()
         {
             plot::plot_bode(
                 &format!("Frequency response of '{}', o = {}, fs = {}", filter_name, output_number, sampling_frequency),
                 &format!("{}/{}{}.png", PLOT_TARGET, file_name_no_extension, output_number),
-                omega.zip(freq_response),
+                omega.zip(*freq_response),
             )?
         }
         Ok(())
@@ -165,13 +388,12 @@ mod tests
         const N: usize = 5;
         const M: usize = (N + 1)/2;
         const K: usize = 2usize.pow(M as u32);
-        /*const INV: [[bool; N]; N + 1]*/
-        let inv_map: [[_; M]; K] = ArrayOps::fill(|mut i| ArrayOps::fill(|m| {
+        let inv_map: [[_; M]; K] = core::array::from_fn(|mut i| core::array::from_fn(|m| {
             let b = i % 2 == 1;
             i >>= 1;
             b
         }));
-        let inv: [[_; N]; K] = ArrayOps::fill(|i| ArrayOps::fill(|n| {
+        let inv: [[_; N]; K] = core::array::from_fn(|i| core::array::from_fn(|n| {
             inv_map[i][N.abs_diff(n*2 + 1)/2]
         }));
         println!("inv = {:?}", inv);

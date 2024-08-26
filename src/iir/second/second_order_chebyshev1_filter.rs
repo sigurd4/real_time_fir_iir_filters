@@ -1,126 +1,100 @@
 use std::f64::consts::SQRT_2;
 
-use array_math::ArrayOps;
+use bytemuck::Pod;
+use num::Float;
 
-use super::*;
+use crate::{f, param::FilterParam, private::NotSame};
 
-#[derive(Copy, Clone)]
-pub struct SecondOrderChebyshev1Filter<F, Omega = F, Epsilon = F>
-where
-    F: Float,
-    Omega: Param<F>,
-    Epsilon: Param<F>
+pub trait ChebyshevFilterParam: FilterParam
 {
-    pub omega: Omega,
-    pub epsilon: Epsilon,
-    pub w: [[F; 2]; 2]
+    fn omega(&self) -> Self::F;
+    fn epsilon(&self) -> Self::F;
+}
+crate::def_param!(
+    OmegaEpsilon<F> {
+        omega: F,
+        epsilon: F
+    } where
+        F: Float + Pod
+);
+impl<F> FilterParam for OmegaEpsilon<F>
+where
+    F: Float + Pod
+{
+    type F = F;
+}
+impl<F> ChebyshevFilterParam for OmegaEpsilon<F>
+where
+    F: Float + Pod
+{
+    fn omega(&self) -> Self::F
+    {
+        *self.omega
+    }
+    fn epsilon(&self) -> Self::F
+    {
+        *self.epsilon
+    }
 }
 
-impl<F, Omega, Epsilon> SecondOrderChebyshev1Filter<F, Omega, Epsilon>
-where
-    F: Float,
-    Omega: Param<F>,
-    Epsilon: Param<F>
-{
-    pub fn new(omega: Omega, epsilon: Epsilon) -> Self
+crate::def_rtf!(
+    SecondOrderChebyshev1Filter
     {
-        Self {
-            omega,
-            epsilon,
-            w: [[F::zero(); 2]; 2]
+        type Param: ChebyshevFilterParam = OmegaEpsilon;
+
+        const OUTPUTS: usize = 2;
+        const BUFFERED_OUTPUTS: bool = true;
+        const SOS_STAGES: usize = 0;
+        const ORDER: usize = 2;
+        const IS_IIR: bool = true;
+
+        fn make_coeffs(param, rate) -> _
+        {
+            let omega = param.omega();
+            let epsilon = param.epsilon();
+    
+            let rate2 = rate*rate;
+            let omega2 = omega*omega;
+            let epsilon_inv = epsilon.recip();
+            let alpha = f!(0.5; F)*epsilon_inv.asinh();
+            let cosh_2alpha = (alpha*f!(2.0)).cosh();
+            let sinh_alpha = alpha.sinh();
+            (
+                ([], [
+                    [
+                        omega2*epsilon_inv,
+                        omega2*epsilon_inv*f!(2.0),
+                        omega2*epsilon_inv
+                    ],
+                    [
+                        rate2*epsilon_inv*f!(4.0),
+                        -rate2*epsilon_inv*f!(8.0),
+                        rate2*epsilon_inv*f!(4.0)
+                    ]
+                ]),
+                [([], [
+                    [
+                        f!(8.0; F)*rate2 + f!(4.0*SQRT_2)*rate*omega*sinh_alpha + omega2*cosh_2alpha,
+                        -f!(16.0; F)*rate2 + f!(2.0)*omega2*cosh_2alpha,
+                        f!(8.0; F)*rate2 - f!(4.0*SQRT_2)*rate*omega*sinh_alpha + omega2*cosh_2alpha
+                    ],
+                    [
+                        f!(4.0; F)*rate2*cosh_2alpha + f!(4.0*SQRT_2)*rate*omega*sinh_alpha + f!(2.0)*omega2,
+                        -f!(8.0; F)*rate2*cosh_2alpha + f!(4.0)*omega2,
+                        f!(4.0; F)*rate2*cosh_2alpha - f!(4.0*SQRT_2)*rate*omega*sinh_alpha + f!(2.0)*omega2
+                    ]
+                ])]
+            )
         }
     }
-    
-    fn omega(&self) -> F
-    {
-        *(&self.omega).deref()
-    }
-
-    fn epsilon(&self) -> F
-    {
-        *(&self.epsilon).deref()
-    }
-
-    fn alpha(&self) -> F
-    {
-        let epsilon = self.epsilon();
-        f!(0.5; F)*epsilon.recip().asinh()
-    }
-}
-
-iir2_impl!(
-    <Omega, Epsilon> SecondOrderChebyshev1Filter<F, Omega, Epsilon>: 2: true =>
-    SecondOrderChebyshev1Filter<f32>;
-    SecondOrderChebyshev1Filter<f64>
-    where
-        Omega: Param<F>,
-        Epsilon: Param<F>
 );
-
-impl<F, Omega, Epsilon> FilterStaticCoefficients<F> for SecondOrderChebyshev1Filter<F, Omega, Epsilon>
+impl<P> From<P> for OmegaEpsilon<P::F>
 where
-    F: Float,
-    Omega: Param<F>,
-    Epsilon: Param<F>
+    P: ChebyshevFilterParam + NotSame<OmegaEpsilon<P::F>>
 {
-    fn b(&self, rate: F) -> ([[[F; 3]; 2]; 0], [[F; 3]; 2])
+    fn from(value: P) -> Self
     {
-        let omega = self.omega();
-        let epsilon = self.epsilon();
-
-        let rate2 = rate*rate;
-        let omega2 = omega*omega;
-        let epsilon_inv = epsilon.recip();
-
-        ([], [
-            [
-                omega2,
-                omega2*f!(2.0),
-                omega2
-            ].mul_all(epsilon_inv),
-            [
-                rate2*f!(4.0),
-                -rate2*f!(8.0),
-                rate2*f!(4.0)
-            ].mul_all(epsilon_inv)
-        ])
-    }
-
-    fn a(&self, rate: F) -> Option<([[[F; 3]; 2]; 0], [[F; 3]; 2])>
-    {
-        let omega = self.omega();
-        let alpha = self.alpha();
-
-        let rate2 = rate*rate;
-        let omega2 = omega*omega;
-        let cosh_2alpha = (alpha*f!(2.0)).cosh();
-        let sinh_alpha = alpha.sinh();
-
-        Some(([],[
-            [
-                f!(8.0; F)*rate2 + f!(4.0*SQRT_2)*rate*omega*sinh_alpha + omega2*cosh_2alpha,
-                -f!(16.0; F)*rate2 + f!(2.0)*omega2*cosh_2alpha,
-                f!(8.0; F)*rate2 - f!(4.0*SQRT_2)*rate*omega*sinh_alpha + omega2*cosh_2alpha
-            ],
-            [
-                f!(4.0; F)*rate2*cosh_2alpha + f!(4.0*SQRT_2)*rate*omega*sinh_alpha + f!(2.0)*omega2,
-                -f!(8.0; F)*rate2*cosh_2alpha + f!(4.0)*omega2,
-                f!(4.0; F)*rate2*cosh_2alpha - f!(4.0*SQRT_2)*rate*omega*sinh_alpha + f!(2.0)*omega2
-            ]
-        ]))
-    }
-}
-
-impl<F, Omega, Epsilon> FilterStaticInternals<F> for SecondOrderChebyshev1Filter<F, Omega, Epsilon>
-where
-    F: Float,
-    Omega: Param<F>,
-    Epsilon: Param<F>,
-    [(); Self::OUTPUTS*Self::BUFFERED_OUTPUTS as usize + !Self::BUFFERED_OUTPUTS as usize]:
-{
-    fn w(&mut self) -> ([&mut [[F; 2]; 2]; 0], &mut [[F; 2]; 2])
-    {
-        ([], &mut self.w)
+        OmegaEpsilon::new(value.omega(), value.epsilon())
     }
 }
 
@@ -129,12 +103,12 @@ mod test
 {
     use std::f64::consts::TAU;
 
-    use super::SecondOrderChebyshev1Filter;
+    use super::{OmegaEpsilon, SecondOrderChebyshev1Filter};
 
     #[test]
     fn plot()
     {
-        let mut filter = SecondOrderChebyshev1Filter::new(10000.0*TAU, 1.0);
+        let mut filter = SecondOrderChebyshev1Filter::new(OmegaEpsilon::new(10000.0*TAU, 1.0));
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }
