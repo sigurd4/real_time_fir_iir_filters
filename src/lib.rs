@@ -147,6 +147,7 @@ macro_rules! def_param {
             $($where:tt)+)?
     ) => {
         $($($docs)*)?
+        #[derive(Clone, Copy, Debug)]
         pub struct $type$(<$($gg),*>)?
         $(where
             $($where)+)?

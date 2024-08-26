@@ -1,4 +1,4 @@
-use core::{borrow::{Borrow, BorrowMut}, ops::{Deref, DerefMut, Receiver}};
+use core::{borrow::{Borrow, BorrowMut}, fmt::Debug, ops::{Deref, DerefMut, Receiver}};
 
 use bytemuck::Pod;
 use num::Float;
@@ -32,6 +32,7 @@ pub trait FilterParam: Parameterization
     type F: Float + Pod;
 }
 
+#[derive(Clone, Copy, Debug)]
 pub struct Param<T>
 {
     value: T,
