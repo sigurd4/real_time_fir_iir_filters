@@ -1,10 +1,10 @@
-use core::{mem::MaybeUninit, ops::{Add, Sub}};
+use core::{iter::Sum, mem::MaybeUninit, ops::{Add, Sub}};
 use std::ops::MulAssign;
 
 use slice_ops::SliceOps;
 use bytemuck::Pod;
 use num::{Complex, Float};
-use crate::{max_len, static_rtf::StaticRtf};
+use crate::{internals::{ainternals, binternals, winternals}, max_len, static_rtf::StaticRtf};
 
 pub trait RtfBase: Sized
 {
@@ -35,7 +35,7 @@ pub trait Rtf: RtfBase
 
 impl<F, T> Rtf for T
 where
-    F: Float + Pod,
+    F: Float + Pod + Sum,
     Complex<F>: MulAssign,
     T: StaticRtf<F = F>,
     [(); Self::BUFFERED_OUTPUTS as usize]:,
@@ -61,10 +61,8 @@ where
             a: &[[F; ORDER + 1]]
         )
         where
-            F: Float + Pod
+            F: Float + Sum
         {
-            let eps = F::epsilon()*F::from(4.0).unwrap();
-
             if !A
             {
                 let ((x, w), a) = y.iter()
@@ -76,19 +74,12 @@ where
                 let mut a = a.iter()
                     .copied();
                 let a0 = a.next().unwrap();
-                let a0d = if a0.abs() < eps
-                {
-                    eps.copysign(a0)
-                }
-                else
-                {
-                    a0
-                };
-                let w0 = w.iter()
+                
+                let mut w0 = x - w.iter()
                     .copied()
                     .zip(a)
                     .map(|(w, a)| w*a)
-                    .fold(x*a0, Sub::sub)/a0d;
+                    .sum::<F>()/a0;
 
                 for (y, b) in y.iter_mut()
                     .zip(b.iter())
@@ -100,11 +91,10 @@ where
                             .copied()
                         ).map(|(w, b)| w*b)
                         .reduce(Add::add)
-                        .unwrap()/a0d;
-                    
-                    let mut w0 = w0;
-                    w.shift_right(&mut w0);
+                        .unwrap()/a0;
                 }
+                
+                w.shift_right(&mut w0);
             }
             else
             {
@@ -117,19 +107,11 @@ where
                         .copied();
                     let a0 = a.next().unwrap();
 
-                    let a0d = if a0.abs() < eps
-                    {
-                        eps.copysign(a0)
-                    }
-                    else
-                    {
-                        a0
-                    };
-                    let w0 = w.iter()
+                    let mut w0 = *y - w.iter()
                         .copied()
                         .zip(a)
                         .map(|(w, a)| w*a)
-                        .fold(*y*a0, Sub::sub)/a0d;
+                        .sum::<F>()/a0;
 
                     *y = core::iter::once(w0)
                         .chain(w.iter()
@@ -138,9 +120,8 @@ where
                             .copied()
                         ).map(|(w, b)| w*b)
                         .reduce(Add::add)
-                        .unwrap()/a0d;
+                        .unwrap()/a0;
                     
-                    let mut w0 = w0;
                     w.shift_right(&mut w0);
                 }
             }
@@ -152,7 +133,7 @@ where
             b: &[[F; ORDER + 1]]
         )
         where
-            F: Float,
+            F: Float + Sum,
             [(); ORDER + 1]:
         {
             if !A
@@ -185,7 +166,7 @@ where
                     .zip(w.iter_mut())
                     .zip(b.iter())
                 {
-                    let x = *y;
+                    let mut x = *y;
                     
                     *y = core::iter::once(x)
                         .chain(w.iter()
@@ -196,8 +177,7 @@ where
                         .reduce(Add::add)
                         .unwrap();
                     
-                    let mut w0 = x;
-                    w.shift_right(&mut w0);
+                    w.shift_right(&mut x);
                 }
             }
         }
@@ -205,25 +185,25 @@ where
         self.update_internals(rate);
 
         let (internals, _) = self.get_internals_mut();
-        let (w, b, a) = (&mut internals.w, &internals.b, &internals.a);
+        let (w, b, a): (&mut winternals!(Self), &binternals!(Self), &[ainternals!(Self); Self::IS_IIR as usize])
+            = (&mut internals.w, &internals.b, &internals.a);
         let (w_stages, w_output) = w;
         let (b_stages, b_output) = b;
-        let a = a.iter().next();
         
         let mut y = [x; Self::OUTPUTS];
 
-        if let Some((a_stages, a_output)) = a
+        if let Some((a_stages, a_output)) = a.iter().next()
         {
-            for ((w_stages, b_stages), a_stages) in w_stages.into_iter()
-                .zip(b_stages)
-                .zip(a_stages)
+            for ((w_stages, b_stages), a_stages) in w_stages.iter_mut()
+                .zip(b_stages.iter())
+                .zip(a_stages.iter())
             {
                 for (((y, w_stage), b_stage), a_stage) in y.iter_mut()
                     .zip(w_stages.iter_mut())
                     .zip(b_stages.iter())
                     .zip(a_stages.iter())
                 {
-                    filter_once_iir::<_, 2, false>(
+                    filter_once_iir::<F, 2, false>(
                         core::array::from_mut(y),
                         core::array::from_mut(w_stage),
                         core::array::from_ref(b_stage),
@@ -232,7 +212,7 @@ where
                 }
             }
 
-            filter_once_iir::<_, _, {Self::BUFFERED_OUTPUTS}>(
+            filter_once_iir::<F, {Self::ORDER}, {Self::BUFFERED_OUTPUTS}>(
                 &mut y,
                 w_output,
                 b_output,
@@ -241,14 +221,14 @@ where
         }
         else
         {
-            for (w_stage, b_stage) in w_stages.into_iter()
-                .zip(b_stages)
+            for (w_stage, b_stage) in w_stages.iter_mut()
+                .zip(b_stages.iter())
             {
                 for ((y, w_stage), b_stage) in y.iter_mut()
                     .zip(w_stage.iter_mut())
                     .zip(b_stage.iter())
                 {
-                    filter_once_fir::<_, 2, false>(
+                    filter_once_fir::<F, 2, false>(
                         core::array::from_mut(y),
                         core::array::from_mut(w_stage),
                         core::array::from_ref(b_stage)
@@ -256,7 +236,7 @@ where
                 }
             }
     
-            filter_once_fir::<_, _, {Self::BUFFERED_OUTPUTS}>(
+            filter_once_fir::<F, {Self::ORDER}, {Self::BUFFERED_OUTPUTS}>(
                 &mut y,
                 w_output,
                 b_output
@@ -425,25 +405,33 @@ where
     
     fn reset(&mut self)
     {
-        let (w_stages, w_outputs) = &mut self.get_internals_mut().0.w;
+        let w = &mut self.get_internals_mut().0.w;
 
-        for w in w_stages
-        {
-            for w in w.iter_mut()
-            {
-                for w in w.iter_mut()
-                {
-                    *w = F::zero()
-                }
-            }
+        unsafe {
+            core::ptr::write_bytes(w as *mut winternals!(Self), 0u8, 1)
         }
+    }
+}
 
-        for w in w_outputs.iter_mut()
+#[cfg(test)]
+mod test
+{
+    use core::f64::consts::TAU;
+
+    use crate::{iir::{first::{FirstOrderFilter, Omega}, second::{OmegaZeta, SecondOrderFilter}}, rtf::Rtf};
+
+    #[test]
+    fn test()
+    {
+        const N: usize = 4;
+        const RATE: f64 = 8000.0;
+
+        let mut filt = SecondOrderFilter::new(OmegaZeta::new(220.0*TAU, 0.1));
+
+        for _ in 0..N
         {
-            for w in w.iter_mut()
-            {
-                *w = F::zero()
-            }
+            println!("{:?}", filt.internals.w);
+            filt.filter(RATE, 1.0);
         }
     }
 }

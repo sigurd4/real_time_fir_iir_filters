@@ -73,9 +73,9 @@ where
     pub const fn new() -> Self
     {
         Self {
-            w: unsafe {MaybeUninit::zeroed().assume_init()},
-            b: unsafe {MaybeUninit::zeroed().assume_init()},
-            a: unsafe {MaybeUninit::zeroed().assume_init()},
+            w: unsafe {core::mem::zeroed()},
+            b: unsafe {core::mem::zeroed()},
+            a: unsafe {core::mem::zeroed()},
             rate: None
         }
     }
