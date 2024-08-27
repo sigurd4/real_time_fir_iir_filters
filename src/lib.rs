@@ -368,10 +368,10 @@ mod tests
         for (output_number, freq_response) in freq_response.into_iter()
             .enumerate()
         {
-            plot::plot_bode(
+            plot::plot_bode::<F, N>(
                 &format!("Frequency response of '{}', o = {}, fs = {}", filter_name, output_number, sampling_frequency),
                 &format!("{}/{}{}.png", PLOT_TARGET, file_name_no_extension, output_number),
-                omega.zip(*freq_response),
+                core::array::from_fn(|i| (omega[i], freq_response[i])),
             )?
         }
         Ok(())

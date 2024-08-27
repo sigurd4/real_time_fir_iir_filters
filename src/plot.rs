@@ -33,7 +33,7 @@ pub fn plot_pz(
         [Complex::new(-1.0, 1.0), Complex::new(1.0, -1.0)]
     ];
     let zero_sym: [Complex<f64>; CIRCLE_RES] = (0.0..=TAU).linspace_array()
-        .map2(/*const*/ |theta| Complex::new(theta.approx_cos(), theta.approx_sin()));
+        .map(|theta| Complex::new(theta.cos(), theta.sin()));
 
     let (sigma_min, sigma_max, omega_min, omega_max) = poles.into_iter()
         .chain(zeros.into_iter())
@@ -132,7 +132,7 @@ where
 
     let ([x_min, y_norm_min, y_arg_min], [x_max, y_norm_max, y_arg_max]) = xy.into_iter()
         .map(|(x, y_norm, y_arg)| ([x, y_norm, y_arg], [x, y_norm, y_arg]))
-        .reduce(|a, b| (a.0.zip(b.0).map(|(a, b)| a.min(b)), a.1.zip(b.1).map(|(a, b)| a.max(b))))
+        .reduce(|a, b| (core::array::from_fn(|i| a.0[i].min(b.0[i])), core::array::from_fn(|i| a.1[i].max(b.1[i]))))
         .unwrap();
     
     let area = BitMapBackend::new(plot_path, PLOT_RES).into_drawing_area();
@@ -198,7 +198,7 @@ where
 
     let ([x_min, y_min], [x_max, y_max]) = xy.into_iter()
         .map(|(x, y)| ([x, y], [x, y]))
-        .reduce(|a, b| (a.0.zip(b.0).map(|(a, b)| a.min(b)), a.0.zip(b.0).map(|(a, b)| a.max(b))))
+        .reduce(|a, b| (core::array::from_fn(|i| a.0[i].min(b.0[i])), core::array::from_fn(|i| a.1[i].max(b.1[i]))))
         .unwrap();
     
     let area = BitMapBackend::new(plot_path, PLOT_RES).into_drawing_area();
@@ -247,11 +247,11 @@ where
 
     let area = SVGBackend::new(plot_path, PLOT_RES).into_drawing_area();
     
-    let x_min = x.reduce(F::min).unwrap();
-    let x_max = x.reduce(F::max).unwrap();
+    let x_min = x.iter().copied().reduce(F::min).unwrap();
+    let x_max = x.iter().copied().reduce(F::max).unwrap();
     
-    let y_min = y.reduce(F::min).unwrap();
-    let y_max = y.reduce(F::max).unwrap();
+    let y_min = y.iter().copied().reduce(F::min).unwrap();
+    let y_max = y.iter().copied().reduce(F::max).unwrap();
 
     let f_ref = &f;
     let f_values: Vec<F> = y.into_iter()
@@ -322,7 +322,7 @@ where
 
     let ([x_min, y_min, z_min], [x_max, y_max, z_max]) = f_values.into_iter()
         .map(|f| (f, f))
-        .reduce(|a, b| (a.0.zip(b.0).map(|(a, b)| a.min(b)), a.1.zip(b.1).map(|(a, b)| a.max(b))))
+        .reduce(|a, b| (core::array::from_fn(|i| a.0[i].min(b.0[i])), core::array::from_fn(|i| a.1[i].max(b.1[i]))))
         .unwrap();
 
     area.fill(&WHITE)?;
@@ -499,7 +499,7 @@ where
 
     let ([_r_min, theta_min, z_min], [r_max, theta_max, z_max]) = f_values.into_iter()
         .map(|f| (f, f))
-        .reduce(|a, b| (a.0.zip(b.0).map(|(a, b)| a.min(b)), a.1.zip(b.1).map(|(a, b)| a.max(b))))
+        .reduce(|a, b| (core::array::from_fn(|i| a.0[i].min(b.0[i])), core::array::from_fn(|i| a.1[i].max(b.1[i]))))
         .unwrap();
 
     area.fill(&WHITE)?;

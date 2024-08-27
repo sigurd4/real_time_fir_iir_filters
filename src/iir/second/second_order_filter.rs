@@ -66,7 +66,7 @@ crate::def_rtf!(
                     [
                         rate*omega*f!(2.0),
                         f!(0.0; F),
-                        rate*omega*f!(-2.0),
+                        rate*omega*f!(-2.0)
                     ],
                     [
                         rate2*f!(4.0),
@@ -104,7 +104,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = SecondOrderFilter::new(OmegaZeta::new(10000.0*TAU, 1.0));
+        let mut filter = SecondOrderFilter::new(OmegaZeta::new(10000.0*TAU, 0.05));
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }
