@@ -1,6 +1,6 @@
 [package]
 name = "real_time_fir_iir_filters"
-version = "1.0.7"
+version = "1.0.8"
 edition = "2021"
 license = "MIT"
 description = "Real-time FIR and IIR filters designed for use with vst's"
