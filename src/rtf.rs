@@ -74,6 +74,7 @@ where
                 let mut a = a.iter()
                     .copied();
                 let a0 = a.next().unwrap();
+                let a = a.map(|a| a/a0);
                 let w0 = w.iter()
                     .copied()
                     .zip(a)
@@ -106,6 +107,7 @@ where
                     let mut a = a.iter()
                         .copied();
                     let a0 = a.next().unwrap();
+                    let a = a.map(|a| a/a0);
                     let w0 = w.iter()
                         .copied()
                         .zip(a)
