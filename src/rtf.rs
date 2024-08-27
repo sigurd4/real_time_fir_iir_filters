@@ -63,6 +63,8 @@ where
         where
             F: Float + Pod
         {
+            let eps = F::epsilon()*F::from(4.0).unwrap();
+
             if !A
             {
                 let ((x, w), a) = y.iter()
@@ -74,12 +76,19 @@ where
                 let mut a = a.iter()
                     .copied();
                 let a0 = a.next().unwrap();
-                let a = a.map(|a| a/a0);
+                let a0d = if a0.abs() < eps
+                {
+                    eps.copysign(a0)
+                }
+                else
+                {
+                    a0
+                };
                 let w0 = w.iter()
                     .copied()
                     .zip(a)
                     .map(|(w, a)| w*a)
-                    .fold(x, Sub::sub);
+                    .fold(x*a0, Sub::sub)/a0d;
 
                 for (y, b) in y.iter_mut()
                     .zip(b.iter())
@@ -91,7 +100,7 @@ where
                             .copied()
                         ).map(|(w, b)| w*b)
                         .reduce(Add::add)
-                        .unwrap()/a0;
+                        .unwrap()/a0d;
                     
                     let mut w0 = w0;
                     w.shift_right(&mut w0);
@@ -107,12 +116,20 @@ where
                     let mut a = a.iter()
                         .copied();
                     let a0 = a.next().unwrap();
-                    let a = a.map(|a| a/a0);
+
+                    let a0d = if a0.abs() < eps
+                    {
+                        eps.copysign(a0)
+                    }
+                    else
+                    {
+                        a0
+                    };
                     let w0 = w.iter()
                         .copied()
                         .zip(a)
                         .map(|(w, a)| w*a)
-                        .fold(*y, Sub::sub);
+                        .fold(*y*a0, Sub::sub)/a0d;
 
                     *y = core::iter::once(w0)
                         .chain(w.iter()
@@ -121,7 +138,7 @@ where
                             .copied()
                         ).map(|(w, b)| w*b)
                         .reduce(Add::add)
-                        .unwrap()/a0;
+                        .unwrap()/a0d;
                     
                     let mut w0 = w0;
                     w.shift_right(&mut w0);
