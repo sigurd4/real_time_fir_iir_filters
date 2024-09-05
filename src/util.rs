@@ -1,12 +1,89 @@
 #![allow(unused)]
 
+use num::Float;
+
+use crate::f;
+
+pub mod same
+{
+    mod private
+    {
+        trait _MaybeSame<T>
+        where
+            T: ?Sized
+        {
+            const IS_SAME: bool;
+        }
+        impl<T, U> _MaybeSame<T> for U
+        where
+            T: ?Sized,
+            U: ?Sized
+        {
+            default const IS_SAME: bool = false;
+        }
+        impl<T> _MaybeSame<T> for T
+        where
+            T: ?Sized
+        {
+            const IS_SAME: bool = true;
+        }
+    
+        pub trait _NotSame<T>
+        where
+            T: ?Sized
+        {
+    
+        }
+        impl<T, U> _NotSame<T> for U
+        where
+            T: ?Sized,
+            U: _MaybeSame<T, IS_SAME = false> + ?Sized
+        {
+    
+        }
+    
+        pub trait _Same<T>
+        where
+            T: ?Sized
+        {
+    
+        }
+        impl<T> _Same<T> for T
+        where
+            T: _MaybeSame<T, IS_SAME = true> + ?Sized
+        {
+    
+        }
+    }
+
+    pub trait Same<T>: private::_Same<T>
+    {
+
+    }
+    impl<T, U> Same<T> for U
+    where
+        U: private::_Same<T>
+    {
+
+    }
+    
+    pub trait NotSame<T>: private::_NotSame<T>
+    {
+
+    }
+    impl<T, U> NotSame<T> for U
+    where
+        U: private::_NotSame<T>
+    {
+        
+    }
+}
+
 pub(crate) mod jacobi_elliptic_functions
 {
     use core::mem::MaybeUninit;
 
-    use num::Float;
-
-    use crate::f;
+    use super::*;
 
     // sn cn dn
     pub fn elljac_e<F>(u: F, m: F) -> (F, F, F)
@@ -15,11 +92,13 @@ pub(crate) mod jacobi_elliptic_functions
     {
         let m_abs = m.abs();
         let one = F::one();
+        let two = one + one;
+        let half = two.recip();
 
         assert!(m_abs <= one);
 
         let eps = F::epsilon();
-        let two_eps = f!(2.0)*eps;
+        let two_eps = eps + eps;
 
         if m_abs < two_eps
         {
@@ -41,12 +120,11 @@ pub(crate) mod jacobi_elliptic_functions
         mu[0] = one;
         nu[0] = (one - m).sqrt();
 
-        let four_eps = f!(4.0)*eps;
-        let half = f!(0.5);
+        let four_eps = two_eps + two_eps;
     
         while (mu[n] - nu[n]).abs() > four_eps*(mu[n] + nu[n]).abs()
         {
-            mu[n + 1] = half*(mu[n] + nu[n]);
+            mu[n + 1] = (mu[n] + nu[n])*half;
             nu[n + 1] = (mu[n] * nu[n]).sqrt();
             n += 1;
             
@@ -56,8 +134,7 @@ pub(crate) mod jacobi_elliptic_functions
             }
         }
     
-        let sin_umu = (u * mu[n]).sin();
-        let cos_umu = (u * mu[n]).cos();
+        let (sin_umu, cos_umu) = (u*mu[n]).sin_cos();
         
         let mut c = [zero; 16];
         let mut d = [zero; 16];

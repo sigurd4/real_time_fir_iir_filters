@@ -14,11 +14,14 @@ moddef = "0.2.2"
 static_assertions = "1.1.0"
 bytemuck = "1.17.0"
 slice_ops = "0.1.10"
+tupleops = "0.1.1"
+cond = {path = "../cond"}
 
 [dev-dependencies]
 plotters = "0.3.6"
 linspace = "0.1.1"
 
 [features]
-default = ["filters"]
-filters = []
+default = ["filters", "params"]
+filters = ["params"]
+params = []

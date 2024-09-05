@@ -1,3 +1,6 @@
+#![allow(incomplete_features)]
+#![allow(internal_features)]
+
 #![feature(generic_arg_infer)]
 #![feature(trait_alias)]
 #![feature(associated_const_equality)]
@@ -8,7 +11,17 @@
 #![feature(decl_macro)]
 #![feature(const_refs_to_cell)]
 #![feature(const_mut_refs)]
+#![feature(negative_impls)]
+#![feature(tuple_trait)]
+#![feature(iter_array_chunks)]
+#![feature(derive_const)]
+#![feature(associated_type_defaults)]
+#![feature(never_type)]
+#![feature(const_type_id)]
+#![feature(const_swap)]
 
+#![feature(adt_const_params)]
+#![feature(core_intrinsics)]
 #![feature(generic_const_exprs)]
 #![feature(specialization)]
 
@@ -16,11 +29,12 @@ pub(crate) use crate as real_time_fir_iir_filters;
 
 moddef::moddef!(
     pub mod {
-        fir for cfg(feature = "filters"),
-        iir for cfg(feature = "filters"),
+        filters for cfg(feature = "filters"),
 
         internals,
         param,
+        conf,
+        params for cfg(feature = "params"),
         rtf,
         static_rtf
     },
@@ -30,86 +44,99 @@ moddef::moddef!(
     }
 );
 
-mod private
+pub fn billinear4_0<F>(c0: F) -> [F; 4]
+where
+    F: Float
 {
-    use crate::iir::first::{FirstOrderLRFilterParam, FirstOrderRCFilterParam};
+    let three_c0 = c0*f!(3.0);
+    [
+        c0,
+        three_c0,
+        three_c0,
+        c0,
+    ]
+}
+pub fn billinear4_1<F>(c1: F, rate: F) -> [F; 4]
+where
+    F: Float
+{
+    let c1_rate = c1*rate;
+    let two_c1_rate = c1_rate + c1_rate;
+    [
+        two_c1_rate,
+        two_c1_rate,
+        -two_c1_rate,
+        -two_c1_rate,
+    ]
+}
+pub fn billinear4_2<F>(c2: F, rate2: F) -> [F; 4]
+where
+    F: Float
+{
+    let c2_rate2 = c2*rate2;
+    let two_c2_rate2 = c2_rate2 + c2_rate2;
+    let four_c2_rate2 = two_c2_rate2 + two_c2_rate2;
+    [
+        four_c2_rate2,
+        -four_c2_rate2,
+        -four_c2_rate2,
+        four_c2_rate2,
+    ]
+}
+pub fn billinear4_3<F>(c3: F, rate3: F) -> [F; 4]
+where
+    F: Float
+{
+    let c3_rate3 = c3*rate3;
+    let two_c3_rate3 = c3_rate3 + c3_rate3;
+    let four_c3_rate3 = two_c3_rate3 + two_c3_rate3;
+    let eight_c3_rate3 = four_c3_rate3 + four_c3_rate3;
+    let twenty_four_c3_rate3 = eight_c3_rate3 + eight_c3_rate3 + eight_c3_rate3;
+    [
+        eight_c3_rate3,
+        -twenty_four_c3_rate3,
+        twenty_four_c3_rate3,
+        -eight_c3_rate3,
+    ]
+}
+pub fn billinear4_0_1_2_3<F>(c0: F, c1: F, c2: F, c3: F, rate: F, rate2: F, rate3: F) -> [F; 4]
+where
+    F: Float
+{
+    let two_c2 = c2 + c2;
+    let two_c2_rate2 = two_c2*rate2;
+    let four_c2_rate2 = two_c2_rate2 + two_c2_rate2;
+    let c0_p_four_c2_rate2 = c0 + four_c2_rate2;
+    let three_c0_m_four_c2_rate2 = (c0 + c0 + c0) - four_c2_rate2;
 
-    trait MaybeSame<T>
-    where
-        T: ?Sized
-    {
-        const IS_SAME: bool;
-    }
-    impl<T, U> MaybeSame<T> for U
-    where
-        T: ?Sized,
-        U: ?Sized
-    {
-        default const IS_SAME: bool = false;
-    }
-    impl<T> MaybeSame<T> for T
-    where
-        T: ?Sized
-    {
-        const IS_SAME: bool = true;
-    }
+    let c1_rate = c1*rate;
+    let two_c1_rate = c1_rate + c1_rate;
+    let c3_rate3 = c3*rate3;
+    let two_c3_rate3 = c3_rate3 + c3_rate3;
+    let four_c3_rate3 = two_c3_rate3 + two_c3_rate3;
+    let eight_c3_rate3 = four_c3_rate3 + four_c3_rate3;
+    let two_c1_rate_p_eight_c3_rate3 = two_c1_rate + eight_c3_rate3;
+    let two_c1_rate_m_twenty_four_c3_rate3 = two_c1_rate - (eight_c3_rate3 + eight_c3_rate3 + eight_c3_rate3);
+    [
+        c0_p_four_c2_rate2 + two_c1_rate_p_eight_c3_rate3,
+        three_c0_m_four_c2_rate2 + two_c1_rate_m_twenty_four_c3_rate3,
+        three_c0_m_four_c2_rate2 - two_c1_rate_m_twenty_four_c3_rate3,
+        c0_p_four_c2_rate2 - two_c1_rate_p_eight_c3_rate3,
+    ]
+}
 
-    pub(crate) trait NotSame<T>
-    where
-        T: ?Sized
-    {
-
-    }
-    impl<T, U> NotSame<T> for U
-    where
-        T: ?Sized,
-        U: MaybeSame<T, IS_SAME = false> + ?Sized
-    {
-
-    }
-
-    macro_rules! not_trait_trait {
-        ($trait:ident => $maybe:ident => $not:ident) => {
-            trait $maybe
-            {
-                const IS_IMPL: bool;
-            }
-            impl<T> $maybe for T
-            where
-                T: ?Sized
-            {
-                default const IS_IMPL: bool = false;
-            }
-            impl<T> $maybe for T
-            where
-                T: ?Sized + $trait
-            {
-                const IS_IMPL: bool = true;
-            }
-    
-            pub trait $not
-            {
-    
-            }
-            impl<T> $not for T
-            where
-                T: $maybe<IS_IMPL = false> + ?Sized
-            {
-    
-            }
+pub fn if_cg<const B: bool, T>(then: impl FnOnce() -> T) -> [T; B as usize]
+{
+    unsafe {
+        if B
+        {
+            core::intrinsics::transmute_unchecked([then()])
+        }
+        else
+        {
+            core::intrinsics::transmute_unchecked::<[T; 0], _>([])
         }
     }
-
-    not_trait_trait!(
-        FirstOrderLRFilterParam
-        => MaybeFirstOrderLRFilterParam
-        => NotFirstOrderLRFilterParam
-    );
-    not_trait_trait!(
-        FirstOrderRCFilterParam
-        => MaybeFirstOrderRCFilterParam
-        => NotFirstOrderRCFilterParam
-    );
 }
 
 pub const fn max_len(a: usize, b: usize) -> usize
@@ -122,6 +149,37 @@ pub const fn max_len(a: usize, b: usize) -> usize
     {
         a
     }
+}
+pub const fn min_len(a: usize, b: usize) -> usize
+{
+    if b < a
+    {
+        b
+    }
+    else
+    {
+        a
+    }
+}
+pub const fn sort_len<const N: usize>(mut a: [usize; N]) -> [usize; N]
+{
+    let mut i = 0;
+    while i < N
+    {
+        let mut j = i + 1;
+        while j < N
+        {
+            if a[i] > a[j]
+            {
+                unsafe {
+                    core::ptr::swap_nonoverlapping(&mut a[i] as *mut usize, &mut a[j] as *mut usize, 1);
+                }
+            }
+            j += 1;
+        }
+        i += 1
+    }
+    a
 }
 
 #[allow(unused)]
@@ -183,6 +241,223 @@ macro_rules! def_param {
     };
 }
 
+macro_rules! impl_from {
+    ($a:ident <=> $b:ident: $p:path) => {
+        /*impl<P> From<$a<P::F, P>> for $b<P::F, P>
+        where
+            P: $p
+        {
+            fn from(value: $a<P::F, P>) -> Self
+            {
+                Self::new(value.param)
+            }
+        }
+        impl<P> From<$b<P::F, P>> for $a<P::F, P>
+        where
+            P: $p
+        {
+            fn from(value: $b<P::F, P>) -> Self
+            {
+                Self::new(value.param)
+            }
+        }*/
+    };
+}
+
+pub(crate) use impl_from;
+use num::Float;
+
+#[doc(hidden)]
+pub macro first_expr {
+    ($first:expr $(,$more:expr)*) => {
+        $first
+    }
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! maybe_alias_trait {
+    ($trait:ident) => {
+        $trait
+    };
+    ($alias:ident as $trait:ident) => {
+        $trait
+    }
+}
+
+#[doc(hidden)]
+pub macro rtf_conf_const {
+    (
+        $(type Conf: $conf_trait_alias:ident $(as $conf_trait:path)?$( = $cc:ty)?;)?
+        
+        const $const:ident: $ty:ty = $outputs:expr;
+    ) => {
+        $outputs
+    },
+    (
+        type Conf: $conf_trait_alias:ident as $conf_trait:path = $cc:ty;
+
+        const $const:ident: $ty:ty;
+    ) => {
+        <$cc as $conf_trait>::$const
+    },
+    (
+        type Conf: $conf_trait:ident = $cc:ty;
+        
+        const $const:ident: $ty:ty;
+    ) => {
+        real_time_fir_iir_filters::rtf_outputs!(
+            type Conf: $conf_trait as $conf_trait = $cc;
+            
+            const $const:ident: $ty;
+        )
+    },
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! def_rtf_internals {
+    (
+        $(type Conf: $conf_trait_alias:ident $(as $conf_trait:path)?;)?
+        
+        const OUTPUTS: usize = $outputs:expr;
+        const O_BUFFERS: usize = $o_buffers:expr;
+        const SOS_BUFFERS: usize = $sos_buffers:expr;
+        const SOS_STAGES: usize = $sos_stages:expr;
+        const ORDER: usize = $order:expr;
+        const IS_IIR: bool = $is_iir:expr;
+    ) => {
+        #[allow(unused)]
+        #[allow(type_alias_bounds)]
+        type BInternals<F, CC$(: $conf_trait_alias $(+ $conf_trait)?)? = real_time_fir_iir_filters::conf::All> = real_time_fir_iir_filters::internals::binternals!(
+            F,
+            $outputs,
+            $o_buffers,
+            $sos_buffers,
+            $sos_stages,
+            $order
+        );
+        #[allow(unused)]
+        #[allow(type_alias_bounds)]
+        type AInternals<F, CC$(: $conf_trait_alias $(+ $conf_trait)?)? = real_time_fir_iir_filters::conf::All> = real_time_fir_iir_filters::internals::ainternals!(
+            F,
+            $o_buffers,
+            $sos_buffers,
+            $sos_stages,
+            $order
+        );
+        #[allow(unused)]
+        #[allow(type_alias_bounds)]
+        type Internals<F, CC$(: $conf_trait_alias $(+ $conf_trait)?)? = real_time_fir_iir_filters::conf::All> = real_time_fir_iir_filters::internals::rtfinternals!(
+            F,
+            $outputs,
+            $o_buffers,
+            $sos_buffers,
+            $sos_stages,
+            $order,
+            $is_iir
+        );
+    };
+    (
+        type Conf: $conf_trait_alias:ident $(as $conf_trait:path)?;
+        
+        $(const OUTPUTS: usize = $outputs:expr;)?
+        $(const O_BUFFERS: usize = $o_buffers:expr;)?
+        $(const SOS_BUFFERS: usize = $sos_buffers:expr;)?
+        $(const SOS_STAGES: usize = $sos_stages:expr;)?
+        $(const ORDER: usize = $order:expr;)?
+        $(const IS_IIR: bool = $is_iir:expr;)?
+    ) => {
+        #[allow(type_alias_bounds)]
+        type BInternals<F, CC: $conf_trait_alias $(+ $conf_trait)?> = real_time_fir_iir_filters::internals::binternals!(
+            F,
+            real_time_fir_iir_filters::rtf_conf_const!(
+                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+
+                const OUTPUTS: usize $(= $outputs)?;
+            ),
+            real_time_fir_iir_filters::rtf_conf_const!(
+                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+
+                const O_BUFFERS: usize $(= $o_buffers)?;
+            ),
+            real_time_fir_iir_filters::rtf_conf_const!(
+                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+
+                const SOS_BUFFERS: usize $(= $sos_buffers)?;
+            ),
+            real_time_fir_iir_filters::rtf_conf_const!(
+                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+
+                const SOS_STAGES: usize $(= $sos_stages)?;
+            ),
+            real_time_fir_iir_filters::rtf_conf_const!(
+                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+
+                const ORDER: usize $(= $order)?;
+            )
+        );
+        #[allow(type_alias_bounds)]
+        type AInternals<F, CC: $conf_trait_alias $(+ $conf_trait)?> = real_time_fir_iir_filters::internals::ainternals!(
+            F,
+            real_time_fir_iir_filters::rtf_conf_const!(
+                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+
+                const O_BUFFERS: usize $(= $o_buffers)?;
+            ),
+            real_time_fir_iir_filters::rtf_conf_const!(
+                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+
+                const SOS_BUFFERS: usize $(= $sos_buffers)?;
+            ),
+            real_time_fir_iir_filters::rtf_conf_const!(
+                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+
+                const SOS_STAGES: usize $(= $sos_stages)?;
+            ),
+            real_time_fir_iir_filters::rtf_conf_const!(
+                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+
+                const ORDER: usize $(= $order)?;
+            )
+        );
+        #[allow(type_alias_bounds)]
+        type Internals<F, CC: $conf_trait_alias $(+ $conf_trait)?> = real_time_fir_iir_filters::internals::rtfinternals!(
+            F,
+            real_time_fir_iir_filters::rtf_conf_const!(
+                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+
+                const OUTPUTS: usize $(= $outputs)?;
+            ),
+            real_time_fir_iir_filters::rtf_conf_const!(
+                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+
+                const O_BUFFERS: usize $(= $o_buffers)?;
+            ),
+            real_time_fir_iir_filters::rtf_conf_const!(
+                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+
+                const SOS_BUFFERS: usize $(= $sos_buffers)?;
+            ),
+            real_time_fir_iir_filters::rtf_conf_const!(
+                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+
+                const SOS_STAGES: usize $(= $sos_stages)?;
+            ),
+            real_time_fir_iir_filters::rtf_conf_const!(
+                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+
+                const ORDER: usize $(= $order)?;
+            ),
+            real_time_fir_iir_filters::rtf_conf_const!(
+                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+
+                const IS_IIR: bool $(= $is_iir)?;
+            )
+        );
+    };
+}
+
 #[macro_export]
 macro_rules! def_rtf {
     (
@@ -191,67 +466,382 @@ macro_rules! def_rtf {
         })?
         $name:ident
         {
+            $(type Conf: $conf_trait_alias:ident $(as $conf_trait:path)?)?;
             type Param: $param_trait:ident = $param_default:ident;
-            const OUTPUTS: usize = $outputs:literal;
-            const BUFFERED_OUTPUTS: bool = $buffered_outputs:literal;
-            const SOS_STAGES: usize = $sos_stages:literal;
-            const ORDER: usize = $order:literal;
-            const IS_IIR: bool = $is_iir:literal;
+            
+            $(const O_BUFFERS: usize = $o_buffers:expr;)?
+            $(const SOS_BUFFERS: usize = $sos_buffers:expr;)?
+            $(const SOS_STAGES: usize = $sos_stages:expr;)?
+            $(const ORDER: usize = $order:expr;)?
+            $(const IS_IIR: bool = $is_iir:expr;)?
+
+            $(
+                fn make_coeffs<$conf:ty>($arg_param:ident, $arg_rate:ident) -> _
+                $(where
+                    {$($where_c:tt)+})?
+                $make_coeffs:block
+            )*
+        }
+        $(where
+            $($where:tt)+)?
+    ) => {
+        real_time_fir_iir_filters::def_rtf!(
+            $({
+                $($docs)+
+            })?
+            $name
+            {
+                $(type Conf: $conf_trait_alias $(as $conf_trait)?)?;
+                type Param<C>: $param_trait as $param_trait<C>  = $param_default;
+                
+                $(const O_BUFFERS: usize = $o_buffers;)?
+                $(const SOS_BUFFERS: usize = $sos_buffers;)?
+                $(const SOS_STAGES: usize = $sos_stages;)?
+                $(const ORDER: usize = $order;)?
+                $(const IS_IIR: bool = $is_iir;)?
+    
+                $(
+                    fn make_coeffs<$conf>($arg_param, $arg_rate) -> _
+                    $(where
+                        {$($where_c)+})?
+                    $make_coeffs
+                )*
+            }
+            $(where
+                $($where)+)?
+        );
+    };
+    (
+        $({
+            $($docs:tt)+
+        })?
+        $name:ident
+        {
+            type Conf: $conf_trait:ident;
+            type Param$(<$cc:ident>)?: $param_alias:ident $(as $param_trait:path)? = $param_default:ident;
+            
+            $(const O_BUFFERS: usize = $o_buffers:expr;)?
+            $(const SOS_BUFFERS: usize = $sos_buffers:expr;)?
+            $(const SOS_STAGES: usize = $sos_stages:expr;)?
+            $(const ORDER: usize = $order:expr;)?
+            $(const IS_IIR: bool = $is_iir:expr;)?
+
+            $(
+                fn make_coeffs<$conf:ty>($arg_param:ident, $arg_rate:ident) -> _
+                $(where
+                    {$($where_c:tt)+})?
+                $make_coeffs:block
+            )*
+        }
+        $(where
+            $($where:tt)+)?
+    ) => {
+        real_time_fir_iir_filters::def_rtf!(
+            $({
+                $($docs)+
+            })?
+            $name
+            {
+                type Conf: $conf_trait as $conf_trait;
+                type Param$(<$cc>)?: $param_alias $(as $param_trait)? = $param_default;
+                
+                $(const O_BUFFERS: usize = $o_buffers;)?
+                $(const SOS_BUFFERS: usize = $sos_buffers;)?
+                $(const SOS_STAGES: usize = $sos_stages;)?
+                $(const ORDER: usize = $order;)?
+                $(const IS_IIR: bool = $is_iir;)?
+    
+                $(
+                    fn make_coeffs<$conf>($arg_param, $arg_rate) -> _
+                    $(where
+                        {$($where_c)+})?
+                    $make_coeffs
+                )*
+            }
+            $(where
+                $($where)+)?
+        );
+    };
+    (
+        $({
+            $($docs:tt)+
+        })?
+        $name:ident
+        {
+            type Conf: $conf_trait_alias:ident as $conf_trait:path;
+            type Param<C>: $param_trait_alias:ident as $param_trait:path = $param_default:ident;
+            
+            $(const OUTPUTS: usize = $outputs:expr;)?
+            $(const O_BUFFERS: usize = $o_buffers:expr;)?
+            $(const SOS_BUFFERS: usize = $sos_buffers:expr;)?
+            $(const SOS_STAGES: usize = $sos_stages:expr;)?
+            $(const ORDER: usize = $order:expr;)?
+            const IS_IIR: bool = $is_iir:expr;
+
+            $(
+                fn make_coeffs<$conf:ty>($arg_param:ident, $arg_rate:ident) -> _
+                $(where
+                    {$($where_c:tt)+})?
+                $make_coeffs:block
+            )*
+        }
+        $(where
+            $($where:tt)+)?
+    ) => {
+        real_time_fir_iir_filters::def_rtf_internals!(
+            type Conf: $conf_trait_alias as $conf_trait;
+            
+            $(const OUTPUTS: usize = $outputs;)?
+            $(const O_BUFFERS: usize = $o_buffers;)?
+            $(const SOS_BUFFERS: usize = $sos_buffers;)?
+            $(const SOS_STAGES: usize = $sos_stages;)?
+            $(const ORDER: usize = $order;)?
+            const IS_IIR: bool = $is_iir;
+        );
+
+        struct __Helper<F, CC>
+        {
+            phantom: core::marker::PhantomData<(F, CC)>
+        }
+
+        impl<F, CC> __Helper<F, CC>
+        where
+            F: real_time_fir_iir_filters::param::FilterFloat,
+            CC: $conf_trait_alias<Conf = CC> + $conf_trait + real_time_fir_iir_filters::conf::Conf
+        {
+            const OUTPUTS: usize = real_time_fir_iir_filters::rtf_conf_const!(
+                type Conf: $conf_trait_alias as $conf_trait = CC;
+
+                const OUTPUTS: usize $(= $outputs)?;
+            );
+            const O_BUFFERS: usize = real_time_fir_iir_filters::rtf_conf_const!(
+                type Conf: $conf_trait_alias as $conf_trait = CC;
+
+                const O_BUFFERS: usize $(= $o_buffers)?;
+            );
+            const SOS_BUFFERS: usize = real_time_fir_iir_filters::rtf_conf_const!(
+                type Conf: $conf_trait_alias as $conf_trait = CC;
+
+                const SOS_BUFFERS: usize $(= $sos_buffers)?;
+            );
+            const SOS_STAGES: usize = real_time_fir_iir_filters::rtf_conf_const!(
+                type Conf: $conf_trait_alias as $conf_trait = CC;
+
+                const SOS_STAGES: usize $(= $sos_stages)?;
+            );
+            const ORDER: usize = real_time_fir_iir_filters::rtf_conf_const!(
+                type Conf: $conf_trait_alias as $conf_trait = CC;
+
+                const ORDER: usize $(= $order)?;
+            );
+        }
+
+        $($($docs)*)?
+        #[derive(Clone, Copy, Debug)]
+        pub struct $name<F = f64, P = $param_default<F>, C = real_time_fir_iir_filters::conf::All, CC = <<P as $param_trait>::Conf as $conf_trait>::Conf>
+        where
+            F: real_time_fir_iir_filters::param::FilterFloat,
+            C: real_time_fir_iir_filters::conf::Conf,
+            CC: $conf_trait_alias<Conf = CC> + $conf_trait + real_time_fir_iir_filters::conf::Conf,
+            P: $param_trait_alias<C> + real_time_fir_iir_filters::param::FilterParam<F = F>,
+            <P as $param_trait>::Conf: $conf_trait_alias<Conf = CC>,
+            $($($where)+)?
+        {
+            pub param: P,
+            pub internals: Internals<F, CC>,
+            phantom: core::marker::PhantomData<C>
+        }
+        
+        impl<P, C, CC> $name<P::F, P, C, CC>
+        where
+            C: real_time_fir_iir_filters::conf::Conf,
+            CC: $conf_trait_alias<Conf = CC> + $conf_trait + real_time_fir_iir_filters::conf::Conf,
+            P: $param_trait_alias<C>,
+            <P as $param_trait>::Conf: $conf_trait_alias<Conf = CC>,
+            $($($where)+)?
+        {
+            pub const fn new<CCC>(param: P) -> Self
+            where
+                CCC: real_time_fir_iir_filters::conf::Conf + real_time_fir_iir_filters::util::same::Same<C>
+            {
+                Self {
+                    param,
+                    internals: Internals::<P::F, CC>::new(),
+                    phantom: core::marker::PhantomData
+                }
+            }
+        }
+
+        $(
+            #[allow(unused_braces)]
+            impl<P, C> real_time_fir_iir_filters::rtf::RtfBase for $name<P::F, P, C, $conf>
+            where
+                C: real_time_fir_iir_filters::conf::Conf,
+                P: $param_trait_alias<C>,
+                <P as $param_trait>::Conf: $conf_trait_alias<Conf = $conf>,
+                $($($where_c)+)?
+            {
+                type Conf = C;
+                type F = P::F;
+            
+                const IS_IIR: bool = $is_iir;
+                const OUTPUTS: usize = __Helper::<P::F, $conf>::OUTPUTS;
+            }
+            #[allow(unused_braces)]
+            impl<P, C> real_time_fir_iir_filters::static_rtf::StaticRtfBase for $name<P::F, P, C, $conf>
+            where
+                C: real_time_fir_iir_filters::conf::Conf,
+                <P as $param_trait>::Conf: $conf_trait_alias<Conf = $conf>,
+                P: $param_trait_alias<C>,
+                $conf: $conf_trait_alias<Conf = $conf>,
+                $($($where_c)+)?
+            {
+                type Param = P;
+    
+                const O_BUFFERS: usize = __Helper::<P::F, $conf>::O_BUFFERS;
+                const SOS_BUFFERS: usize = __Helper::<P::F, $conf>::SOS_BUFFERS;
+                const SOS_STAGES: usize = __Helper::<P::F, $conf>::SOS_STAGES;
+                const ORDER: usize = __Helper::<P::F, $conf>::ORDER;
+                
+                fn from_param(param: Self::Param) -> Self
+                {
+                    Self {
+                        param,
+                        internals: Internals::<P::F, $conf>::new(),
+                        phantom: core::marker::PhantomData
+                    }
+                }
+                fn get_param(&self) -> &Self::Param
+                {
+                    &self.param
+                }
+                fn get_param_mut(&mut self) -> &mut Self::Param
+                {
+                    &mut self.param
+                }
+                fn into_param(self) -> Self::Param
+                {
+                    self.param
+                }
+                
+                fn get_internals(&self) -> (&Internals<P::F, $conf>, &Self::Param)
+                {
+                    (&self.internals, &self.param)
+                }
+                fn get_internals_mut(&mut self) -> (&mut Internals<P::F, $conf>, &mut Self::Param)
+                {
+                    (&mut self.internals, &mut self.param)
+                }
+    
+                fn make_coeffs($arg_param: &Self::Param, $arg_rate: Self::F) -> (
+                    BInternals<P::F, $conf>,
+                    [AInternals<P::F, $conf>; $is_iir as usize]
+                )
+                {
+                    fn make_coeffs<F, P, C>($arg_param: &P, $arg_rate: F) -> (
+                        BInternals<F, $conf>,
+                        [AInternals<F, $conf>; $is_iir as usize]
+                    )
+                    where
+                        F: real_time_fir_iir_filters::param::FilterFloat,
+                        P: $param_trait_alias<C> + real_time_fir_iir_filters::param::FilterParam<F = F>,
+                        <P as $param_trait>::Conf: $conf_trait_alias<Conf = $conf>,
+                        C: real_time_fir_iir_filters::conf::Conf,
+                        $($($where_c)+)?
+                    $make_coeffs
+    
+                    make_coeffs($arg_param, $arg_rate)
+                }
+            }
+        )*
+    };
+    (
+        $({
+            $($docs:tt)+
+        })?
+        $name:ident
+        {
+            type Param: $param_trait:ident = $param_default:ident;
+            const OUTPUTS: usize = $outputs:expr;
+            const O_BUFFERS: usize = $o_buffers:expr;
+            const SOS_BUFFERS: usize = $sos_buffers:expr;
+            const SOS_STAGES: usize = $sos_stages:expr;
+            const ORDER: usize = $order:expr;
+            const IS_IIR: bool = $is_iir:expr;
 
             fn make_coeffs($arg_param:ident, $arg_rate:ident) -> _
             $make_coeffs:block
         }
+        $(where
+            $($where:tt)+)?
     ) => {
+        #[allow(type_alias_bounds)]
+        type BInternals<F> = real_time_fir_iir_filters::internals::binternals!(F, $outputs, $o_buffers, $sos_buffers, $sos_stages, $order);
+        #[allow(type_alias_bounds)]
+        type AInternals<F> = real_time_fir_iir_filters::internals::ainternals!(F, $o_buffers, $sos_buffers, $sos_stages, $order);
+        #[allow(type_alias_bounds)]
+        type Internals<F> = real_time_fir_iir_filters::internals::rtfinternals!(F, $outputs, $o_buffers, $sos_buffers, $sos_stages, $order, $is_iir);
+
         $($($docs)*)?
         #[derive(Clone, Copy, Debug)]
-        pub struct $name<F, P = $param_default<F>>
+        pub struct $name<F = f64, P = $param_default<F>>
         where
-            F: num::Float + bytemuck::Pod,
-            P: $param_trait<F = F>
+            F: real_time_fir_iir_filters::param::FilterFloat,
+            P: $param_trait + real_time_fir_iir_filters::param::FilterParam<F = F>,
+            $($($where)+)?
         {
             pub param: P,
-            pub internals: real_time_fir_iir_filters::internals::RtfInternalsGiven<F, $outputs, $buffered_outputs, $sos_stages, $order, $is_iir>
+            pub internals: Internals<F>,
+            phantom: core::marker::PhantomData<()>
         }
         
-        impl<F, P> $name<F, P>
+        impl<P> $name<P::F, P>
         where
-            F: num::Float + bytemuck::Pod,
-            P: $param_trait<F = F>
+            P: $param_trait,
+            $($($where)+)?
         {
             pub const fn new(param: P) -> Self
             {
                 Self {
                     param,
-                    internals: real_time_fir_iir_filters::internals::RtfInternalsGiven::<F, $outputs, $buffered_outputs, $sos_stages, $order, $is_iir>::new()
+                    internals: Internals::<P::F>::new(),
+                    phantom: core::marker::PhantomData
                 }
             }
         }
-        
-        impl<F, P> real_time_fir_iir_filters::rtf::RtfBase for $name<F, P>
+
+        #[allow(unused_braces)]
+        impl<P> real_time_fir_iir_filters::rtf::RtfBase for $name<P::F, P>
         where
-            F: num::Float + bytemuck::Pod,
-            P: $param_trait<F = F>
+            P: $param_trait,
+            $($($where)+)?
         {
-            type F = F;
+            type Conf = real_time_fir_iir_filters::conf::All;
+            type F = P::F;
         
             const IS_IIR: bool = $is_iir;
             const OUTPUTS: usize = $outputs;
         }
-
-        impl<F, P> real_time_fir_iir_filters::static_rtf::StaticRtfBase for $name<F, P>
+        #[allow(unused_braces)]
+        impl<P> real_time_fir_iir_filters::static_rtf::StaticRtfBase for $name<P::F, P>
         where
-            F: num::Float + bytemuck::Pod,
-            P: $param_trait<F = F>
+            P: $param_trait,
+            $($($where)+)?
         {
             type Param = P;
 
-            const BUFFERED_OUTPUTS: bool = $buffered_outputs;
+            const O_BUFFERS: usize = $o_buffers;
+            const SOS_BUFFERS: usize = $sos_buffers;
             const SOS_STAGES: usize = $sos_stages;
             const ORDER: usize = $order;
             
             fn from_param(param: Self::Param) -> Self
             {
-                Self::new(param)
+                Self {
+                    param,
+                    internals: Internals::<P::F>::new(),
+                    phantom: core::marker::PhantomData
+                }
             }
             fn get_param(&self) -> &Self::Param
             {
@@ -266,20 +856,32 @@ macro_rules! def_rtf {
                 self.param
             }
             
-            fn get_internals(&self) -> (&real_time_fir_iir_filters::internals::RtfInternalsGiven<F, $outputs, $buffered_outputs, $sos_stages, $order, $is_iir>, &Self::Param)
+            fn get_internals(&self) -> (&Internals<P::F>, &Self::Param)
             {
                 (&self.internals, &self.param)
             }
-            fn get_internals_mut(&mut self) -> (&mut real_time_fir_iir_filters::internals::RtfInternalsGiven<F, $outputs, $buffered_outputs, $sos_stages, $order, $is_iir>, &mut Self::Param)
+            fn get_internals_mut(&mut self) -> (&mut Internals<P::F>, &mut Self::Param)
             {
                 (&mut self.internals, &mut self.param)
             }
 
             fn make_coeffs($arg_param: &Self::Param, $arg_rate: Self::F) -> (
-                real_time_fir_iir_filters::internals::binternals!(F, $outputs, $buffered_outputs, $sos_stages, $order),
-                [real_time_fir_iir_filters::internals::ainternals!(F, $outputs, $buffered_outputs, $sos_stages, $order); $is_iir as usize]
+                BInternals<P::F>,
+                [AInternals<P::F>; $is_iir as usize]
             )
-            $make_coeffs
+            {
+                fn make_coeffs<F, P>($arg_param: &P, $arg_rate: F) -> (
+                    BInternals<F>,
+                    [AInternals<F>; $is_iir as usize]
+                )
+                where
+                    F: real_time_fir_iir_filters::param::FilterFloat,
+                    P: $param_trait + real_time_fir_iir_filters::param::FilterParam<F = F>,
+                    $($($where)+)?
+                $make_coeffs
+
+                make_coeffs($arg_param, $arg_rate)
+            }
         }
     };
 }
@@ -323,13 +925,31 @@ mod tests
         let freq_response = omega.into_iter()
             .map(|omega| filter.frequency_response(sampling_frequency, omega));
 
-        let filter_name = core::any::type_name::<T>()
-            .split_terminator("::")
-            .last()
-            .unwrap()
-            .split_terminator("<")
-            .next()
-            .unwrap();
+        let type_name = core::any::type_name::<T>();
+        let filter_name = {
+            let mut k = 0;
+            let mut i = 0;
+            loop
+            {
+                if i >= type_name.len()
+                {
+                    break &type_name[k..]
+                }
+                else if type_name[i..].starts_with("::")
+                {
+                    i += "::".len();
+                    k = i;
+                }
+                else if type_name[i..].starts_with("<")
+                {
+                    break &type_name[k..i];
+                }
+                else
+                {
+                    i += 1;
+                }
+            }
+        };
         let mut first = true;
         let file_name_no_extension: String = filter_name.chars()
             .flat_map(|c| if c.is_ascii_uppercase()
@@ -383,7 +1003,7 @@ mod tests
         const N: usize = 5;
         const M: usize = (N + 1)/2;
         const K: usize = 2usize.pow(M as u32);
-        let inv_map: [[_; M]; K] = core::array::from_fn(|mut i| core::array::from_fn(|m| {
+        let inv_map: [[_; M]; K] = core::array::from_fn(|mut i| core::array::from_fn(|_| {
             let b = i % 2 == 1;
             i >>= 1;
             b
