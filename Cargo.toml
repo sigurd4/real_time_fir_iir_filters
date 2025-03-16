@@ -1,6 +1,100 @@
-[workspace]
+[package]
+name = "real_time_fir_iir_filters"
+version = "1.0.8"
+edition = "2021"
+license = "MIT"
+description = "Real-time FIR and IIR filters designed for use with vst's"
+repository = "https://github.com/sigurd4/real_time_fir_iir_filters"
 
-members = [
-    "cond",
-    "real_time_fir_iir_filters"
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+num = "0.4.3"
+moddef = "0.2.6"
+static_assertions = "1.1.0"
+bytemuck = "1.22.0"
+tupleops = "0.1.1"
+
+[dev-dependencies]
+plotters = "0.3.7"
+linspace = "0.1.1"
+
+[features]
+default = [
+    #"first_order_all_pass",
+    #"first_order",
+    #"first_order_lr",
+    #"first_order_rc",
+    "pi",
+    #"pid",
+    #"second_order_butterworth",
+    #"second_order_chebyshev",
+    #"second_order_elliptic",
+    #"second_order",
+    #"second_order_rc",
+    #"second_order_rlc",
+    #"second_order_sallen_key",
+    #"third_order_butterworth",
+    #"third_order_chebyshev",
+    #"third_order_elliptic",
+    #"third_order",
+    #"third_order_sallen_key",
+    #"wah"
 ]
+
+param_lr = []
+param_omega_epsilon_xi = ["param_omega_epsilon"]
+param_omega_epsilon = ["param_omega"]
+param_omega_zeta = ["param_omega"]
+param_omega = []
+param_omega2_zeta = ["param_omega_zeta"]
+param_pi = []
+param_pid = ["param_pi"]
+param_rc = []
+param_rc2 = ["param_rc"]
+param_rc2_sallen_key = []
+param_rc3_sallen_key = ["param_rc", "param_rc2_sallen_key"]
+param_rlc = ["param_rc", "param_lr"]
+param_tau = []
+param_wah = []
+
+first_order_all_pass = ["param_tau"]
+first_order = ["param_omega"]
+first_order_lr = ["first_order", "param_lr"]
+first_order_rc = ["first_order", "param_rc"]
+pi = ["param_pi"]
+
+pid = ["param_pid"]
+second_order_butterworth = ["param_omega"]
+second_order_chebyshev1 = ["param_omega_epsilon"]
+second_order_chebyshev2 = ["param_omega_epsilon"]
+second_order_chebyshev = ["second_order_chebyshev1", "second_order_chebyshev2"]
+second_order_elliptic = ["param_omega_epsilon_xi"]
+second_order = ["param_omega_zeta"]
+second_order_rc = ["param_rc2"]
+second_order_rlc = ["param_rlc"]
+second_order_sallen_key = ["param_rc2_sallen_key"]
+
+third_order_butterworth = ["param_omega"]
+third_order_chebyshev1 = ["param_omega_epsilon"]
+third_order_chebyshev2 = ["param_omega_epsilon"]
+third_order_chebyshev = ["third_order_chebyshev1", "third_order_chebyshev2"]
+third_order_elliptic = ["param_omega_epsilon_xi"]
+third_order = ["param_omega2_zeta"]
+third_order_sallen_key = ["param_rc3_sallen_key"]
+
+wah = ["param_wah"]
+
+butterworth = ["first_order", "second_order_butterworth", "third_order_butterworth"]
+chebyshev1 = ["second_order_chebyshev1", "third_order_chebyshev1"]
+chebyshev2 = ["second_order_chebyshev2", "third_order_chebyshev2"]
+chebyshev = ["chebyshev1", "chebyshev2", "second_order_chebyshev", "third_order_chebyshev"]
+elliptic = ["second_order_elliptic", "third_order_elliptic"]
+all_pass = ["first_order_all_pass"]
+lr = ["first_order_lr"]
+rc = ["first_order_rc", "second_order_rc"]
+rlc = ["second_order_rlc"]
+sallen_key = ["second_order_sallen_key", "third_order_sallen_key"]
+analog_passive = ["lr", "rc", "rlc"]
+analog_active = ["sallen_key", "wah"]
+analog = ["analog_passive", "analog_active"]
