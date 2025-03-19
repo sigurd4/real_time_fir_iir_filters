@@ -1,8 +1,8 @@
 use crate::real_time_fir_iir_filters;
-use crate::param::{FilterFloat, FilterParam, FirstOrderAllPassFilterConf, FirstOrderAllPassFilterParam, FirstOrderAllPassFilterParamBase};
+use crate::param::{FilterFloat, FilterParam, FirstOrderAllPassFilterConf, FirstOrderAllPassFilterParam, FirstOrderAllPassFilterParamBase, TauVal};
 
 crate::def_param!(
-    Tau(TauVal)<F> {
+    Tau<F> {
         tau: F
     }
     where

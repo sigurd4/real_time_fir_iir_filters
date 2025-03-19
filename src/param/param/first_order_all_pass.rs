@@ -1,4 +1,4 @@
-use crate::{conf::{All, AllPass, Conf}, param::FirstOrderAllPassFilterParamBase, params::TauVal, util::same::Same};
+use crate::{conf::{All, AllPass, Conf}, param::{FirstOrderAllPassFilterParamBase, TauVal}, util::same::Same};
 
 pub trait FirstOrderAllPassFilterParam<
     C,
@@ -57,7 +57,7 @@ impl_composite_conf!(All: AllPass);
 
 mod private
 {
-    use crate::{filters::iir::first::FirstOrderAllPassFilter, params::Tau, rtf::Rtf};
+    use crate::params::Tau;
 
     use super::{FirstOrderAllPassFilterConf, FirstOrderAllPassFilterParam};
 
@@ -81,10 +81,7 @@ mod private
             Conf = CC::Conf
         >,
         Tau<f64>: FirstOrderAllPassFilterParam<CC, Conf = CC>,
-        Tau<f32>: FirstOrderAllPassFilterParam<CC, Conf = CC>,
-        FirstOrderAllPassFilter<f64, Tau<f64>, C>: Rtf,
-        FirstOrderAllPassFilter<f32, Tau<f32>, C>: Rtf,
-        [(); <<CC as FirstOrderAllPassFilterConf>::Conf as FirstOrderAllPassFilterConf>::OUTPUTS]:
+        Tau<f32>: FirstOrderAllPassFilterParam<CC, Conf = CC>
     {
 
     }

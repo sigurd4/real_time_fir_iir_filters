@@ -6,6 +6,7 @@ moddef::moddef!(
         omega for cfg(feature = "param_omega"),
         omega2_zeta for cfg(feature = "param_omega2_zeta"),
         pi for cfg(feature = "param_pi"),
-        pid for cfg(feature = "param_pid")
+        pid for cfg(feature = "param_pid"),
+        tau for cfg(feature = "param_tau")
     }
 );

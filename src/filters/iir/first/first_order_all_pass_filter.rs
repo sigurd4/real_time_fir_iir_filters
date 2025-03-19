@@ -1,4 +1,4 @@
-use crate::{conf::All, param::{FirstOrderAllPassFilterConf, FirstOrderAllPassFilterParam}, params::Tau, real_time_fir_iir_filters};
+use crate::{conf::All, param::{FirstOrderAllPassFilterConf, FirstOrderAllPassFilterParam, TauVal}, params::Tau, real_time_fir_iir_filters};
 
 crate::def_rtf!(
     {
@@ -27,7 +27,7 @@ crate::def_rtf!(
 
         fn make_coeffs<All>(param, rate) -> _
         {
-            let tau = param.tau();
+            let TauVal {tau} = param.tau();
             let tau_rate = tau*rate;
             let two_tau_rate = tau_rate + tau_rate;
             let one = F::one();
@@ -59,7 +59,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = FirstOrderAllPassFilter::new::<All>(Tau::new(0.001));
+        let mut filter = FirstOrderAllPassFilter::<_, _, All>::new(Tau::new(0.001));
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

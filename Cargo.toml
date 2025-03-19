@@ -21,7 +21,7 @@ linspace = "0.1.1"
 
 [features]
 default = [
-    #"first_order_all_pass",
+    "first_order_all_pass",
     "first_order",
     #"first_order_lr",
     #"first_order_rc",
