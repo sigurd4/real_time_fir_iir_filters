@@ -6,7 +6,8 @@ use num::{traits::FloatConst, Float};
 moddef::moddef!(
     flat(pub) mod {
         base,
-        param
+        param,
+        val
     }
 );
 
@@ -48,6 +49,8 @@ where
 
 pub trait FilterParam: Parameterization
 {
+    const ORDER: usize = 0;
+
     type F: FilterFloat;
 }
 

@@ -33,7 +33,7 @@ where
         *self.d
     }
 }
-impl<P> From<P> for PID<P::F>
+/*impl<P> From<P> for PID<P::F>
 where
     P: PIDFilterParam + NotSame<Self>
 {
@@ -41,4 +41,4 @@ where
     {
         PID::new(value.p(), value.i(), value.d())
     }
-}
+}*/

@@ -1,4 +1,4 @@
-use crate::{param::PIFilterParam, params::{PIVal, PI}, real_time_fir_iir_filters};
+use crate::{param::{PIFilterParam, PIVal}, params::PI, real_time_fir_iir_filters};
 
 crate::def_rtf!(
     {

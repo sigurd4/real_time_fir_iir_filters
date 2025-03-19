@@ -44,9 +44,9 @@ default = [
 
 param_lr = []
 param_omega_epsilon_xi = ["param_omega_epsilon"]
-param_omega_epsilon = ["param_omega"]
+param_omega_epsilon = ["param_omega", "param_omega_epsilon_xi"]
 param_omega_zeta = ["param_omega"]
-param_omega = []
+param_omega = ["param_omega_epsilon", "param_omega_zeta", "param_omega2_zeta"]
 param_omega2_zeta = ["param_omega_zeta"]
 param_pi = []
 param_pid = ["param_pi"]

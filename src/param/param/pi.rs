@@ -1,4 +1,4 @@
-use crate::{param::FilterParam, params::PIVal};
+use crate::param::{FilterParam, PIVal};
 
 pub trait PIFilterParam: FilterParam
 {

@@ -1,4 +1,4 @@
-use crate::{conf::All, param::{Chebyshev1FilterParam, Chebyshev2FilterParam, ChebyshevFilterConf, ChebyshevFilterParamBase, ChebyshevType, EllipticFilterParamBase, FilterFloat, FilterParam, FilterParamFirstOrder, FilterParamSecondOrder, Param, Parameterization}, util::same::NotSame};
+use crate::param::{ChebyshevFilterConf, ChebyshevFilterParam, ChebyshevFilterParamBase, ChebyshevType, EllipticFilterParamBase, FilterFloat, FilterParam, FirstOrderFilterParam, OmegaEpsilonVal, Param, Parameterization};
 
 pub type OmegaEpsilonDyn<F, const TYPE: ChebyshevType> = OmegaEpsilon<F, TYPE>;
 pub type OmegaEpsilonFirstOrder<F, const TYPE: ChebyshevType> = OmegaEpsilon<F, TYPE, 1>;
@@ -16,7 +16,6 @@ pub type OmegaEpsilonCheb2Dyn<F> = OmegaEpsilonCheb2<F>;
 pub type OmegaEpsilonCheb2FirstOrder<F> = OmegaEpsilonCheb2<F, 1>;
 pub type OmegaEpsilonCheb2SecondOrder<F> = OmegaEpsilonCheb2<F, 2>;
 pub type OmegaEpsilonCheb2ThirdOrder<F> = OmegaEpsilonCheb2<F, 3>;
-
 
 pub struct OmegaEpsilon<F, const TYPE: ChebyshevType, const ORDER: usize = 0>
 where
@@ -60,18 +59,6 @@ where
 
     type F = F;
 }
-impl<F, const TYPE: ChebyshevType> FilterParamFirstOrder for OmegaEpsilonFirstOrder<F, TYPE>
-where
-    F: FilterFloat
-{
-    
-}
-impl<F, const TYPE: ChebyshevType> FilterParamSecondOrder for OmegaEpsilonSecondOrder<F, TYPE>
-where
-    F: FilterFloat
-{
-    
-}
 impl<F, const TYPE: ChebyshevType, const ORDER: usize, C> EllipticFilterParamBase<C> for OmegaEpsilon<F, TYPE, ORDER>
 where
     F: FilterFloat,
@@ -86,53 +73,20 @@ where
 {
     type ImplBase = Self;
 }
-impl<F, const ORDER: usize, C> Chebyshev1FilterParam<C, Self> for OmegaEpsilonCheb1<F, ORDER>
+impl<F, const TYPE: ChebyshevType, const ORDER: usize, C> ChebyshevFilterParam<C, Self> for OmegaEpsilon<F, TYPE, ORDER>
 where
     F: FilterFloat,
     C: ChebyshevFilterConf
 {
     type Conf = C;
 
-    fn omega(&self) -> Self::F
-    {
-        *self.omega
-    }
-    fn epsilon(&self) -> Self::F
-    {
-        *self.epsilon
-    }
-}
-impl<F, const ORDER: usize, C> Chebyshev2FilterParam<C, Self> for OmegaEpsilonCheb2<F, ORDER>
-where
-    F: FilterFloat,
-    C: ChebyshevFilterConf
-{
-    type Conf = C;
+    const TYPE: ChebyshevType = TYPE;
 
-    fn omega(&self) -> Self::F
+    fn omega_epsilon(&self) -> OmegaEpsilonVal<Self::F>
     {
-        *self.omega
-    }
-    fn epsilon(&self) -> Self::F
-    {
-        *self.epsilon
-    }
-}
-impl<P, const ORDER: usize> From<P> for OmegaEpsilonCheb1<P::F, ORDER>
-where
-    P: Chebyshev1FilterParam<All, Conf = All> + NotSame<OmegaEpsilonCheb1<P::F>>
-{
-    fn from(value: P) -> Self
-    {
-        OmegaEpsilon::new(value.omega(), value.epsilon())
-    }
-}
-impl<P, const ORDER: usize> From<P> for OmegaEpsilonCheb2<P::F, ORDER>
-where
-    P: Chebyshev2FilterParam<All, Conf = All> + NotSame<OmegaEpsilonCheb2<P::F>>
-{
-    fn from(value: P) -> Self
-    {
-        OmegaEpsilon::new(value.omega(), value.epsilon())
+        OmegaEpsilonVal {
+            omega: *self.omega,
+            epsilon: *self.epsilon
+        }
     }
 }

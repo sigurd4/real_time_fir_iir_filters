@@ -1,6 +1,6 @@
-use crate::{conf::{All, Conf}, param::FilterParamThirdOrder};
+use crate::{conf::{All, Conf}, param::FilterParam};
 
-pub trait ThirdOrderFilterParamBase<C>: FilterParamThirdOrder
+pub trait ThirdOrderFilterParamBase<C>: FilterParam
 where
     C: Conf
 {

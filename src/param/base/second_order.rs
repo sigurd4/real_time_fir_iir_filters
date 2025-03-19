@@ -1,6 +1,6 @@
-use crate::{conf::{All, Conf}, param::FilterParamSecondOrder};
+use crate::{conf::{All, Conf}, param::FilterParam};
 
-pub trait SecondOrderFilterParamBase<C>: FilterParamSecondOrder
+pub trait SecondOrderFilterParamBase<C>: FilterParam
 where
     C: Conf
 {

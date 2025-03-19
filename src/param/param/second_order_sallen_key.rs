@@ -10,14 +10,7 @@ where
 {
     type Conf: SecondOrderSallenKeyFilterConf;
 
-    fn r1(&self) -> Self::F;
-    fn c1(&self) -> Self::F;
-    fn r2(&self) -> Self::F;
-    fn c2(&self) -> Self::F;
-    fn g(&self) -> Self::F
-    {
-        One::one()
-    }
+    fn rc2g(&self) -> RC2GVal<Self::F>;
 }
 
 pub trait SecondOrderSallenKeyFilterConf: Conf

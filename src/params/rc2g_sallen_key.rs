@@ -53,12 +53,3 @@ where
         *self.g
     }
 }
-impl<P> From<P> for RC2GSallenKey<P::F>
-where
-    P: SecondOrderSallenKeyFilterParam<All, Conf = All> + NotSame<Self>
-{
-    fn from(value: P) -> Self
-    {
-        RC2GSallenKey::new(value.r1(), value.c1(), value.r2(), value.c2(), value.g())
-    }
-}

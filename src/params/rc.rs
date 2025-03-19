@@ -72,8 +72,7 @@ where
         *self.c
     }
 }
-
-impl<P> From<P> for RC<P::F>
+/*impl<P> From<P> for RC<P::F>
 where
     P: FirstOrderRCFilterParam<All, Conf = All> + NotSame<RC<P::F>>
 {
@@ -83,4 +82,4 @@ where
         let c = value.c();
         RC::new(r, c)
     }
-}
+}*/

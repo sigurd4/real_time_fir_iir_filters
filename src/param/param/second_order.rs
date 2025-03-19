@@ -1,36 +1,35 @@
 use num::traits::FloatConst;
 
-use crate::{conf::{all, All, Conf, HighPass, LowPass, Peak}, param::{FilterParam, SecondOrderFilterParamBase}, params::Omega, util::same::Same};
+use crate::{conf::{all, All, Conf, HighPass, LowPass, Peak}, param::{FilterParam, OmegaVal, OmegaZetaVal, SecondOrderFilterParamBase}, params::Omega, util::same::Same};
 
 use super::ButterworthFilterParam;
 
 pub trait SecondOrderFilterParam<
     C,
     ImplBase = <Self as SecondOrderFilterParamBase<C>>::ImplBase
->: SecondOrderFilterParamBase<C, ImplBase: Same<ImplBase>> + FilterParam<ORDER = 2>
+>: SecondOrderFilterParamBase<C, ImplBase: Same<ImplBase>>
 where
     C: Conf
 {
     type Conf: SecondOrderFilterConf;
 
-    fn omega(&self) -> Self::F;
-    fn zeta(&self) -> Self::F;
+    fn omega_zeta(&self) -> OmegaZetaVal<Self::F>;
 }
 
 impl<P, C> SecondOrderFilterParam<C, Omega<P::F, 2>> for P
 where
-    P: ButterworthFilterParam<C, Conf: SecondOrderFilterConf> + FilterParam<ORDER = 2> + SecondOrderFilterParamBase<C, ImplBase = Omega<<P as FilterParam>::F, 2>>,
+    P: ButterworthFilterParam<C, Conf: SecondOrderFilterConf> + SecondOrderFilterParamBase<C, ImplBase = Omega<<P as FilterParam>::F, 2>>,
     C: Conf
 {
     type Conf = P::Conf;
 
-    fn omega(&self) -> Self::F
+    fn omega_zeta(&self) -> OmegaZetaVal<Self::F>
     {
-        ButterworthFilterParam::omega(self)
-    }
-    fn zeta(&self) -> Self::F
-    {
-        FloatConst::FRAC_1_SQRT_2()
+        let OmegaVal {omega} = self.omega();
+        OmegaZetaVal {
+            omega,
+            zeta: FloatConst::FRAC_1_SQRT_2()
+        }
     }
 }
 
@@ -95,7 +94,7 @@ impl_composite_conf!(LowPass, Peak, HighPass => All);
 
 mod private
 {
-    use crate::{filters::iir::second::{SecondOrderButterworthFilter, SecondOrderFilter}, param::{ButterworthFilterConf, ButterworthFilterParam}, params::{OmegaSecondOrder, OmegaZeta}, rtf::Rtf};
+    use crate::{param::{ButterworthFilterConf, ButterworthFilterParam}, params::{OmegaSecondOrder, OmegaZeta}};
 
     use super::{SecondOrderFilterConf, SecondOrderFilterParam};
 
@@ -126,15 +125,9 @@ mod private
         >,
         OmegaZeta<f64>: SecondOrderFilterParam<CC, Conf = CC>,
         OmegaZeta<f32>: SecondOrderFilterParam<CC, Conf = CC>,
-        SecondOrderFilter<f64, OmegaZeta<f64>, C>: Rtf,
-        SecondOrderFilter<f32, OmegaZeta<f32>, C>: Rtf,
-        [(); <<CC as SecondOrderFilterConf>::Conf as SecondOrderFilterConf>::OUTPUTS]:,
 
         OmegaSecondOrder<f64>: ButterworthFilterParam<CC, Conf = CC>,
-        OmegaSecondOrder<f32>: ButterworthFilterParam<CC, Conf = CC>,
-        SecondOrderButterworthFilter<f64, OmegaSecondOrder<f64>, C>: Rtf,
-        SecondOrderButterworthFilter<f32, OmegaSecondOrder<f32>, C>: Rtf,
-        [(); <<CC as ButterworthFilterConf<2>>::Conf as ButterworthFilterConf<2>>::OUTPUTS]:
+        OmegaSecondOrder<f32>: ButterworthFilterParam<CC, Conf = CC>
     {
 
     }

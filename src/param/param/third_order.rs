@@ -1,6 +1,6 @@
-use num::{Float, One};
+use num::NumCast;
 
-use crate::{conf::{all, All, Conf, HighPass, LowPass, Peak}, param::{FilterParam, ThirdOrderFilterParamBase}, params::OmegaThirdOrder, util::same::Same};
+use crate::{conf::{all, All, Conf, HighPass, LowPass, Peak}, param::{FilterParam, Omega2ZetaVal, OmegaVal, OmegaZetaVal, ThirdOrderFilterParamBase}, params::{OmegaThirdOrder, OmegaZeta}, util::same::Same};
 
 use super::ButterworthFilterParam;
 
@@ -13,9 +13,7 @@ where
 {
     type Conf: ThirdOrderFilterConf;
 
-    fn omega1(&self) -> Self::F;
-    fn omega2(&self) -> Self::F;
-    fn zeta(&self) -> Self::F;
+    fn omega2_zeta(&self) -> Omega2ZetaVal<Self::F>;
 }
 
 impl<P, C> ThirdOrderFilterParam<C, OmegaThirdOrder<P::F>> for P
@@ -25,18 +23,14 @@ where
 {
     type Conf = P::Conf;
 
-    fn omega1(&self) -> Self::F
+    fn omega2_zeta(&self) -> Omega2ZetaVal<Self::F>
     {
-        ButterworthFilterParam::omega(self)
-    }
-    fn omega2(&self) -> Self::F
-    {
-        ButterworthFilterParam::omega(self)
-    }
-    fn zeta(&self) -> Self::F
-    {
-        let one = <Self::F as One>::one();
-        (one + one).recip()
+        let OmegaVal {omega} = self.omega();
+        Omega2ZetaVal {
+            omega1: omega,
+            omega2: omega,
+            zeta: NumCast::from(0.5).unwrap()
+        }
     }
 }
 
@@ -121,7 +115,7 @@ impl_composite_conf!(LowPass, Peak<1>, Peak<2>, HighPass => All);
 
 mod private
 {
-    use crate::{filters::iir::third::ThirdOrderButterworthFilter, param::{ButterworthFilterConf, ButterworthFilterParam}, params::{Omega2Zeta, OmegaThirdOrder}, rtf::Rtf};
+    use crate::{param::{ButterworthFilterConf, ButterworthFilterParam}, params::{Omega2Zeta, OmegaThirdOrder}};
 
     use super::{ThirdOrderFilterConf, ThirdOrderFilterParam};
 
@@ -152,15 +146,9 @@ mod private
         >,
         Omega2Zeta<f64>: ThirdOrderFilterParam<CC, Conf = CC>,
         Omega2Zeta<f32>: ThirdOrderFilterParam<CC, Conf = CC>,
-        //ThirdOrderFilter<f64, OmegaZeta<f64>, C>: Rtf,
-        //ThirdOrderFilter<f32, OmegaZeta<f32>, C>: Rtf,
-        [(); <<CC as ThirdOrderFilterConf>::Conf as ThirdOrderFilterConf>::OUTPUTS]:,
 
         OmegaThirdOrder<f64>: ButterworthFilterParam<CC, Conf = CC>,
-        OmegaThirdOrder<f32>: ButterworthFilterParam<CC, Conf = CC>,
-        ThirdOrderButterworthFilter<f64, OmegaThirdOrder<f64>, C>: Rtf,
-        ThirdOrderButterworthFilter<f32, OmegaThirdOrder<f32>, C>: Rtf,
-        [(); <<CC as ButterworthFilterConf<3>>::Conf as ButterworthFilterConf<3>>::OUTPUTS]:
+        OmegaThirdOrder<f32>: ButterworthFilterParam<CC, Conf = CC>
     {
 
     }

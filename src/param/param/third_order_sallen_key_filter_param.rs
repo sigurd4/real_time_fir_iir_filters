@@ -13,16 +13,7 @@ where
 {
     type Conf: ThirdOrderSallenKeyFilterConf;
 
-    fn r1(&self) -> Self::F;
-    fn c1(&self) -> Self::F;
-    fn r2(&self) -> Self::F;
-    fn c2(&self) -> Self::F;
-    fn r3(&self) -> Self::F;
-    fn c3(&self) -> Self::F;
-    fn g(&self) -> Self::F
-    {
-        One::one()
-    }
+    fn rc3g(&self) -> RC3GVal<Self::F>;
 }
 
 impl<P, C> ThirdOrderSallenKeyFilterParam<C, RC2GSallenKey<P::F>> for P

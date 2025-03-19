@@ -6,9 +6,7 @@ use super::PIFilterParam;
 
 pub trait PIDFilterParam: FilterParam
 {
-    fn p(&self) -> Self::F;
-    fn i(&self) -> Self::F;
-    fn d(&self) -> Self::F;
+    fn pid(&self) -> PIDVal<Self::F>;
 }
 impl<P> PIDFilterParam for P
 where

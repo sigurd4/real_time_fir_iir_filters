@@ -1,4 +1,4 @@
-use crate::{conf::All, param::{FilterFloat, FilterParam, FilterParamSecondOrder, SecondOrderFilterConf, SecondOrderFilterParam, SecondOrderFilterParamBase}, real_time_fir_iir_filters, util::same::NotSame};
+use crate::{param::{FilterFloat, FilterParam, OmegaZetaVal, SecondOrderFilterConf, SecondOrderFilterParam, SecondOrderFilterParamBase}, real_time_fir_iir_filters};
 
 crate::def_param!(
     OmegaZeta<F> {
@@ -15,12 +15,6 @@ where
 
     type F = F;
 }
-impl<F> FilterParamSecondOrder for OmegaZeta<F>
-where
-    F: FilterFloat
-{
-    
-}
 impl<F, C> SecondOrderFilterParamBase<C> for OmegaZeta<F>
 where
     F: FilterFloat,
@@ -28,28 +22,18 @@ where
 {
     type ImplBase = Self;
 }
-impl<F, C> SecondOrderFilterParam<C, OmegaZeta<F>> for OmegaZeta<F>
+impl<F, C> SecondOrderFilterParam<C, Self> for OmegaZeta<F>
 where
     F: FilterFloat,
     C: SecondOrderFilterConf
 {
     type Conf = C;
 
-    fn omega(&self) -> Self::F
+    fn omega_zeta(&self) -> OmegaZetaVal<Self::F>
     {
-        *self.omega
-    }
-    fn zeta(&self) -> Self::F
-    {
-        *self.zeta
-    }
-}
-impl<P> From<P> for OmegaZeta<P::F>
-where
-    P: SecondOrderFilterParam<All, Conf = All> + NotSame<Self>
-{
-    fn from(value: P) -> Self
-    {
-        Self::new(value.omega(), value.zeta())
+        OmegaZetaVal {
+            omega: *self.omega,
+            zeta: *self.zeta
+        }
     }
 }

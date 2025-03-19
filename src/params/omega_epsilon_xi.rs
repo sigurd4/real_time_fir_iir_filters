@@ -1,4 +1,4 @@
-use crate::{conf::All, param::{EllipticFilterConf, EllipticFilterParam, EllipticFilterParamBase, FilterFloat, FilterParam, FilterParamFirstOrder, FilterParamSecondOrder, Param, Parameterization}, util::same::NotSame};
+use crate::param::{EllipticFilterConf, EllipticFilterParam, EllipticFilterParamBase, FilterFloat, FilterParam, OmegaEpsilonXiVal, Param, Parameterization};
 
 pub type OmegaEpsilonXiDyn<F> = OmegaEpsilonXi<F>;
 pub type OmegaEpsilonXiFirstOrder<F> = OmegaEpsilonXi<F, 1>;
@@ -51,18 +51,6 @@ where
 
     type F = F;
 }
-impl<F> FilterParamFirstOrder for OmegaEpsilonXiFirstOrder<F>
-where
-    F: FilterFloat
-{
-    
-}
-impl<F> FilterParamSecondOrder for OmegaEpsilonXiSecondOrder<F>
-where
-    F: FilterFloat
-{
-    
-}
 impl<F, const ORDER: usize, C> EllipticFilterParamBase<C> for OmegaEpsilonXi<F, ORDER>
 where
     F: FilterFloat,
@@ -77,20 +65,16 @@ where
 {
     type Conf = C;
 
-    fn omega(&self) -> Self::F
+    fn omega_epsilon_xi(&self) -> OmegaEpsilonXiVal<Self::F>
     {
-        *self.omega
-    }
-    fn epsilon(&self) -> Self::F
-    {
-        *self.epsilon
-    }
-    fn xi(&self) -> Self::F
-    {
-        *self.xi
+        OmegaEpsilonXiVal {
+            omega: *self.omega,
+            epsilon: *self.epsilon,
+            xi: *self.xi
+        }
     }
 }
-impl<P, const ORDER: usize> From<P> for OmegaEpsilonXi<P::F, ORDER>
+/*impl<P, const ORDER: usize> From<P> for OmegaEpsilonXi<P::F, ORDER>
 where
     P: EllipticFilterParam<All, Conf = All> + NotSame<Self>
 {
@@ -98,4 +82,4 @@ where
     {
         OmegaEpsilonXi::new(value.omega(), value.epsilon(), value.xi())
     }
-}
+}*/

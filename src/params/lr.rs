@@ -44,7 +44,7 @@ where
         *self.r
     }
 }
-impl<P> From<P> for LR<P::F>
+/*impl<P> From<P> for LR<P::F>
 where
     P: NotSame<LR<P::F>> + FirstOrderLRFilterParam<All, Conf = All>
 {
@@ -54,4 +54,4 @@ where
         let r = value.r();
         LR::new(l, r)
     }
-}
+}*/

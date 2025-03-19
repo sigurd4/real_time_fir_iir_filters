@@ -45,16 +45,3 @@ where
         *self.c
     }
 }
-
-impl<P> From<P> for RLC<P::F>
-where
-    P: SecondOrderRLCFilterParam<All, Conf = All> + NotSame<RLC<P::F>>
-{
-    fn from(value: P) -> Self
-    {
-        let r = value.r();
-        let l = value.l();
-        let c = value.c();
-        RLC::new(r, l, c)
-    }
-}

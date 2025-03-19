@@ -13,9 +13,7 @@ where
 {
     type Conf: SecondOrderRLCFilterConf;
 
-    fn r(&self) -> Self::F;
-    fn l(&self) -> Self::F;
-    fn c(&self) -> Self::F;
+    fn rlc(&self) -> RLCVal<Self::F>;
 }
 
 impl<P, C> SecondOrderRLCFilterParam<C, RC<P::F>> for P

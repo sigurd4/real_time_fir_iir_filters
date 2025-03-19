@@ -194,34 +194,6 @@ macro_rules! def_param {
         $({
             $($docs:tt)+
         })?
-        $type:ident($val_type:ident)$(<$($gg:ident),+$(,)?>)? $({
-            $($var:ident: $ty:ty),+$(,)?
-        })?
-        $(where
-            $($where:tt)+)?
-    ) => {
-        real_time_fir_iir_filters::def_param!(
-            $({
-                $($docs)+
-            })?
-            $type$(<$($gg),+>)? $({
-                $($var: $ty),+
-            })?
-            $(where
-                $($where)+)?
-        );
-        #[derive(Clone, Copy, Debug)]
-        pub struct $val_type$(<$($gg),*>)?
-        $(where
-            $($where)+)?
-        $({
-            $(pub $var: $ty),*
-        })?
-    };
-    (
-        $({
-            $($docs:tt)+
-        })?
         $type:ident$(<$($gg:ident),+$(,)?>)? $({
             $($var:ident: $ty:ty),+$(,)?
         })?

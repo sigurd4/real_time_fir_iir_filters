@@ -1,10 +1,8 @@
-use crate::*;
-use crate::param::*;
-use crate::conf::*;
-use crate::util::same::*;
+use crate::real_time_fir_iir_filters;
+use crate::param::{FilterFloat, FilterParam, FirstOrderAllPassFilterConf, FirstOrderAllPassFilterParam, FirstOrderAllPassFilterParamBase};
 
 crate::def_param!(
-    Tau<F> {
+    Tau(TauVal)<F> {
         tau: F
     }
     where
@@ -32,17 +30,8 @@ where
 {
     type Conf = C;
 
-    fn tau(&self) -> Self::F
+    fn tau(&self) -> TauVal<F>
     {
-        *self.tau
-    }
-}
-impl<P> From<P> for Tau<P::F>
-where
-    P: FirstOrderAllPassFilterParam<All> + NotSame<Tau<P::F>>
-{
-    fn from(value: P) -> Self
-    {
-        Tau::new(value.tau())
+        TauVal {tau: *self.tau}
     }
 }

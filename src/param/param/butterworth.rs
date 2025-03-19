@@ -1,16 +1,19 @@
 use super::*;
-use crate::{conf::Conf, param::{ChebyshevFilterParamBase, EllipticFilterParamBase, FilterParam}, params::*};
+use crate::{conf::Conf, param::{ChebyshevFilterParamBase, EllipticFilterParamBase, FilterParam, OmegaVal}, params::*};
 
 pub trait ButterworthFilterParam<C>: ChebyshevFilterParamBase<C, ImplBase = OmegaDyn<<Self as FilterParam>::F>>
     + EllipticFilterParamBase<C, ImplBase = OmegaEpsilonDyn<<Self as FilterParam>::F, {ChebyshevType::Type1}>>
 where
     C: Conf
 {
-    type Conf: ButterworthFilterConfFor<Self, C>;
+    type Conf: ButterworthFilterConf<{Self::ORDER}>
+    where
+        [(); Self::ORDER]:;
 
-    fn omega(&self) -> Self::F;
+    fn omega(&self) -> OmegaVal<Self::F>;
 }
 
+pub trait FirstOrderButterworthFilterConf = ButterworthFilterConf<1>;
 pub trait SecondOrderButterworthFilterConf = ButterworthFilterConf<2>;
 pub trait ThirdOrderButterworthFilterConf = ButterworthFilterConf<3>;
 
@@ -54,25 +57,11 @@ where
     const OUTPUTS: usize = OUTPUTS;
 }
 
-pub trait ButterworthFilterConfFor<P, C>: private::ButterworthFilterConfFor<P, C>
-where
-    C: Conf
-{
-
-}
-impl<P, C, CC> ButterworthFilterConfFor<P, C> for CC
-where
-    CC: private::ButterworthFilterConfFor<P, C>,
-    C: Conf
-{
-
-}
-
 mod private
 {
-    use crate::{conf::Conf, param::FilterParam, params::Omega};
+    use crate::param::{ChebyshevFilterConf, FirstOrderFilterConf, SecondOrderFilterConf, ThirdOrderFilterConf};
 
-    use super::{ButterworthFilterConf, ButterworthFilterParam};
+    use super::ButterworthFilterConf;
 
     pub trait ButterworthFilterConfFinal<const ORDER: usize, C>: ButterworthFilterConf<
         ORDER,
@@ -86,37 +75,63 @@ mod private
     {
 
     }
+
     impl<
-        const ORDER: usize,
         CC,
         C
-    > ButterworthFilterConfFinal<ORDER, C> for CC
+    > ButterworthFilterConfFinal<0, C> for CC
     where
-        CC: ButterworthFilterConf<
-            ORDER,
+        CC: ChebyshevFilterConf<
             Conf = CC
         >,
-        C: ButterworthFilterConf<
-            ORDER,
+        C: ChebyshevFilterConf<
             Conf = CC
         >,
-        Omega<f64, ORDER>: ButterworthFilterParam<CC, Conf = CC>,
-        Omega<f32, ORDER>: ButterworthFilterParam<CC, Conf = CC>
     {
 
     }
 
-    pub trait ButterworthFilterConfFor<P, C>: Conf
+    impl<
+        CC,
+        C
+    > ButterworthFilterConfFinal<1, C> for CC
     where
-        C: Conf
+        CC: FirstOrderFilterConf<
+            Conf = CC
+        >,
+        C: FirstOrderFilterConf<
+            Conf = CC
+        >,
     {
 
     }
-    impl<P, C, CC, const ORDER: usize> ButterworthFilterConfFor<P, C> for CC
+
+    impl<
+        CC,
+        C
+    > ButterworthFilterConfFinal<2, C> for CC
     where
-        P: FilterParam<ORDER = {ORDER}>,
-        C: Conf,
-        CC: ButterworthFilterConf<ORDER>
+        CC: SecondOrderFilterConf<
+            Conf = CC
+        >,
+        C: SecondOrderFilterConf<
+            Conf = CC
+        >,
+    {
+
+    }
+
+    impl<
+        CC,
+        C
+    > ButterworthFilterConfFinal<3, C> for CC
+    where
+        CC: ThirdOrderFilterConf<
+            Conf = CC
+        >,
+        C: ThirdOrderFilterConf<
+            Conf = CC
+        >,
     {
 
     }

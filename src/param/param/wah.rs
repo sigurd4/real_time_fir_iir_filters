@@ -45,5 +45,5 @@ pub trait WahFilterParam: FilterParam
 
     /// Position of wah potentiometer from 0.0 to 1.0
     /// Values out of range may give strange results
-    fn position(&self) -> Self::F;
+    fn position(&self) -> PositionVal<Self::F>;
 }

@@ -13,10 +13,7 @@ where
 {
     type Conf: SecondOrderRCFilterConf;
 
-    fn r1(&self) -> Self::F;
-    fn c1(&self) -> Self::F;
-    fn r2(&self) -> Self::F;
-    fn c2(&self) -> Self::F;
+    fn rc2(&self) -> RC2Val<Self::F>;
 }
 
 impl<P, C> SecondOrderRCFilterParam<C, RC<P::F>> for P

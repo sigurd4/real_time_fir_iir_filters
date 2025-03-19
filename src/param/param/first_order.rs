@@ -1,8 +1,6 @@
-use num::Float;
+use crate::{conf::{all, All, Conf, HighPass, LowPass}, param::{FilterParam, FirstOrderFilterParamBase, OmegaVal}, params::{Omega, OmegaFirstOrder}, util::same::Same};
 
-use crate::{conf::{all, All, Conf, HighPass, LowPass}, param::{FilterParam, FilterParamFirstOrder, FirstOrderFilterParamBase}, params::{Omega, OmegaFirstOrder, LR, RC}, util::same::Same};
-
-use super::{ButterworthFilterParam, FirstOrderLRFilterParam, FirstOrderRCFilterParam};
+use super::ButterworthFilterParam;
 
 pub trait FirstOrderFilterParam<
     C,
@@ -13,49 +11,21 @@ where
 {
     type Conf: FirstOrderFilterConf;
 
-    fn omega(&self) -> Self::F;
+    fn omega(&self) -> OmegaVal<Self::F>;
 }
 
 impl<P, C> FirstOrderFilterParam<C, OmegaFirstOrder<P::F>> for P
 where
-    P: ButterworthFilterParam<C, Conf: FirstOrderFilterConf> + FilterParamFirstOrder + FirstOrderFilterParamBase<C, ImplBase = Omega<<P as FilterParam>::F, 1>>,
-    [(); <P as FilterParam>::ORDER]:,
-    C: Conf
+    P: ButterworthFilterParam<C, ORDER = 1, Conf: FirstOrderFilterConf> + FirstOrderFilterParamBase<C, ImplBase = Omega<<P as FilterParam>::F, 1>>,
+    C: Conf,
+    [(); P::ORDER]:
 {
     type Conf = P::Conf;
 
     #[doc(hidden)]
-    fn omega(&self) -> Self::F
+    fn omega(&self) -> OmegaVal<Self::F>
     {
         ButterworthFilterParam::omega(self)
-    }
-}
-impl<P, C> FirstOrderFilterParam<C, RC<P::F>> for P
-where
-    P: FirstOrderRCFilterParam<C>,
-    C: Conf
-{
-    type Conf = P::Conf;
-
-    fn omega(&self) -> Self::F
-    {
-        let r = self.r();
-        let c = self.c();
-        (r*c).recip()
-    }
-}
-impl<P, C> FirstOrderFilterParam<C, LR<P::F>> for P
-where
-    P: FirstOrderLRFilterParam<C>,
-    C: Conf
-{
-    type Conf = P::Conf;
-
-    fn omega(&self) -> Self::F
-    {
-        let l = self.l();
-        let r = self.r();
-        r/l
     }
 }
 

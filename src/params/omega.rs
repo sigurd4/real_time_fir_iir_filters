@@ -1,6 +1,6 @@
-use crate::{conf::All, param::{ButterworthFilterConf, ButterworthFilterConfFor, ButterworthFilterParam, ChebyshevFilterParamBase, ChebyshevType, EllipticFilterParamBase, FilterFloat, FilterParam, FilterParamFirstOrder, FilterParamSecondOrder, FilterParamThirdOrder, FirstOrderFilterParam, FirstOrderFilterParamBase, Param, Parameterization, SecondOrderFilterParamBase, ThirdOrderFilterParamBase}, util::same::NotSame};
+use crate::param::{ButterworthFilterConf, ButterworthFilterParam, ChebyshevFilterParamBase, EllipticFilterParamBase, FilterFloat, FilterParam, FirstOrderFilterParam, FirstOrderFilterParamBase, OmegaVal, Param, Parameterization, SecondOrderFilterParamBase, ThirdOrderFilterParamBase};
 
-use super::OmegaEpsilonDyn;
+use super::OmegaEpsilonCheb1Dyn;
 
 pub type OmegaDyn<F> = Omega<F>;
 pub type OmegaFirstOrder<F> = Omega<F, 1>;
@@ -46,24 +46,6 @@ where
 
     type F = F;
 }
-impl<F> FilterParamFirstOrder for OmegaFirstOrder<F>
-where
-    F: FilterFloat
-{
-    
-}
-impl<F> FilterParamSecondOrder for OmegaSecondOrder<F>
-where
-    F: FilterFloat
-{
-    
-}
-impl<F> FilterParamThirdOrder for OmegaThirdOrder<F>
-where
-    F: FilterFloat
-{
-    
-}
 
 impl<F, C> FirstOrderFilterParamBase<C> for OmegaFirstOrder<F>
 where
@@ -89,32 +71,34 @@ where
 impl<F, C, const ORDER: usize> EllipticFilterParamBase<C> for Omega<F, ORDER>
 where
     F: FilterFloat,
-    C: ButterworthFilterConfFor<Self, C>,
+    C: ButterworthFilterConf<ORDER>
 {
-    type ImplBase = OmegaEpsilonDyn<F, {ChebyshevType::Type1}>;
+    type ImplBase = OmegaEpsilonCheb1Dyn<F>;
 }
 impl<F, C, const ORDER: usize> ChebyshevFilterParamBase<C> for Omega<F, ORDER>
 where
     F: FilterFloat,
-    C: ButterworthFilterConfFor<Self, C>
+    C: ButterworthFilterConf<ORDER>
 {
     type ImplBase = OmegaDyn<F>;
 }
 impl<F, C, const ORDER: usize> ButterworthFilterParam<C> for Omega<F, ORDER>
 where
     F: FilterFloat,
-    C: ButterworthFilterConfFor<Self, C>,
-    All: ButterworthFilterConf<1> + ButterworthFilterConf<2> + ButterworthFilterConf<3>
+    C: ButterworthFilterConf<ORDER> + ButterworthFilterConf<{Self::ORDER}>,
+    [(); Self::ORDER]:
 {
     type Conf = C;
 
-    fn omega(&self) -> Self::F
+    fn omega(&self) -> OmegaVal<Self::F>
     {
-        *self.omega
+        OmegaVal {
+            omega: *self.omega
+        }
     }
 }
 
-impl<P> From<P> for OmegaFirstOrder<P::F>
+/*impl<P> From<P> for OmegaFirstOrder<P::F>
 where
     P: FirstOrderFilterParam<All, Conf = All> + NotSame<Self>
 {
@@ -132,4 +116,4 @@ where
     {
         Omega::new(value.omega())
     }
-}
+}*/

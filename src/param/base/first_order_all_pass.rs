@@ -1,6 +1,6 @@
 use crate::{conf::{All, Conf}, param::FilterParam};
 
-pub trait FirstOrderAllPassFilterParamBase<C>: FilterParam<ORDER = 1>
+pub trait FirstOrderAllPassFilterParamBase<C>: FilterParam
 where
     C: Conf
 {

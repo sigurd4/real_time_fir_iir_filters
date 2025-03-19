@@ -1,4 +1,4 @@
-use crate::{conf::{All, AllPass, Conf}, param::FirstOrderAllPassFilterParamBase, util::same::Same};
+use crate::{conf::{All, AllPass, Conf}, param::FirstOrderAllPassFilterParamBase, params::TauVal, util::same::Same};
 
 pub trait FirstOrderAllPassFilterParam<
     C,
@@ -9,7 +9,7 @@ where
 {
     type Conf: FirstOrderAllPassFilterConf;
 
-    fn tau(&self) -> Self::F;
+    fn tau(&self) -> TauVal<Self::F>;
 }
 
 pub trait FirstOrderAllPassFilterConf: Conf

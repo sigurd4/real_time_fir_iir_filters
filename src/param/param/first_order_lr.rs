@@ -9,8 +9,22 @@ where
 {
     type Conf: FirstOrderLRFilterConf;
 
-    fn r(&self) -> Self::F;
-    fn l(&self) -> Self::F;
+    fn lr(&self) -> LRVar<Self::F>;
+}
+
+impl<P, C> FirstOrderFilterParam<C, LR<P::F>> for P
+where
+    P: FirstOrderLRFilterParam<C>,
+    C: Conf
+{
+    type Conf = P::Conf;
+
+    fn omega(&self) -> Self::F
+    {
+        let l = self.l();
+        let r = self.r();
+        r/l
+    }
 }
 
 pub trait FirstOrderLRFilterConf: FirstOrderFilterConf

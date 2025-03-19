@@ -14,8 +14,22 @@ where
 {
     type Conf: FirstOrderRCFilterConf;
 
-    fn r(&self) -> Self::F;
-    fn c(&self) -> Self::F;
+    fn rc(&self) -> RCVar<Self::F>;
+}
+
+impl<P, C> FirstOrderFilterParam<C, RC<P::F>> for P
+where
+    P: FirstOrderRCFilterParam<C>,
+    C: Conf
+{
+    type Conf = P::Conf;
+
+    fn omega(&self) -> Self::F
+    {
+        let r = self.r();
+        let c = self.c();
+        (r*c).recip()
+    }
 }
 
 impl<P, C> FirstOrderAllPassFilterParam<C, RC<P::F>> for P
