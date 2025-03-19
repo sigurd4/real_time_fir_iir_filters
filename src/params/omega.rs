@@ -1,4 +1,4 @@
-use crate::param::{ButterworthFilterConf, ButterworthFilterParam, ChebyshevFilterParamBase, EllipticFilterParamBase, FilterFloat, FilterParam, FirstOrderFilterParam, FirstOrderFilterParamBase, OmegaVal, Param, Parameterization, SecondOrderFilterParamBase, ThirdOrderFilterParamBase};
+use crate::param::{ButterworthFilterConf, ButterworthFilterParam, ChebyshevFilterParamBase, EllipticFilterParamBase, FilterFloat, FilterParam, FirstOrderFilterParamBase, OmegaVal, Param, Parameterization, SecondOrderFilterParamBase, ThirdOrderFilterParamBase};
 
 use super::OmegaEpsilonCheb1Dyn;
 

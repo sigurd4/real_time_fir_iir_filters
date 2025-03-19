@@ -212,35 +212,36 @@ where
     P: ChebyshevFilterParam<C>,
     C: Conf
 {
-    if P::TYPE == ChebyshevType::Type1
+    match P::TYPE
     {
-        return true;
-    }
-
-    let mut o = P::ORDER;
-
-    loop
-    {
-        match o
-        {
-            0 => return false,
-            1..=4 => return true,
-            _ => {
-                if o % 4 == 0
+        ChebyshevType::Type1 => true,
+        ChebyshevType::Type2 => {
+            let mut o = P::ORDER;
+        
+            loop
+            {
+                match o
                 {
-                    o /= 4
-                }
-                else if o % 3 == 0
-                {
-                    o /= 3
-                }
-                else if o % 2 == 0
-                {
-                    o /= 2
-                }
-                else
-                {
-                    return false
+                    0 => return false,
+                    1..=4 => return true,
+                    _ => {
+                        if o % 4 == 0
+                        {
+                            o /= 4
+                        }
+                        else if o % 3 == 0
+                        {
+                            o /= 3
+                        }
+                        else if o % 2 == 0
+                        {
+                            o /= 2
+                        }
+                        else
+                        {
+                            return false
+                        }
+                    }
                 }
             }
         }

@@ -19,7 +19,8 @@ where
 impl<P, C> SecondOrderFilterParam<C, Omega<P::F, 2>> for P
 where
     P: ButterworthFilterParam<C, Conf: SecondOrderFilterConf> + SecondOrderFilterParamBase<C, ImplBase = Omega<<P as FilterParam>::F, 2>>,
-    C: Conf
+    C: Conf,
+    [(); P::ORDER]:
 {
     type Conf = P::Conf;
 

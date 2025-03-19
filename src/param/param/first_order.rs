@@ -82,7 +82,7 @@ impl_composite_conf!(LowPass, HighPass => All);
 
 mod private
 {
-    use crate::{filters::iir::first::FirstOrderFilter, params::OmegaFirstOrder, rtf::Rtf};
+    use crate::params::OmegaFirstOrder;
 
     use super::{FirstOrderFilterConf, FirstOrderFilterParam};
 
@@ -109,10 +109,7 @@ mod private
             OUTPUTS = {OUTPUTS}
         >,
         OmegaFirstOrder<f64>: FirstOrderFilterParam<CC, Conf = CC>,
-        OmegaFirstOrder<f32>: FirstOrderFilterParam<CC, Conf = CC>,
-        FirstOrderFilter<f64, OmegaFirstOrder<f64>, CC>: Rtf,
-        FirstOrderFilter<f32, OmegaFirstOrder<f32>, CC>: Rtf,
-        [(); <<CC as FirstOrderFilterConf>::Conf as FirstOrderFilterConf>::OUTPUTS]:
+        OmegaFirstOrder<f32>: FirstOrderFilterParam<CC, Conf = CC>
     {
 
     }

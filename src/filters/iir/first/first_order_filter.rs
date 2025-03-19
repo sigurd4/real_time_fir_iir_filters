@@ -1,6 +1,6 @@
 use num::Float;
 
-use crate::{conf::{All, HighPass, LowPass}, param::{FirstOrderFilterConf, FirstOrderFilterParam}, params::OmegaFirstOrder, real_time_fir_iir_filters};
+use crate::{conf::{All, HighPass, LowPass}, param::{FirstOrderFilterConf, FirstOrderFilterParam, OmegaVal}, params::OmegaFirstOrder, real_time_fir_iir_filters};
 
 crate::def_rtf!(
     {
@@ -35,7 +35,7 @@ crate::def_rtf!(
 
         fn make_coeffs<All>(param, rate) -> _
         {
-            let omega = param.omega();
+            let OmegaVal {omega} = param.omega();
             let two_rate = rate + rate;
             (
                 ([], [], [
@@ -49,7 +49,7 @@ crate::def_rtf!(
         }
         fn make_coeffs<LowPass>(param, rate) -> _
         {
-            let omega = param.omega();
+            let OmegaVal {omega} = param.omega();
             let two_rate = rate + rate;
             (
                 ([], [], [
@@ -62,7 +62,7 @@ crate::def_rtf!(
         }
         fn make_coeffs<HighPass>(param, rate) -> _
         {
-            let omega = param.omega();
+            let OmegaVal {omega} = param.omega();
             let two_rate = rate + rate;
             (
                 ([], [], [
@@ -118,8 +118,8 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = FirstOrderFilter::new::<All>(Omega::new(10000.0*TAU));
-        //let mut filter = FirstOrderFilter::new::<All>(RC::new(100.0e3, 47.0e-9));
+        let mut filter = FirstOrderFilter::<_, _, All>::new(Omega::new(10000.0*TAU));
+        //let mut filter = FirstOrderFilter::new(RC::new(100.0e3, 47.0e-9));
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

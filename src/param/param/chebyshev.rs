@@ -1,6 +1,6 @@
 use core::marker::ConstParamTy;
 
-use num::One;
+use num::{Float, One};
 
 use super::{ButterworthFilterParam, EllipticFilterConf};
 

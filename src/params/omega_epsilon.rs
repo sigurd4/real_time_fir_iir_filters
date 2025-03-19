@@ -1,4 +1,4 @@
-use crate::param::{ChebyshevFilterConf, ChebyshevFilterParam, ChebyshevFilterParamBase, ChebyshevType, EllipticFilterParamBase, FilterFloat, FilterParam, FirstOrderFilterParam, OmegaEpsilonVal, Param, Parameterization};
+use crate::param::{ChebyshevFilterConf, ChebyshevFilterParam, ChebyshevFilterParamBase, ChebyshevType, EllipticFilterParamBase, FilterFloat, FilterParam, OmegaEpsilonVal, Param, Parameterization};
 
 pub type OmegaEpsilonDyn<F, const TYPE: ChebyshevType> = OmegaEpsilon<F, TYPE>;
 pub type OmegaEpsilonFirstOrder<F, const TYPE: ChebyshevType> = OmegaEpsilon<F, TYPE, 1>;
