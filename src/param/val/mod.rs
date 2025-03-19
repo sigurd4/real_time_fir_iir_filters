@@ -1,5 +1,6 @@
 moddef::moddef!(
     flat(pub) mod {
+        lr for cfg(feature = "param_lr"),
         omega_epsilon_xi for cfg(feature = "param_omega_epsilon_xi"),
         omega_epsilon for cfg(feature = "param_omega_epsilon"),
         omega_zeta for cfg(feature = "param_omega_zeta"),

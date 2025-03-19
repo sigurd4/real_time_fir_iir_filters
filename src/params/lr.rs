@@ -1,4 +1,4 @@
-use crate::{conf::All, param::{FilterFloat, FilterParam, FilterParamFirstOrder, FirstOrderFilterParamBase, FirstOrderLRFilterConf, FirstOrderLRFilterParam}, real_time_fir_iir_filters, util::same::NotSame};
+use crate::{param::{FilterFloat, FilterParam, FirstOrderFilterParamBase, FirstOrderLRFilterConf, FirstOrderLRFilterParam, LRVal}, real_time_fir_iir_filters};
 
 crate::def_param!(
     LR<F> {
@@ -15,12 +15,6 @@ where
 
     type F = F;
 }
-impl<F> FilterParamFirstOrder for LR<F>
-where
-    F: FilterFloat
-{
-    
-}
 impl<F, C> FirstOrderFilterParamBase<C> for LR<F>
 where
     F: FilterFloat,
@@ -35,13 +29,12 @@ where
 {
     type Conf = C;
 
-    fn l(&self) -> Self::F
+    fn lr(&self) -> LRVal<Self::F>
     {
-        *self.l
-    }
-    fn r(&self) -> Self::F
-    {
-        *self.r
+        LRVal {
+            l: *self.l,
+            r: *self.r
+        }
     }
 }
 /*impl<P> From<P> for LR<P::F>

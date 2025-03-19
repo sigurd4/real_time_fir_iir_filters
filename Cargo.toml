@@ -23,7 +23,7 @@ linspace = "0.1.1"
 default = [
     "first_order_all_pass",
     "first_order",
-    #"first_order_lr",
+    "first_order_lr",
     #"first_order_rc",
     "pi",
     #"pid",

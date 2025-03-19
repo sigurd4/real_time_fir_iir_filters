@@ -1,6 +1,6 @@
-use crate::{conf::{all, All, Conf, HighPass, InputOrGND, LowPass}, param::{FilterParam, FirstOrderFilterParamBase}, params::LR};
+use crate::{conf::{all, All, Conf, HighPass, InputOrGND, LowPass}, param::{FilterParam, FirstOrderFilterParamBase, LRVal, OmegaVal}, params::LR};
 
-use super::FirstOrderFilterConf;
+use super::{FirstOrderFilterConf, FirstOrderFilterParam};
 
 pub trait FirstOrderLRFilterParam<C>: FirstOrderFilterParamBase<C, ImplBase = LR<<Self as FilterParam>::F>>
     + FilterParam<ORDER = 1>
@@ -9,7 +9,7 @@ where
 {
     type Conf: FirstOrderLRFilterConf;
 
-    fn lr(&self) -> LRVar<Self::F>;
+    fn lr(&self) -> LRVal<Self::F>;
 }
 
 impl<P, C> FirstOrderFilterParam<C, LR<P::F>> for P
@@ -19,11 +19,12 @@ where
 {
     type Conf = P::Conf;
 
-    fn omega(&self) -> Self::F
+    fn omega(&self) -> OmegaVal<Self::F>
     {
-        let l = self.l();
-        let r = self.r();
-        r/l
+        let LRVal {l, r} = self.lr();
+        OmegaVal {
+            omega: r/l
+        }
     }
 }
 
@@ -96,7 +97,7 @@ impl_composite_conf!(LowPass, HighPass => All);
 
 mod private
 {
-    use crate::{conf::InputOrGND, filters::iir::first::FirstOrderLRFilter, params::LR, rtf::Rtf};
+    use crate::{conf::InputOrGND, params::LR};
 
     use super::{FirstOrderLRFilterConf, FirstOrderLRFilterParam};
 
@@ -128,10 +129,7 @@ mod private
             L_CONF = {L_CONF}
         >,
         LR<f64>: FirstOrderLRFilterParam<CC, Conf = CC>,
-        LR<f32>: FirstOrderLRFilterParam<CC, Conf = CC>,
-        FirstOrderLRFilter<f64, LR<f64>, C>: Rtf,
-        FirstOrderLRFilter<f32, LR<f32>, C>: Rtf,
-        [(); <<CC as FirstOrderLRFilterConf>::Conf as FirstOrderLRFilterConf>::OUTPUTS]:
+        LR<f32>: FirstOrderLRFilterParam<CC, Conf = CC>
     {
 
     }
