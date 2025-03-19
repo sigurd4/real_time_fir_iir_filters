@@ -24,7 +24,7 @@ default = [
     "first_order_all_pass",
     "first_order",
     "first_order_lr",
-    #"first_order_rc",
+    "first_order_rc",
     "pi",
     #"pid",
     #"second_order_butterworth",
@@ -50,9 +50,9 @@ param_omega = ["param_omega_epsilon", "param_omega_zeta", "param_omega2_zeta"]
 param_omega2_zeta = ["param_omega_zeta"]
 param_pi = []
 param_pid = ["param_pi"]
-param_rc = []
+param_rc = ["param_rc2", "param_rc3_sallen_key", "param_rlc"]
 param_rc2 = ["param_rc"]
-param_rc2_sallen_key = []
+param_rc2_sallen_key = ["param_rc3_sallen_key"]
 param_rc3_sallen_key = ["param_rc", "param_rc2_sallen_key"]
 param_rlc = ["param_rc", "param_lr"]
 param_tau = []

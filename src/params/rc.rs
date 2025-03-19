@@ -1,4 +1,4 @@
-use crate::{conf::All, param::{FilterFloat, FilterParam, FilterParamFirstOrder, FirstOrderAllPassFilterConf, FirstOrderAllPassFilterParamBase, FirstOrderFilterParamBase, FirstOrderRCFilterConf, FirstOrderRCFilterParam, SecondOrderRCFilterParamBase, SecondOrderRLCFilterParamBase, ThirdOrderSallenKeyFilterParamBase}, real_time_fir_iir_filters, util::same::NotSame};
+use crate::{param::{FilterFloat, FilterParam, FirstOrderAllPassFilterConf, FirstOrderAllPassFilterParamBase, FirstOrderFilterParamBase, FirstOrderRCFilterConf, FirstOrderRCFilterParam, RCVal, SecondOrderRCFilterParamBase, SecondOrderRLCFilterParamBase, ThirdOrderSallenKeyFilterParamBase}, real_time_fir_iir_filters};
 
 crate::def_param!(
     RC<F> {
@@ -14,12 +14,6 @@ where
     const ORDER: usize = 1;
 
     type F = F;
-}
-impl<F> FilterParamFirstOrder for RC<F>
-where
-    F: FilterFloat
-{
-    
 }
 impl<F, C> FirstOrderAllPassFilterParamBase<C> for RC<F>
 where
@@ -63,13 +57,12 @@ where
 {
     type Conf = C;
 
-    fn r(&self) -> Self::F
+    fn rc(&self) -> RCVal<Self::F>
     {
-        *self.r
-    }
-    fn c(&self) -> Self::F
-    {
-        *self.c
+        RCVal {
+            r: *self.r,
+            c: *self.c
+        }
     }
 }
 /*impl<P> From<P> for RC<P::F>

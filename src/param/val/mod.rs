@@ -8,6 +8,11 @@ moddef::moddef!(
         omega2_zeta for cfg(feature = "param_omega2_zeta"),
         pi for cfg(feature = "param_pi"),
         pid for cfg(feature = "param_pid"),
+        rc for cfg(feature = "param_rc"),
+        rc2 for cfg(feature = "param_rc2"),
+        rc2g for cfg(feature = "param_rc2_sallen_key"),
+        rc3g for cfg(feature = "param_rc3_sallen_key"),
+        rlc for cfg(feature = "param_rlc"),
         tau for cfg(feature = "param_tau")
     }
 );

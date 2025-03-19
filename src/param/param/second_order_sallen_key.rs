@@ -1,8 +1,4 @@
-use num::One;
-
-use crate::{conf::{all, All, BandPass, Conf, HighPass, InputOrFeedback, InputOrGND, LowPass}, param::{FilterParam, ThirdOrderSallenKeyFilterParamBase}, params::RC2GSallenKey};
-
-use super::ThirdOrderSallenKeyFilterConf;
+use crate::{conf::{all, All, BandPass, Conf, HighPass, InputOrFeedback, InputOrGND, LowPass}, param::{FilterParam, RC2GVal, ThirdOrderSallenKeyFilterParamBase, ThirdOrderSallenKeyFilterConf}, params::RC2GSallenKey};
 
 pub trait SecondOrderSallenKeyFilterParam<C>: ThirdOrderSallenKeyFilterParamBase<C, ImplBase = RC2GSallenKey<<Self as FilterParam>::F>>
 where
@@ -150,7 +146,7 @@ impl_composite_conf!(LowPass, BandPass<1>, BandPass<2>, HighPass => All);
 
 mod private
 {
-    use crate::{conf::{InputOrFeedback, InputOrGND, LowPass}, filters::iir::second::SecondOrderSallenKeyFilter, param::{FirstOrderRCFilterConf, ThirdOrderSallenKeyFilterConf}, params::{RC2GSallenKey, RC2SallenKey}, rtf::Rtf};
+    use crate::{conf::{InputOrFeedback, InputOrGND, LowPass}, param::{FirstOrderRCFilterConf, ThirdOrderSallenKeyFilterConf}, params::{RC2GSallenKey, RC2SallenKey}};
 
     use super::{SecondOrderSallenKeyFilterConf, SecondOrderSallenKeyFilterParam};
 
@@ -192,12 +188,7 @@ mod private
         RC2SallenKey<f32>: SecondOrderSallenKeyFilterParam<CC, Conf = CC>,
         RC2SallenKey<f64>: SecondOrderSallenKeyFilterParam<CC, Conf = CC>,
         RC2GSallenKey<f32>: SecondOrderSallenKeyFilterParam<CC, Conf = CC>,
-        RC2GSallenKey<f64>: SecondOrderSallenKeyFilterParam<CC, Conf = CC>,
-        SecondOrderSallenKeyFilter<f32, RC2SallenKey<f32>, C>: Rtf,
-        SecondOrderSallenKeyFilter<f64, RC2SallenKey<f64>, C>: Rtf,
-        SecondOrderSallenKeyFilter<f32, RC2GSallenKey<f32>, C>: Rtf,
-        SecondOrderSallenKeyFilter<f64, RC2GSallenKey<f64>, C>: Rtf,
-        [(); <C::Conf as SecondOrderSallenKeyFilterConf>::OUTPUTS]:
+        RC2GSallenKey<f64>: SecondOrderSallenKeyFilterParam<CC, Conf = CC>
     {
 
     }

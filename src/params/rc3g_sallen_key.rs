@@ -1,4 +1,4 @@
-use crate::{conf::All, param::{FilterFloat, FilterParam, ThirdOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParam, ThirdOrderSallenKeyFilterParamBase}, util::same::NotSame, real_time_fir_iir_filters};
+use crate::{param::{FilterFloat, FilterParam, RC3GVal, ThirdOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParam, ThirdOrderSallenKeyFilterParamBase}, real_time_fir_iir_filters};
 
 crate::def_param!(
     RC3GSallenKey<F> {
@@ -34,32 +34,16 @@ where
 {
     type Conf = C;
 
-    fn r1(&self) -> Self::F
+    fn rc3g(&self) -> RC3GVal<Self::F>
     {
-        *self.r1
-    }
-    fn c1(&self) -> Self::F
-    {
-        *self.c1
-    }
-    fn r2(&self) -> Self::F
-    {
-        *self.r2
-    }
-    fn c2(&self) -> Self::F
-    {
-        *self.c2
-    }
-    fn r3(&self) -> Self::F
-    {
-        *self.r3
-    }
-    fn c3(&self) -> Self::F
-    {
-        *self.c3
-    }
-    fn g(&self) -> Self::F
-    {
-        *self.g
+        RC3GVal {
+            r1: *self.r1,
+            c1: *self.c1,
+            r2: *self.r2,
+            c2: *self.c2,
+            r3: *self.r3,
+            c3: *self.c3,
+            g: *self.g
+        }
     }
 }

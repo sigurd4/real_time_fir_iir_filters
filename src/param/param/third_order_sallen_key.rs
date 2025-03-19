@@ -1,6 +1,6 @@
 use num::{One, Zero};
 
-use crate::{conf::{all, All, BandPass, Conf, HighPass, InputOrFeedback, InputOrGND, LowPass}, f, param::ThirdOrderSallenKeyFilterParamBase, params::{RC2GSallenKey, RC}, util::same::Same};
+use crate::{conf::{all, All, BandPass, Conf, HighPass, InputOrFeedback, InputOrGND, LowPass}, f, param::{RC2GVal, RC3GVal, RCVal, ThirdOrderSallenKeyFilterParamBase}, params::{RC2GSallenKey, RC}, util::same::Same};
 
 use super::{FirstOrderRCFilterConf, FirstOrderRCFilterParam, SecondOrderSallenKeyFilterConf, SecondOrderSallenKeyFilterParam};
 
@@ -23,40 +23,18 @@ where
 {
     type Conf = <P::Conf as SecondOrderSallenKeyFilterConf>::AsThirdOrderSallenKeyFilterConf;
 
-    #[doc(hidden)]
-    fn r1(&self) -> Self::F
+    fn rc3g(&self) -> RC3GVal<Self::F>
     {
-        Zero::zero()
-    }
-    #[doc(hidden)]
-    fn c1(&self) -> Self::F
-    {
-        Zero::zero()
-    }
-    #[doc(hidden)]
-    fn r2(&self) -> Self::F
-    {
-        SecondOrderSallenKeyFilterParam::r1(self)
-    }
-    #[doc(hidden)]
-    fn c2(&self) -> Self::F
-    {
-        SecondOrderSallenKeyFilterParam::c1(self)
-    }
-    #[doc(hidden)]
-    fn r3(&self) -> Self::F
-    {
-        SecondOrderSallenKeyFilterParam::r2(self)
-    }
-    #[doc(hidden)]
-    fn c3(&self) -> Self::F
-    {
-        SecondOrderSallenKeyFilterParam::c2(self)
-    }
-    #[doc(hidden)]
-    fn g(&self) -> Self::F
-    {
-        SecondOrderSallenKeyFilterParam::g(self)
+        let RC2GVal {r1, c1, r2, c2, g} = self.rc2g();
+        RC3GVal {
+            r1: Zero::zero(),
+            c1: Zero::zero(),
+            r2: r1,
+            c2: c1,
+            r3: r2,
+            c3: c2,
+            g
+        }
     }
 }
 
@@ -67,35 +45,18 @@ where
 {
     type Conf = <P::Conf as FirstOrderRCFilterConf>::AsThirdOrderSallenKeyFilterConf;
 
-    #[doc(hidden)]
-    fn r1(&self) -> Self::F
+    fn rc3g(&self) -> RC3GVal<Self::F>
     {
-        FirstOrderRCFilterParam::r(self)
-    }
-    #[doc(hidden)]
-    fn c1(&self) -> Self::F
-    {
-        FirstOrderRCFilterParam::c(self)
-    }
-    #[doc(hidden)]
-    fn r2(&self) -> Self::F
-    {
-        f!(1e3; Self::F)
-    }
-    #[doc(hidden)]
-    fn c2(&self) -> Self::F
-    {
-        Zero::zero()
-    }
-    #[doc(hidden)]
-    fn r3(&self) -> Self::F
-    {
-        Zero::zero()
-    }
-    #[doc(hidden)]
-    fn c3(&self) -> Self::F
-    {
-        Zero::zero()
+        let RCVal {r, c} = self.rc();
+        RC3GVal {
+            r1: r,
+            c1: c,
+            r2: f!(1e3; Self::F),
+            c2: Zero::zero(),
+            r3: Zero::zero(),
+            c3: Zero::zero(),
+            g: One::one()
+        }
     }
 }
 
@@ -475,7 +436,7 @@ impl_composite_conf!(LowPass, BandPass<1>, BandPass<2>, BandPass<3>, BandPass<4>
 
 mod private
 {
-    use crate::{conf::{InputOrFeedback, InputOrGND}, filters::iir::third::ThirdOrderSallenKeyFilter, param::{FirstOrderRCFilterConf, SecondOrderSallenKeyFilterConf}, params::{RC3GSallenKey, RC3SallenKey}, rtf::Rtf};
+    use crate::{conf::{InputOrFeedback, InputOrGND}, param::{FirstOrderRCFilterConf, SecondOrderSallenKeyFilterConf}, params::{RC3GSallenKey, RC3SallenKey}};
 
     use super::{ThirdOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParam};
 
@@ -522,13 +483,7 @@ mod private
         RC3SallenKey<f32>: ThirdOrderSallenKeyFilterParam<CC, Conf = CC>,
         RC3SallenKey<f64>: ThirdOrderSallenKeyFilterParam<CC, Conf = CC>,
         RC3GSallenKey<f32>: ThirdOrderSallenKeyFilterParam<CC, Conf = CC>,
-        RC3GSallenKey<f64>: ThirdOrderSallenKeyFilterParam<CC, Conf = CC>,
-        ThirdOrderSallenKeyFilter<f32, RC3SallenKey<f32>, C>: Rtf,
-        ThirdOrderSallenKeyFilter<f64, RC3SallenKey<f64>, C>: Rtf,
-        ThirdOrderSallenKeyFilter<f32, RC3GSallenKey<f32>, C>: Rtf,
-        ThirdOrderSallenKeyFilter<f64, RC3GSallenKey<f64>, C>: Rtf,
-        [(); <C::S2Conf as SecondOrderSallenKeyFilterConf>::OUTPUTS]:,
-        [(); <C::S2Conf as SecondOrderSallenKeyFilterConf>::OUTPUTS*<C::S1Conf as FirstOrderRCFilterConf>::OUTPUTS]:
+        RC3GSallenKey<f64>: ThirdOrderSallenKeyFilterParam<CC, Conf = CC>
     {
 
     }

@@ -1,4 +1,6 @@
-use crate::{param::{FilterFloat, FilterParam, SecondOrderSallenKeyFilterConf, SecondOrderSallenKeyFilterParam, ThirdOrderSallenKeyFilterParamBase}, real_time_fir_iir_filters};
+use num::One;
+
+use crate::{param::{FilterFloat, FilterParam, RC2GVal, SecondOrderSallenKeyFilterConf, SecondOrderSallenKeyFilterParam, ThirdOrderSallenKeyFilterParamBase}, real_time_fir_iir_filters};
 
 use super::RC2GSallenKey;
 
@@ -33,20 +35,14 @@ where
 {
     type Conf = C;
 
-    fn r1(&self) -> Self::F
+    fn rc2g(&self) -> RC2GVal<Self::F>
     {
-        *self.r1
-    }
-    fn c1(&self) -> Self::F
-    {
-        *self.c1
-    }
-    fn r2(&self) -> Self::F
-    {
-        *self.r2
-    }
-    fn c2(&self) -> Self::F
-    {
-        *self.c2
+        RC2GVal {
+            r1: *self.r1,
+            c1: *self.c1,
+            r2: *self.r2,
+            c2: *self.c2,
+            g: One::one()
+        }
     }
 }

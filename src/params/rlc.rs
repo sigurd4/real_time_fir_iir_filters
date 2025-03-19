@@ -1,4 +1,4 @@
-use crate::{conf::All, param::{FilterFloat, FilterParam, SecondOrderRLCFilterConf, SecondOrderRLCFilterParam, SecondOrderRLCFilterParamBase}, util::same::NotSame, real_time_fir_iir_filters};
+use crate::{param::{FilterFloat, FilterParam, RLCVal, SecondOrderRLCFilterConf, SecondOrderRLCFilterParam, SecondOrderRLCFilterParamBase}, real_time_fir_iir_filters};
 
 crate::def_param!(
     RLC<F> {
@@ -30,18 +30,12 @@ where
 {
     type Conf = C;
 
-    fn r(&self) -> Self::F
+    fn rlc(&self) -> RLCVal<Self::F>
     {
-        *self.r
-    }
-
-    fn l(&self) -> Self::F
-    {
-        *self.l
-    }
-
-    fn c(&self) -> Self::F
-    {
-        *self.c
+        RLCVal {
+            r: *self.r,
+            l: *self.l,
+            c: *self.c
+        }
     }
 }
