@@ -1,4 +1,4 @@
-use crate::{param::PIDFilterParam, params::PID, real_time_fir_iir_filters};
+use crate::{param::{PIDFilterParam, PID}, real_time_fir_iir_filters};
 
 crate::def_rtf!(
     {
@@ -22,9 +22,7 @@ crate::def_rtf!(
 
         fn make_coeffs(param, rate) -> _
         {
-            let p = param.p();
-            let i = param.i();
-            let d = param.d();
+            let PID {p, i, d} = param.pid();
 
             let two_rate = rate + rate;
             let two_rate_p = two_rate*p;
@@ -56,7 +54,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = PIDFilter::new(PID::new(1.0, 0.001, 0.00001));
+        let mut filter = PIDFilter::new(PID {p: 1.0, i: 0.001, d: 0.00001});
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

@@ -4,7 +4,7 @@ use num::{Float, One};
 
 use super::{ButterworthFilterParam, EllipticFilterConf};
 
-use crate::{conf::{All, Conf}, param::{ChebyshevFilterParamBase, EllipticFilterParamBase, OmegaEpsilonVal, OmegaVal}, params::OmegaDyn, util::same::Same};
+use crate::{conf::{All, Conf}, param::{ChebyshevFilterParamBase, EllipticFilterParamBase, Omega, OmegaDyn, OmegaEpsilon, Param}, util::same::Same};
 
 pub trait ChebyshevFilterParam<
     C,
@@ -15,26 +15,22 @@ pub trait ChebyshevFilterParam<
 where
     C: Conf
 {
-    const TYPE: ChebyshevType;
-
     type Conf: ChebyshevFilterConf;
 
-    fn omega_epsilon(&self) -> OmegaEpsilonVal<Self::F>;
+    fn omega_epsilon(&self) -> OmegaEpsilon<Self::F, {Self::TYPE}, {Self::ORDER}>;
 }
 
-impl<P, C> ChebyshevFilterParam<C, OmegaDyn<P::F>> for P
+impl<P, C> ChebyshevFilterParam<C, Param<OmegaDyn<P::F>>> for P
 where
     P: ButterworthFilterParam<C, Conf: ChebyshevFilterConf>, // TODO generalize for different orders
     C: Conf,
     [(); P::ORDER]:
 {
-    const TYPE: ChebyshevType = ChebyshevType::Type1;
-
     type Conf = P::Conf;
 
-    fn omega_epsilon(&self) -> OmegaEpsilonVal<Self::F>
+    fn omega_epsilon(&self) -> OmegaEpsilon<Self::F, {Self::TYPE}, {Self::ORDER}>
     {
-        let OmegaVal {omega} = self.omega();
+        let Omega {omega} = self.omega();
         let x = omega.recip();
         let x2 = x*x;
         let one = <P::F as One>::one();
@@ -42,7 +38,7 @@ where
         let rn = two.mul_add(x2, -one);
         let epsilon = rn.recip();
 
-        OmegaEpsilonVal {
+        OmegaEpsilon {
             omega,
             epsilon
         }
@@ -73,7 +69,7 @@ where
 
 mod private
 {
-    use crate::{param::EllipticFilterConf, params::{OmegaEpsilonCheb1Dyn, OmegaEpsilonCheb1SecondOrder, OmegaEpsilonCheb2Dyn, OmegaEpsilonCheb2SecondOrder}};
+    use crate::param::{EllipticFilterConf, OmegaEpsilonCheb1Dyn, OmegaEpsilonCheb1SecondOrder, OmegaEpsilonCheb2Dyn, OmegaEpsilonCheb2SecondOrder, Param};
 
     use super::{ChebyshevFilterConf, ChebyshevFilterParam};
 
@@ -102,14 +98,14 @@ mod private
             Conf = CC,
             OUTPUTS = {OUTPUTS}
         >,
-        OmegaEpsilonCheb1Dyn<f32>: ChebyshevFilterParam<CC, Conf = CC>,
-        OmegaEpsilonCheb1Dyn<f64>: ChebyshevFilterParam<CC, Conf = CC>,
-        OmegaEpsilonCheb2Dyn<f32>: ChebyshevFilterParam<CC, Conf = CC>,
-        OmegaEpsilonCheb2Dyn<f64>: ChebyshevFilterParam<CC, Conf = CC>,
-        OmegaEpsilonCheb1SecondOrder<f32>: ChebyshevFilterParam<CC, Conf = CC>/* + SecondOrderFilterParam<CC>*/,
-        OmegaEpsilonCheb1SecondOrder<f64>: ChebyshevFilterParam<CC, Conf = CC>/* + SecondOrderFilterParam<CC>*/,
-        OmegaEpsilonCheb2SecondOrder<f32>: ChebyshevFilterParam<CC, Conf = CC>/* + SecondOrderFilterParam<CC>*/,
-        OmegaEpsilonCheb2SecondOrder<f64>: ChebyshevFilterParam<CC, Conf = CC>/* + SecondOrderFilterParam<CC>*/
+        Param<OmegaEpsilonCheb1Dyn<f32>>: ChebyshevFilterParam<CC, Conf = CC>,
+        Param<OmegaEpsilonCheb1Dyn<f64>>: ChebyshevFilterParam<CC, Conf = CC>,
+        Param<OmegaEpsilonCheb2Dyn<f32>>: ChebyshevFilterParam<CC, Conf = CC>,
+        Param<OmegaEpsilonCheb2Dyn<f64>>: ChebyshevFilterParam<CC, Conf = CC>,
+        Param<OmegaEpsilonCheb1SecondOrder<f32>>: ChebyshevFilterParam<CC, Conf = CC>/* + SecondOrderFilterParam<CC>*/,
+        Param<OmegaEpsilonCheb1SecondOrder<f64>>: ChebyshevFilterParam<CC, Conf = CC>/* + SecondOrderFilterParam<CC>*/,
+        Param<OmegaEpsilonCheb2SecondOrder<f32>>: ChebyshevFilterParam<CC, Conf = CC>/* + SecondOrderFilterParam<CC>*/,
+        Param<OmegaEpsilonCheb2SecondOrder<f64>>: ChebyshevFilterParam<CC, Conf = CC>/* + SecondOrderFilterParam<CC>*/
     {
 
     }

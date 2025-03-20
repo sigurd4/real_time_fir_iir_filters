@@ -1,27 +1,24 @@
 use num::Zero;
 
-use crate::param::FilterParam;
+use crate::param::{FilterParam, PID, PI};
 
 use super::PIFilterParam;
 
 pub trait PIDFilterParam: FilterParam
 {
-    fn pid(&self) -> PIDVal<Self::F>;
+    fn pid(&self) -> PID<Self::F>;
 }
 impl<P> PIDFilterParam for P
 where
     P: PIFilterParam
 {
-    fn p(&self) -> Self::F
+    fn pid(&self) -> PID<Self::F>
     {
-        PIFilterParam::p(self)
-    }
-    fn i(&self) -> Self::F
-    {
-        PIFilterParam::i(self)
-    }
-    fn d(&self) -> Self::F
-    {
-        Zero::zero()
+        let PI {p, i} = self.pi();
+        PID {
+            p,
+            i,
+            d: Zero::zero()
+        }
     }
 }

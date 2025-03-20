@@ -26,7 +26,7 @@ default = [
     "first_order_lr",
     "first_order_rc",
     "pi",
-    #"pid",
+    "pid",
     #"second_order_butterworth",
     #"second_order_chebyshev",
     #"second_order_elliptic",
@@ -56,7 +56,8 @@ param_rc2_sallen_key = ["param_rc3_sallen_key"]
 param_rc3_sallen_key = ["param_rc", "param_rc2_sallen_key"]
 param_rlc = ["param_rc", "param_lr"]
 param_tau = []
-param_wah = []
+param_wah = ["param_x"]
+param_x = []
 
 first_order_all_pass = ["param_tau"]
 first_order = ["param_omega"]

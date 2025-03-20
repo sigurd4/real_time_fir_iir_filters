@@ -1,51 +1,51 @@
 use num::Float;
 
-use crate::{conf::{all, All, BandPass, Conf, HighPass, InputOrGND, LowPass}, param::{FilterParam, SecondOrderRLCFilterConf, ThirdOrderSallenKeyFilterConf, SecondOrderRCFilterConf, FirstOrderAllPassFilterParamBase, FirstOrderFilterParamBase, OmegaVal, RCVal, SecondOrderRCFilterParamBase, SecondOrderRLCFilterParamBase, TauVal, ThirdOrderSallenKeyFilterParamBase}, params::RC};
+use crate::{conf::{all, All, BandPass, Conf, HighPass, InputOrGND, LowPass}, param::{FilterParam, FirstOrderAllPassFilterParamBase, FirstOrderFilterParamBase, Omega, OmegaFirstOrder, Param, SecondOrderRCFilterConf, SecondOrderRCFilterParamBase, SecondOrderRLCFilterConf, SecondOrderRLCFilterParamBase, Tau, ThirdOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParamBase, RC}};
 
 use super::{FirstOrderAllPassFilterConf, FirstOrderAllPassFilterParam, FirstOrderFilterConf, FirstOrderFilterParam};
 
 pub type AllFirstOrderRCFilterParamConf = all!(LowPass, HighPass);
 
-pub trait FirstOrderRCFilterParam<C>: FirstOrderFilterParamBase<C, ImplBase = RC<<Self as FilterParam>::F>>
-    + ThirdOrderSallenKeyFilterParamBase<C, ImplBase = RC<<Self as FilterParam>::F>>
-    + SecondOrderRCFilterParamBase<C, ImplBase = RC<<Self as FilterParam>::F>>
-    + SecondOrderRLCFilterParamBase<C, ImplBase = RC<<Self as FilterParam>::F>>
+pub trait FirstOrderRCFilterParam<C>: FirstOrderFilterParamBase<C, ImplBase = Param<RC<<Self as FilterParam>::F>>>
+    + ThirdOrderSallenKeyFilterParamBase<C, ImplBase = Param<RC<<Self as FilterParam>::F>>>
+    + SecondOrderRCFilterParamBase<C, ImplBase = Param<RC<<Self as FilterParam>::F>>>
+    + SecondOrderRLCFilterParamBase<C, ImplBase = Param<RC<<Self as FilterParam>::F>>>
     + FilterParam<ORDER = 1>
 where
     C: Conf
 {
     type Conf: FirstOrderRCFilterConf;
 
-    fn rc(&self) -> RCVal<Self::F>;
+    fn rc(&self) -> RC<Self::F>;
 }
 
-impl<P, C> FirstOrderFilterParam<C, RC<P::F>> for P
+impl<P, C> FirstOrderFilterParam<C, Param<RC<P::F>>> for P
 where
     P: FirstOrderRCFilterParam<C>,
     C: Conf
 {
     type Conf = P::Conf;
 
-    fn omega(&self) -> OmegaVal<Self::F>
+    fn omega(&self) -> OmegaFirstOrder<Self::F>
     {
-        let RCVal {r, c} = self.rc();
-        OmegaVal {
+        let RC {r, c} = self.rc();
+        Omega {
             omega: (r*c).recip()
         }
     }
 }
 
-impl<P, C> FirstOrderAllPassFilterParam<C, RC<P::F>> for P
+impl<P, C> FirstOrderAllPassFilterParam<C, Param<RC<P::F>>> for P
 where
-    P: FirstOrderRCFilterParam<All> + FirstOrderAllPassFilterParamBase<C, ImplBase = RC<<P as FilterParam>::F>>,
+    P: FirstOrderRCFilterParam<All> + FirstOrderAllPassFilterParamBase<C, ImplBase = Param<RC<<P as FilterParam>::F>>>,
     C: FirstOrderAllPassFilterConf
 {
     type Conf = C;
 
-    fn tau(&self) -> TauVal<Self::F>
+    fn tau(&self) -> Tau<Self::F>
     {
-        let RCVal {r, c} = self.rc();
-        TauVal {
+        let RC {r, c} = self.rc();
+        Tau {
             tau: r*c
         }
     }
@@ -159,7 +159,7 @@ impl_composite_conf!(LowPass, HighPass => All);
 
 mod private
 {
-    use crate::{conf::{InputOrFeedback, InputOrGND, LowPass}, param::{SecondOrderRCFilterConf, SecondOrderRLCFilterConf, ThirdOrderSallenKeyFilterConf}, params::RC};
+    use crate::{conf::{InputOrFeedback, InputOrGND, LowPass}, param::{Param, SecondOrderRCFilterConf, SecondOrderRLCFilterConf, ThirdOrderSallenKeyFilterConf, RC}};
 
     use super::{FirstOrderRCFilterConf, FirstOrderRCFilterParam};
 
@@ -196,8 +196,8 @@ mod private
             R_CONF = {R_CONF},
             C_CONF = {C_CONF}
         >,
-        RC<f64>: FirstOrderRCFilterParam<CC, Conf = CC>,
-        RC<f32>: FirstOrderRCFilterParam<CC, Conf = CC>
+        Param<RC<f64>>: FirstOrderRCFilterParam<CC, Conf = CC>,
+        Param<RC<f32>>: FirstOrderRCFilterParam<CC, Conf = CC>
     {
 
     }

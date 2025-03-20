@@ -1,6 +1,6 @@
 use num::{One, Zero};
 
-use crate::{conf::{all, All, BandPass, Conf, HighPass, InputOrFeedback, InputOrGND, LowPass}, f, param::{RC2GVal, RC3GVal, RCVal, ThirdOrderSallenKeyFilterParamBase}, params::{RC2GSallenKey, RC}, util::same::Same};
+use crate::{conf::{all, All, BandPass, Conf, HighPass, InputOrFeedback, InputOrGND, LowPass}, f, param::{Param, RC2GSallenKey, RC3GSallenKey, ThirdOrderSallenKeyFilterParamBase, RC}, util::same::Same};
 
 use super::{FirstOrderRCFilterConf, FirstOrderRCFilterParam, SecondOrderSallenKeyFilterConf, SecondOrderSallenKeyFilterParam};
 
@@ -13,20 +13,20 @@ where
 {
     type Conf: ThirdOrderSallenKeyFilterConf;
 
-    fn rc3g(&self) -> RC3GVal<Self::F>;
+    fn rc3g(&self) -> RC3GSallenKey<Self::F>;
 }
 
-impl<P, C> ThirdOrderSallenKeyFilterParam<C, RC2GSallenKey<P::F>> for P
+impl<P, C> ThirdOrderSallenKeyFilterParam<C, Param<RC2GSallenKey<P::F>>> for P
 where
     P: SecondOrderSallenKeyFilterParam<C>,
     C: Conf
 {
     type Conf = <P::Conf as SecondOrderSallenKeyFilterConf>::AsThirdOrderSallenKeyFilterConf;
 
-    fn rc3g(&self) -> RC3GVal<Self::F>
+    fn rc3g(&self) -> RC3GSallenKey<Self::F>
     {
-        let RC2GVal {r1, c1, r2, c2, g} = self.rc2g();
-        RC3GVal {
+        let RC2GSallenKey {r1, c1, r2, c2, g} = self.rc2g();
+        RC3GSallenKey {
             r1: Zero::zero(),
             c1: Zero::zero(),
             r2: r1,
@@ -38,17 +38,17 @@ where
     }
 }
 
-impl<P, C> ThirdOrderSallenKeyFilterParam<C, RC<P::F>> for P
+impl<P, C> ThirdOrderSallenKeyFilterParam<C, Param<RC<P::F>>> for P
 where
     P: FirstOrderRCFilterParam<C>,
     C: Conf
 {
     type Conf = <P::Conf as FirstOrderRCFilterConf>::AsThirdOrderSallenKeyFilterConf;
 
-    fn rc3g(&self) -> RC3GVal<Self::F>
+    fn rc3g(&self) -> RC3GSallenKey<Self::F>
     {
-        let RCVal {r, c} = self.rc();
-        RC3GVal {
+        let RC {r, c} = self.rc();
+        RC3GSallenKey {
             r1: r,
             c1: c,
             r2: f!(1e3; Self::F),
@@ -436,7 +436,7 @@ impl_composite_conf!(LowPass, BandPass<1>, BandPass<2>, BandPass<3>, BandPass<4>
 
 mod private
 {
-    use crate::{conf::{InputOrFeedback, InputOrGND}, param::{FirstOrderRCFilterConf, SecondOrderSallenKeyFilterConf}, params::{RC3GSallenKey, RC3SallenKey}};
+    use crate::{conf::{InputOrFeedback, InputOrGND}, param::{FirstOrderRCFilterConf, Param, RC3GSallenKey, RC3SallenKey, SecondOrderSallenKeyFilterConf}};
 
     use super::{ThirdOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParam};
 
@@ -480,10 +480,10 @@ mod private
             R3_CONF = {R3_CONF},
             C3_CONF = {C3_CONF},
         >,
-        RC3SallenKey<f32>: ThirdOrderSallenKeyFilterParam<CC, Conf = CC>,
-        RC3SallenKey<f64>: ThirdOrderSallenKeyFilterParam<CC, Conf = CC>,
-        RC3GSallenKey<f32>: ThirdOrderSallenKeyFilterParam<CC, Conf = CC>,
-        RC3GSallenKey<f64>: ThirdOrderSallenKeyFilterParam<CC, Conf = CC>
+        Param<RC3SallenKey<f32>>: ThirdOrderSallenKeyFilterParam<CC, Conf = CC>,
+        Param<RC3SallenKey<f64>>: ThirdOrderSallenKeyFilterParam<CC, Conf = CC>,
+        Param<RC3GSallenKey<f32>>: ThirdOrderSallenKeyFilterParam<CC, Conf = CC>,
+        Param<RC3GSallenKey<f64>>: ThirdOrderSallenKeyFilterParam<CC, Conf = CC>
     {
 
     }

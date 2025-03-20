@@ -1,12 +1,12 @@
-use crate::{conf::{all, All, BandPass, Conf, HighPass, InputOrFeedback, InputOrGND, LowPass}, param::{FilterParam, RC2GVal, ThirdOrderSallenKeyFilterParamBase, ThirdOrderSallenKeyFilterConf}, params::RC2GSallenKey};
+use crate::{conf::{all, All, BandPass, Conf, HighPass, InputOrFeedback, InputOrGND, LowPass}, param::{FilterParam, Param, RC2GSallenKey, ThirdOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParamBase}};
 
-pub trait SecondOrderSallenKeyFilterParam<C>: ThirdOrderSallenKeyFilterParamBase<C, ImplBase = RC2GSallenKey<<Self as FilterParam>::F>>
+pub trait SecondOrderSallenKeyFilterParam<C>: ThirdOrderSallenKeyFilterParamBase<C, ImplBase = Param<RC2GSallenKey<<Self as FilterParam>::F>>>
 where
     C: Conf
 {
     type Conf: SecondOrderSallenKeyFilterConf;
 
-    fn rc2g(&self) -> RC2GVal<Self::F>;
+    fn rc2g(&self) -> RC2GSallenKey<Self::F>;
 }
 
 pub trait SecondOrderSallenKeyFilterConf: Conf
@@ -146,7 +146,7 @@ impl_composite_conf!(LowPass, BandPass<1>, BandPass<2>, HighPass => All);
 
 mod private
 {
-    use crate::{conf::{InputOrFeedback, InputOrGND, LowPass}, param::{FirstOrderRCFilterConf, ThirdOrderSallenKeyFilterConf}, params::{RC2GSallenKey, RC2SallenKey}};
+    use crate::{conf::{InputOrFeedback, InputOrGND, LowPass}, param::{FirstOrderRCFilterConf, Param, RC2GSallenKey, RC2SallenKey, ThirdOrderSallenKeyFilterConf}};
 
     use super::{SecondOrderSallenKeyFilterConf, SecondOrderSallenKeyFilterParam};
 
@@ -185,10 +185,10 @@ mod private
             R2_CONF = {R2_CONF},
             C2_CONF = {C2_CONF}
         >,
-        RC2SallenKey<f32>: SecondOrderSallenKeyFilterParam<CC, Conf = CC>,
-        RC2SallenKey<f64>: SecondOrderSallenKeyFilterParam<CC, Conf = CC>,
-        RC2GSallenKey<f32>: SecondOrderSallenKeyFilterParam<CC, Conf = CC>,
-        RC2GSallenKey<f64>: SecondOrderSallenKeyFilterParam<CC, Conf = CC>
+        Param<RC2SallenKey<f32>>: SecondOrderSallenKeyFilterParam<CC, Conf = CC>,
+        Param<RC2SallenKey<f64>>: SecondOrderSallenKeyFilterParam<CC, Conf = CC>,
+        Param<RC2GSallenKey<f32>>: SecondOrderSallenKeyFilterParam<CC, Conf = CC>,
+        Param<RC2GSallenKey<f64>>: SecondOrderSallenKeyFilterParam<CC, Conf = CC>
     {
 
     }

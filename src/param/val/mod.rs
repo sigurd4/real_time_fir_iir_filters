@@ -9,10 +9,14 @@ moddef::moddef!(
         pi for cfg(feature = "param_pi"),
         pid for cfg(feature = "param_pid"),
         rc for cfg(feature = "param_rc"),
+        rc2_sallen_key for cfg(feature = "param_rc2_sallen_key"),
         rc2 for cfg(feature = "param_rc2"),
-        rc2g for cfg(feature = "param_rc2_sallen_key"),
-        rc3g for cfg(feature = "param_rc3_sallen_key"),
+        rc2g_sallen_key for cfg(feature = "param_rc2_sallen_key"),
+        rc3_sallen_key for cfg(feature = "param_rc3_sallen_key"),
+        rc3g_sallen_key for cfg(feature = "param_rc3_sallen_key"),
         rlc for cfg(feature = "param_rlc"),
-        tau for cfg(feature = "param_tau")
+        tau for cfg(feature = "param_tau"),
+        wah for cfg(feature = "param_wah"),
+        x for cfg(feature = "param_x")
     }
 );

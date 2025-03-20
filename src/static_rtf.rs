@@ -1,8 +1,8 @@
-use crate::{internals::{ainternals, binternals, rtfinternals}, param::FilterParam, rtf::RtfBase};
+use crate::{internals::{ainternals, binternals, rtfinternals}, param::{FilterParam, Param}, rtf::RtfBase};
 
 pub trait StaticRtfBase: RtfBase + Sized + 'static
 {
-    type Param: FilterParam;
+    type Param;
 
     const ORDER: usize;
     const SOS_STAGES: usize;
@@ -14,10 +14,10 @@ pub trait StaticRtfBase: RtfBase + Sized + 'static
     fn get_param_mut(&mut self) -> &mut Self::Param;
     fn into_param(self) -> Self::Param;
     
-    fn get_internals(&self) -> (&rtfinternals!(Self::F, Self::OUTPUTS, Self::O_BUFFERS, Self::SOS_BUFFERS, Self::SOS_STAGES, Self::ORDER, Self::IS_IIR), &Self::Param);
-    fn get_internals_mut(&mut self) -> (&mut rtfinternals!(Self::F, Self::OUTPUTS, Self::O_BUFFERS, Self::SOS_BUFFERS, Self::SOS_STAGES, Self::ORDER, Self::IS_IIR), &mut Self::Param);
+    fn get_internals(&self) -> (&rtfinternals!(Self::F, Self::OUTPUTS, Self::O_BUFFERS, Self::SOS_BUFFERS, Self::SOS_STAGES, Self::ORDER, Self::IS_IIR), &Param<Self::Param>);
+    fn get_internals_mut(&mut self) -> (&mut rtfinternals!(Self::F, Self::OUTPUTS, Self::O_BUFFERS, Self::SOS_BUFFERS, Self::SOS_STAGES, Self::ORDER, Self::IS_IIR), &mut Param<Self::Param>);
     
-    fn make_coeffs(param: &Self::Param, rate: Self::F) -> (
+    fn make_coeffs(param: &Param<Self::Param>, rate: Self::F) -> (
         binternals!(Self::F, Self::OUTPUTS, Self::O_BUFFERS, Self::SOS_BUFFERS, Self::SOS_STAGES, Self::ORDER),
         [ainternals!(Self::F, Self::O_BUFFERS, Self::SOS_BUFFERS, Self::SOS_STAGES, Self::ORDER); Self::IS_IIR as usize]
     );

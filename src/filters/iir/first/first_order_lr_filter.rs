@@ -1,6 +1,6 @@
 use num::Float;
 
-use crate::{conf::{All, HighPass, LowPass}, param::{FirstOrderLRFilterConf, FirstOrderLRFilterParam, LRVal}, params::LR, real_time_fir_iir_filters};
+use crate::{conf::{All, HighPass, LowPass}, param::{FirstOrderLRFilterConf, FirstOrderLRFilterParam, LR}, real_time_fir_iir_filters};
 
 crate::def_rtf!(
     {
@@ -44,7 +44,7 @@ crate::def_rtf!(
 
         fn make_coeffs<All>(param, rate) -> _
         {
-            let LRVal {l, r} = param.lr();
+            let LR {l, r} = param.lr();
             
             let rate_l = rate*l;
             let two_rate_l = rate_l + rate_l;
@@ -60,7 +60,7 @@ crate::def_rtf!(
         }
         fn make_coeffs<LowPass>(param, rate) -> _
         {
-            let LRVal {l, r} = param.lr();
+            let LR {l, r} = param.lr();
             
             let rate_l = rate*l;
             let two_rate_l = rate_l + rate_l;
@@ -75,7 +75,7 @@ crate::def_rtf!(
         }
         fn make_coeffs<HighPass>(param, rate) -> _
         {
-            let LRVal {l, r} = param.lr();
+            let LR {l, r} = param.lr();
             
             let rate_l = rate*l;
             let two_rate_l = rate_l + rate_l;
@@ -131,7 +131,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = FirstOrderLRFilter::<_, _, All>::new(LR::new(100e-3, 10e3));
+        let mut filter = FirstOrderLRFilter::<_, _, All>::new(LR {l: 100e-3, r: 10e3});
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

@@ -1,6 +1,6 @@
 use num::Zero;
 
-use crate::{conf::{all, All, BandPass, Conf, HighPass, InputOrGND, LowPass}, param::{RC2Val, RCVal, SecondOrderRCFilterParamBase}, params::RC, util::same::Same};
+use crate::{conf::{all, All, BandPass, Conf, HighPass, InputOrGND, LowPass}, param::{Param, SecondOrderRCFilterParamBase, RC, RC2}, util::same::Same};
 
 use super::{FirstOrderRCFilterConf, FirstOrderRCFilterParam};
 
@@ -13,20 +13,20 @@ where
 {
     type Conf: SecondOrderRCFilterConf;
 
-    fn rc2(&self) -> RC2Val<Self::F>;
+    fn rc2(&self) -> RC2<Self::F>;
 }
 
-impl<P, C> SecondOrderRCFilterParam<C, RC<P::F>> for P
+impl<P, C> SecondOrderRCFilterParam<C, Param<RC<P::F>>> for P
 where
     P: FirstOrderRCFilterParam<C>,
     C: Conf
 {
     type Conf = <P::Conf as FirstOrderRCFilterConf>::AsSecondOrderRCFilterConf;
 
-    fn rc2(&self) -> RC2Val<Self::F>
+    fn rc2(&self) -> RC2<Self::F>
     {
-        let RCVal {r, c} = self.rc();
-        RC2Val {
+        let RC {r, c} = self.rc();
+        RC2 {
             r1: r,
             c1: c,
             r2: Zero::zero(),
@@ -155,7 +155,7 @@ impl_composite_conf!(LowPass, BandPass<1>, BandPass<2>, HighPass => All);
 
 mod private
 {
-    use crate::{conf::InputOrGND, param::FirstOrderRCFilterConf, params::RC2};
+    use crate::{conf::InputOrGND, param::{FirstOrderRCFilterConf, Param, RC2}};
 
     use super::{SecondOrderRCFilterConf, SecondOrderRCFilterParam};
 
@@ -193,8 +193,8 @@ mod private
             R2_CONF = {R2_CONF},
             C2_CONF = {C2_CONF}
         >,
-        RC2<f64>: SecondOrderRCFilterParam<CC, Conf = CC>,
-        RC2<f32>: SecondOrderRCFilterParam<CC, Conf = CC>
+        Param<RC2<f64>>: SecondOrderRCFilterParam<CC, Conf = CC>,
+        Param<RC2<f32>>: SecondOrderRCFilterParam<CC, Conf = CC>
     {
 
     }

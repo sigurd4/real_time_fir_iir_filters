@@ -1,4 +1,4 @@
-use crate::{conf::{all, All, Conf, HighPass, LowPass}, param::{FilterParam, FirstOrderFilterParamBase, OmegaVal}, params::{Omega, OmegaFirstOrder}, util::same::Same};
+use crate::{conf::{all, All, Conf, HighPass, LowPass}, param::{FilterParam, FirstOrderFilterParamBase, Omega, OmegaFirstOrder, Param}, util::same::Same};
 
 use super::ButterworthFilterParam;
 
@@ -11,21 +11,24 @@ where
 {
     type Conf: FirstOrderFilterConf;
 
-    fn omega(&self) -> OmegaVal<Self::F>;
+    fn omega(&self) -> OmegaFirstOrder<Self::F>;
 }
 
-impl<P, C> FirstOrderFilterParam<C, OmegaFirstOrder<P::F>> for P
+impl<P, C> FirstOrderFilterParam<C, Param<OmegaFirstOrder<P::F>>> for P
 where
-    P: ButterworthFilterParam<C, ORDER = 1, Conf: FirstOrderFilterConf> + FirstOrderFilterParamBase<C, ImplBase = Omega<<P as FilterParam>::F, 1>>,
+    P: ButterworthFilterParam<C, ORDER = 1, Conf: FirstOrderFilterConf> + FirstOrderFilterParamBase<C, ImplBase = Param<OmegaFirstOrder<<P as FilterParam>::F>>>,
     C: Conf,
     [(); P::ORDER]:
 {
     type Conf = P::Conf;
 
     #[doc(hidden)]
-    fn omega(&self) -> OmegaVal<Self::F>
+    fn omega(&self) -> OmegaFirstOrder<Self::F>
     {
-        ButterworthFilterParam::omega(self)
+        let Omega {omega} = ButterworthFilterParam::omega(self);
+        Omega {
+            omega
+        }
     }
 }
 
@@ -82,7 +85,7 @@ impl_composite_conf!(LowPass, HighPass => All);
 
 mod private
 {
-    use crate::params::OmegaFirstOrder;
+    use crate::param::{OmegaFirstOrder, Param};
 
     use super::{FirstOrderFilterConf, FirstOrderFilterParam};
 
@@ -108,8 +111,8 @@ mod private
             Conf = CC::Conf,
             OUTPUTS = {OUTPUTS}
         >,
-        OmegaFirstOrder<f64>: FirstOrderFilterParam<CC, Conf = CC>,
-        OmegaFirstOrder<f32>: FirstOrderFilterParam<CC, Conf = CC>
+        Param<OmegaFirstOrder<f64>>: FirstOrderFilterParam<CC, Conf = CC>,
+        Param<OmegaFirstOrder<f32>>: FirstOrderFilterParam<CC, Conf = CC>
     {
 
     }

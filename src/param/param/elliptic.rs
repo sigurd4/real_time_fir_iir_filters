@@ -1,6 +1,6 @@
 use num::{Float, One};
 
-use crate::{conf::{all, All, Conf, HighPass, LowPass}, param::{EllipticFilterParamBase, FilterParam, OmegaEpsilonVal, OmegaEpsilonXiVal}, params::OmegaEpsilon, util::same::Same};
+use crate::{conf::{all, All, Conf, HighPass, LowPass}, param::{EllipticFilterParamBase, FilterParam, OmegaEpsilon, OmegaEpsilonXi, Param}, util::same::Same};
 
 use super::{ChebyshevFilterParam, ChebyshevType};
 
@@ -13,24 +13,24 @@ where
 {
     type Conf: EllipticFilterConf;
 
-    fn omega_epsilon_xi(&self) -> OmegaEpsilonXiVal<Self::F>;
+    fn omega_epsilon_xi(&self) -> OmegaEpsilonXi<Self::F, {Self::ORDER}>;
 }
 
-impl<P, C> EllipticFilterParam<C, OmegaEpsilon<<P as FilterParam>::F, {P::TYPE}>> for P
+impl<P, C> EllipticFilterParam<C, Param<OmegaEpsilon<<P as FilterParam>::F, {P::TYPE}>>> for P
 where
-    P: ChebyshevFilterParam<C, Conf: EllipticFilterConf> + EllipticFilterParamBase<C, ImplBase: Same<OmegaEpsilon<<P as FilterParam>::F, {P::TYPE}>>>,
+    P: ChebyshevFilterParam<C, Conf: EllipticFilterConf> + EllipticFilterParamBase<C, ImplBase: Same<Param<OmegaEpsilon<<P as FilterParam>::F, {P::TYPE}>>>>,
     C: Conf,
     [(); can_ln_be_calculated_through_recursion::<P, C>() as usize - 1]: // For now. It is possible to do it otherwise, but not implemented yet
 {
     type Conf = P::Conf;
 
-    fn omega_epsilon_xi(&self) -> OmegaEpsilonXiVal<Self::F>
+    fn omega_epsilon_xi(&self) -> OmegaEpsilonXi<Self::F, {Self::ORDER}>
     {
-        let OmegaEpsilonVal {omega, epsilon} = self.omega_epsilon();
+        let OmegaEpsilon {omega, epsilon} = self.omega_epsilon();
 
         match P::TYPE
         {
-            ChebyshevType::Type1 => OmegaEpsilonXiVal {
+            ChebyshevType::Type1 => OmegaEpsilonXi {
                 omega,
                 epsilon,
                 xi: Float::infinity()
@@ -145,7 +145,7 @@ where
                     }
                 };
         
-                OmegaEpsilonXiVal {
+                OmegaEpsilonXi {
                     omega,
                     epsilon: epsilon*ln,
                     xi: omega.recip()
@@ -250,7 +250,7 @@ where
 
 mod private
 {
-    use crate::{param::{ButterworthFilterConf, ButterworthFilterParam, ChebyshevFilterConf, ChebyshevFilterParam, FirstOrderFilterParam}, params::{OmegaDyn, OmegaEpsilonCheb1Dyn, OmegaEpsilonCheb1FirstOrder, OmegaEpsilonCheb1SecondOrder, OmegaEpsilonCheb2Dyn, OmegaEpsilonCheb2FirstOrder, OmegaEpsilonCheb2SecondOrder, OmegaEpsilonXiDyn, OmegaEpsilonXiFirstOrder, OmegaEpsilonXiSecondOrder, OmegaFirstOrder, OmegaSecondOrder}};
+    use crate::param::{ButterworthFilterConf, ButterworthFilterParam, ChebyshevFilterConf, ChebyshevFilterParam, FirstOrderFilterParam, OmegaDyn, OmegaEpsilonCheb1Dyn, OmegaEpsilonCheb1FirstOrder, OmegaEpsilonCheb1SecondOrder, OmegaEpsilonCheb2Dyn, OmegaEpsilonCheb2FirstOrder, OmegaEpsilonCheb2SecondOrder, OmegaEpsilonXiDyn, OmegaEpsilonXiFirstOrder, OmegaEpsilonXiSecondOrder, OmegaFirstOrder, OmegaSecondOrder, Param};
 
     use super::{EllipticFilterConf, EllipticFilterParam};
 
@@ -285,32 +285,32 @@ mod private
             Conf = CC,
             OUTPUTS = {OUTPUTS}
         >,
-        OmegaDyn<f32>: ButterworthFilterParam<CC, Conf = CC>,
-        OmegaDyn<f64>: ButterworthFilterParam<CC, Conf = CC>,
-        OmegaEpsilonCheb1Dyn<f32>: ChebyshevFilterParam<CC, Conf = CC>,
-        OmegaEpsilonCheb1Dyn<f64>: ChebyshevFilterParam<CC, Conf = CC>,
-        OmegaEpsilonCheb2Dyn<f32>: ChebyshevFilterParam<CC, Conf = CC>,
-        OmegaEpsilonCheb2Dyn<f64>: ChebyshevFilterParam<CC, Conf = CC>,
-        OmegaEpsilonXiDyn<f32>: EllipticFilterParam<CC, Conf = CC>,
-        OmegaEpsilonXiDyn<f64>: EllipticFilterParam<CC, Conf = CC>,
+        Param<OmegaDyn<f32>>: ButterworthFilterParam<CC, Conf = CC>,
+        Param<OmegaDyn<f64>>: ButterworthFilterParam<CC, Conf = CC>,
+        Param<OmegaEpsilonCheb1Dyn<f32>>: ChebyshevFilterParam<CC, Conf = CC>,
+        Param<OmegaEpsilonCheb1Dyn<f64>>: ChebyshevFilterParam<CC, Conf = CC>,
+        Param<OmegaEpsilonCheb2Dyn<f32>>: ChebyshevFilterParam<CC, Conf = CC>,
+        Param<OmegaEpsilonCheb2Dyn<f64>>: ChebyshevFilterParam<CC, Conf = CC>,
+        Param<OmegaEpsilonXiDyn<f32>>: EllipticFilterParam<CC, Conf = CC>,
+        Param<OmegaEpsilonXiDyn<f64>>: EllipticFilterParam<CC, Conf = CC>,
 
-        OmegaFirstOrder<f32>: ButterworthFilterParam<CC, Conf = CC> + FirstOrderFilterParam<CC, Conf = CC>,
-        OmegaFirstOrder<f64>: ButterworthFilterParam<CC, Conf = CC> + FirstOrderFilterParam<CC, Conf = CC>,
-        OmegaEpsilonCheb1FirstOrder<f32>: ChebyshevFilterParam<CC, Conf = CC> /*+ FirstOrderFilterParam<CC, Conf = CC>*/,
-        OmegaEpsilonCheb1FirstOrder<f64>: ChebyshevFilterParam<CC, Conf = CC> /*+ FirstOrderFilterParam<CC, Conf = CC>*/,
-        OmegaEpsilonCheb2FirstOrder<f32>: ChebyshevFilterParam<CC, Conf = CC> /*+ FirstOrderFilterParam<CC, Conf = CC>*/,
-        OmegaEpsilonCheb2FirstOrder<f64>: ChebyshevFilterParam<CC, Conf = CC> /*+ FirstOrderFilterParam<CC, Conf = CC>*/,
-        OmegaEpsilonXiFirstOrder<f32>: EllipticFilterParam<CC, Conf = CC> /*+ FirstOrderFilterParam<CC, Conf = CC>*/,
-        OmegaEpsilonXiFirstOrder<f64>: EllipticFilterParam<CC, Conf = CC> /*+ FirstOrderFilterParam<CC, Conf = CC>*/,
+        Param<OmegaFirstOrder<f32>>: ButterworthFilterParam<CC, Conf = CC> + FirstOrderFilterParam<CC, Conf = CC>,
+        Param<OmegaFirstOrder<f64>>: ButterworthFilterParam<CC, Conf = CC> + FirstOrderFilterParam<CC, Conf = CC>,
+        Param<OmegaEpsilonCheb1FirstOrder<f32>>: ChebyshevFilterParam<CC, Conf = CC> /*+ FirstOrderFilterParam<CC, Conf = CC>*/,
+        Param<OmegaEpsilonCheb1FirstOrder<f64>>: ChebyshevFilterParam<CC, Conf = CC> /*+ FirstOrderFilterParam<CC, Conf = CC>*/,
+        Param<OmegaEpsilonCheb2FirstOrder<f32>>: ChebyshevFilterParam<CC, Conf = CC> /*+ FirstOrderFilterParam<CC, Conf = CC>*/,
+        Param<OmegaEpsilonCheb2FirstOrder<f64>>: ChebyshevFilterParam<CC, Conf = CC> /*+ FirstOrderFilterParam<CC, Conf = CC>*/,
+        Param<OmegaEpsilonXiFirstOrder<f32>>: EllipticFilterParam<CC, Conf = CC> /*+ FirstOrderFilterParam<CC, Conf = CC>*/,
+        Param<OmegaEpsilonXiFirstOrder<f64>>: EllipticFilterParam<CC, Conf = CC> /*+ FirstOrderFilterParam<CC, Conf = CC>*/,
         
-        OmegaSecondOrder<f32>: ButterworthFilterParam<CC, Conf = CC> /*+ SecondOrderFilterParam<CC, Conf = CC>*/,
-        OmegaSecondOrder<f64>: ButterworthFilterParam<CC, Conf = CC> /*+ SecondOrderFilterParam<CC, Conf = CC>*/,
-        OmegaEpsilonCheb1SecondOrder<f32>: ChebyshevFilterParam<CC, Conf = CC> /*+ SecondOrderFilterParam<CC, Conf = CC>*/,
-        OmegaEpsilonCheb1SecondOrder<f64>: ChebyshevFilterParam<CC, Conf = CC> /*+ SecondOrderFilterParam<CC, Conf = CC>*/,
-        OmegaEpsilonCheb2SecondOrder<f32>: ChebyshevFilterParam<CC, Conf = CC> /*+ SecondOrderFilterParam<CC, Conf = CC>*/,
-        OmegaEpsilonCheb2SecondOrder<f64>: ChebyshevFilterParam<CC, Conf = CC> /*+ SecondOrderFilterParam<CC, Conf = CC>*/,
-        OmegaEpsilonXiSecondOrder<f32>: EllipticFilterParam<CC, Conf = CC> /*+ SecondOrderFilterParam<CC, Conf = CC>*/,
-        OmegaEpsilonXiSecondOrder<f64>: EllipticFilterParam<CC, Conf = CC> /*+ SecondOrderFilterParam<CC, Conf = CC>*/,
+        Param<OmegaSecondOrder<f32>>: ButterworthFilterParam<CC, Conf = CC> /*+ SecondOrderFilterParam<CC, Conf = CC>*/,
+        Param<OmegaSecondOrder<f64>>: ButterworthFilterParam<CC, Conf = CC> /*+ SecondOrderFilterParam<CC, Conf = CC>*/,
+        Param<OmegaEpsilonCheb1SecondOrder<f32>>: ChebyshevFilterParam<CC, Conf = CC> /*+ SecondOrderFilterParam<CC, Conf = CC>*/,
+        Param<OmegaEpsilonCheb1SecondOrder<f64>>: ChebyshevFilterParam<CC, Conf = CC> /*+ SecondOrderFilterParam<CC, Conf = CC>*/,
+        Param<OmegaEpsilonCheb2SecondOrder<f32>>: ChebyshevFilterParam<CC, Conf = CC> /*+ SecondOrderFilterParam<CC, Conf = CC>*/,
+        Param<OmegaEpsilonCheb2SecondOrder<f64>>: ChebyshevFilterParam<CC, Conf = CC> /*+ SecondOrderFilterParam<CC, Conf = CC>*/,
+        Param<OmegaEpsilonXiSecondOrder<f32>>: EllipticFilterParam<CC, Conf = CC> /*+ SecondOrderFilterParam<CC, Conf = CC>*/,
+        Param<OmegaEpsilonXiSecondOrder<f64>>: EllipticFilterParam<CC, Conf = CC> /*+ SecondOrderFilterParam<CC, Conf = CC>*/,
     {
 
     }

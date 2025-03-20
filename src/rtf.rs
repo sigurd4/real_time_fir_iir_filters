@@ -2,7 +2,7 @@ use core::{iter::Sum, mem::MaybeUninit, ops::Add};
 use std::ops::MulAssign;
 
 use num::{Complex, Float};
-use crate::{conf::Conf as Conf__trait, internals::{ainternals, binternals, rtfinternals, winternals}, max_len, param::FilterFloat, static_rtf::StaticRtf};
+use crate::{conf::Conf as Conf__trait, internals::{ainternals, binternals, rtfinternals, winternals}, max_len, param::{FilterFloat, Param}, static_rtf::StaticRtf};
 
 pub trait RtfBase: Sized
 {
@@ -282,7 +282,7 @@ where
         
         self.update_internals(rate);
 
-        let (internals, _): (&mut rtfinternals!(Self), &mut T::Param) = self.get_internals_mut();
+        let (internals, _): (&mut rtfinternals!(Self), &mut Param<T::Param>) = self.get_internals_mut();
         let (w, b, a): (&mut winternals!(Self), &binternals!(Self), &[ainternals!(Self); Self::IS_IIR as usize])
             = (&mut internals.w, &internals.b, &internals.a);
         let (w_stages, w_output) = w;

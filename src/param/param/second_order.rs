@@ -1,6 +1,6 @@
 use num::traits::FloatConst;
 
-use crate::{conf::{all, All, Conf, HighPass, LowPass, Peak}, param::{FilterParam, OmegaVal, OmegaZetaVal, SecondOrderFilterParamBase}, params::Omega, util::same::Same};
+use crate::{conf::{all, All, Conf, HighPass, LowPass, Peak}, param::{FilterParam, Omega, OmegaZeta, SecondOrderFilterParamBase}, util::same::Same};
 
 use super::ButterworthFilterParam;
 
@@ -13,7 +13,7 @@ where
 {
     type Conf: SecondOrderFilterConf;
 
-    fn omega_zeta(&self) -> OmegaZetaVal<Self::F>;
+    fn omega_zeta(&self) -> OmegaZeta<Self::F>;
 }
 
 impl<P, C> SecondOrderFilterParam<C, Omega<P::F, 2>> for P
@@ -24,10 +24,10 @@ where
 {
     type Conf = P::Conf;
 
-    fn omega_zeta(&self) -> OmegaZetaVal<Self::F>
+    fn omega_zeta(&self) -> OmegaZeta<Self::F>
     {
-        let OmegaVal {omega} = self.omega();
-        OmegaZetaVal {
+        let Omega {omega} = self.omega();
+        OmegaZeta {
             omega,
             zeta: FloatConst::FRAC_1_SQRT_2()
         }
@@ -95,7 +95,7 @@ impl_composite_conf!(LowPass, Peak, HighPass => All);
 
 mod private
 {
-    use crate::{param::{ButterworthFilterConf, ButterworthFilterParam}, params::{OmegaSecondOrder, OmegaZeta}};
+    use crate::param::{ButterworthFilterConf, ButterworthFilterParam, OmegaSecondOrder, OmegaZeta, Param};
 
     use super::{SecondOrderFilterConf, SecondOrderFilterParam};
 
@@ -124,11 +124,11 @@ mod private
         C: SecondOrderFilterConf<
             OUTPUTS = {OUTPUTS}
         >,
-        OmegaZeta<f64>: SecondOrderFilterParam<CC, Conf = CC>,
-        OmegaZeta<f32>: SecondOrderFilterParam<CC, Conf = CC>,
+        Param<OmegaZeta<f64>>: SecondOrderFilterParam<CC, Conf = CC>,
+        Param<OmegaZeta<f32>>: SecondOrderFilterParam<CC, Conf = CC>,
 
-        OmegaSecondOrder<f64>: ButterworthFilterParam<CC, Conf = CC>,
-        OmegaSecondOrder<f32>: ButterworthFilterParam<CC, Conf = CC>
+        Param<OmegaSecondOrder<f64>>: ButterworthFilterParam<CC, Conf = CC>,
+        Param<OmegaSecondOrder<f32>>: ButterworthFilterParam<CC, Conf = CC>
     {
 
     }

@@ -1,6 +1,6 @@
-use crate::param::{FilterParam, PIVal};
+use crate::param::{FilterParam, PI};
 
 pub trait PIFilterParam: FilterParam
 {
-    fn pi(&self) -> PIVal<Self::F>;
+    fn pi(&self) -> PI<Self::F>;
 }
