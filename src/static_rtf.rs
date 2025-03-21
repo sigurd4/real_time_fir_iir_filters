@@ -1,4 +1,4 @@
-use crate::{internals::{ainternals, binternals, rtfinternals}, param::{FilterParam, Param}, rtf::RtfBase};
+use crate::{internals::{ainternals, binternals, rtfinternals}, param::Param, rtf::RtfBase};
 
 pub trait StaticRtfBase: RtfBase + Sized + 'static
 {

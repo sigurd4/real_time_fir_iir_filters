@@ -1,6 +1,6 @@
 use num::{traits::FloatConst, Float};
 
-use crate::{conf::{All, HighPass, LowPass, Peak}, param::{ButterworthFilterConf, ButterworthFilterParam, FilterParamSecondOrder, SecondOrderButterworthFilterConf}, params::OmegaSecondOrder, real_time_fir_iir_filters};
+use crate::{conf::{All, HighPass, LowPass, Peak}, param::{ButterworthFilterConf, ButterworthFilterParam, OmegaSecondOrder, SecondOrderButterworthFilterConf}, real_time_fir_iir_filters};
 
 crate::def_rtf!(
     {

@@ -33,7 +33,8 @@ moddef::moddef!(
     },
     mod {
         plot for cfg(test),
-        util
+        util,
+        calc
     }
 );
 

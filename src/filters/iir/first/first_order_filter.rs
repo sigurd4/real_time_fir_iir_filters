@@ -1,4 +1,4 @@
-use crate::{conf::{All, HighPass, LowPass}, param::{FilterFloat, FirstOrderFilterConf, FirstOrderFilterParam, Omega, OmegaFirstOrder}, real_time_fir_iir_filters};
+use crate::{calc::iir::first::FirstOrderCalc, conf::{All, HighPass, LowPass}, param::{FirstOrderFilterConf, FirstOrderFilterParam, OmegaFirstOrder}, real_time_fir_iir_filters};
 
 crate::def_rtf!(
     {
@@ -72,53 +72,6 @@ crate::def_rtf!(
     where
         [(); <CC as FirstOrderFilterConf>::OUTPUTS]:
 );
-
-pub(crate) struct FirstOrderCalc<F>
-where
-    F: FilterFloat
-{
-    omega: F,
-    two_rate: F
-}
-
-impl<F> FirstOrderCalc<F>
-where
-    F: FilterFloat
-{
-    pub fn new(omega: OmegaFirstOrder<F>, rate: F) -> Self
-    {
-        let Omega {omega} = omega;
-        let two_rate = rate + rate;
-        Self {
-            omega,
-            two_rate
-        }
-    }
-
-    pub fn b_low(&self) -> [F; 2]
-    {
-        [
-            self.omega,
-            self.omega
-        ]
-    }
-
-    pub fn b_high(&self) -> [F; 2]
-    {
-        [
-            self.two_rate,
-            -self.two_rate
-        ]
-    }
-
-    pub fn a(&self) -> [F; 2]
-    {
-        [
-            self.omega + self.two_rate,
-            self.omega - self.two_rate
-        ]
-    }
-}
 
 #[cfg(test)]
 mod test
