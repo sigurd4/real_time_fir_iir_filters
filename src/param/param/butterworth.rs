@@ -13,10 +13,6 @@ where
     fn omega(&self) -> Omega<Self::F, {Self::ORDER}>;
 }
 
-pub trait FirstOrderButterworthFilterConf = ButterworthFilterConf<1>;
-pub trait SecondOrderButterworthFilterConf = ButterworthFilterConf<2>;
-pub trait ThirdOrderButterworthFilterConf = ButterworthFilterConf<3>;
-
 pub trait ButterworthFilterConf<const ORDER: usize>: Conf
 {
     type Conf: private::ButterworthFilterConfFinal<ORDER, Self>;

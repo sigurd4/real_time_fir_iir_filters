@@ -1,4 +1,4 @@
-use crate::param::{FilterFloat, Omega, OmegaZeta};
+use crate::param::{FilterFloat, Omega, OmegaSecondOrder, OmegaZeta};
 
 pub struct SecondOrderCalc<F>
 where
@@ -19,7 +19,7 @@ impl<F> SecondOrderCalc<F>
 where
     F: FilterFloat
 {
-    pub fn new_butterworth(omega: Omega<F>, rate: F) -> Self
+    pub fn new_butterworth(omega: OmegaSecondOrder<F>, rate: F) -> Self
     {
         let Omega {omega} = omega;
         let zeta = F::FRAC_1_SQRT_2();
@@ -37,7 +37,7 @@ where
         let eight_rate2 = four_rate2 + four_rate2;
         Self {
             omega,
-            two_omega: todo!(),
+            two_omega,
             omega2,
             two_omega2,
             rate,
