@@ -39,7 +39,7 @@ default = [
     #"third_order_elliptic",
     #"third_order",
     #"third_order_sallen_key",
-    #"wah"
+    "wah"
 ]
 
 param_lr = []

@@ -1,24 +1,26 @@
-use crate::{param::{FilterFloat, FilterParam, WahFilterParam}, real_time_fir_iir_filters};
+use crate::param::{FilterFloat, FilterParam, Param, WahFilterParam};
 
-const GUITAR_R_I: f64 = 10e3;
-const V_T: f64 = 26e-3;
+use super::X;
 
-const MPSA18_V_F: f64 = 0.6;
-const MPSA18_BETA: f64 = 580.0;
+pub(crate) const GUITAR_R_I: f64 = 10e3;
+pub(crate) const V_T: f64 = 26e-3;
 
-const BC109B_V_F: f64 = 0.7;
-const BC109B_BETA: f64 = 500.0;
+pub(crate) const MPSA18_V_F: f64 = 0.6;
+pub(crate) const MPSA18_BETA: f64 = 580.0;
 
-const BC184_V_F: f64 = 0.7;
-const BC184_BETA: f64 = 240.0;
+pub(crate) const BC109B_V_F: f64 = 0.7;
+pub(crate) const BC109B_BETA: f64 = 500.0;
 
-crate::def_param!(
-    CrybabyGCB95<F> {
-        position: F
-    } where
-        F: FilterFloat
-);
-impl<F> FilterParam for CrybabyGCB95<F>
+pub(crate) const BC184_V_F: f64 = 0.7;
+pub(crate) const BC184_BETA: f64 = 240.0;
+
+pub struct CrybabyGCB95<F>
+where
+    F: FilterFloat
+{
+    pub x: F
+}
+impl<F> FilterParam for Param<CrybabyGCB95<F>>
 where
     F: FilterFloat
 {
@@ -26,7 +28,7 @@ where
 
     type F = F;
 }
-impl<F> WahFilterParam for CrybabyGCB95<F>
+impl<F> WahFilterParam for Param<CrybabyGCB95<F>>
 where
     F: FilterFloat
 {
@@ -53,19 +55,22 @@ where
     
     const L: f64 = 540e-3; // L1
 
-    fn position(&self) -> Self::F
+    fn x(&self) -> X<Self::F>
     {
-        *self.position
+        let CrybabyGCB95 {x} = **self;
+        X {
+            x
+        }
     }
 }
 
-crate::def_param!(
-    VoxV847<F> {
-        position: F
-    } where
-        F: FilterFloat
-);
-impl<F> FilterParam for VoxV847<F>
+pub struct VoxV847<F>
+where
+    F: FilterFloat
+{
+    pub x: F
+}
+impl<F> FilterParam for Param<VoxV847<F>>
 where
     F: FilterFloat
 {
@@ -73,7 +78,7 @@ where
 
     type F = F;
 }
-impl<F> WahFilterParam for VoxV847<F>
+impl<F> WahFilterParam for Param<VoxV847<F>>
 where
     F: FilterFloat
 {
@@ -100,19 +105,22 @@ where
     
     const L: f64 = 500e-3; // L1
 
-    fn position(&self) -> Self::F
+    fn x(&self) -> X<Self::F>
     {
-        *self.position
+        let VoxV847 {x} = **self;
+        X {
+            x
+        }
     }
 }
 
-crate::def_param!(
-    ColorsoundWow<F> {
-        position: F
-    } where
-        F: FilterFloat
-);
-impl<F> FilterParam for ColorsoundWow<F>
+pub struct ColorsoundWow<F>
+where
+    F: FilterFloat
+{
+    pub x: F
+}
+impl<F> FilterParam for Param<ColorsoundWow<F>>
 where
     F: FilterFloat
 {
@@ -120,7 +128,7 @@ where
 
     type F = F;
 }
-impl<F> WahFilterParam for ColorsoundWow<F>
+impl<F> WahFilterParam for Param<ColorsoundWow<F>>
 where
     F: FilterFloat
 {
@@ -147,8 +155,11 @@ where
     
     const L: f64 = 500e-3; // L1
 
-    fn position(&self) -> Self::F
+    fn x(&self) -> X<Self::F>
     {
-        *self.position
+        let ColorsoundWow {x} = **self;
+        X {
+            x
+        }
     }
 }

@@ -1,6 +1,4 @@
-use num::Float;
-
-use crate::{conf::{All, HighPass, LowPass}, param::{FirstOrderFilterConf, FirstOrderFilterParam, Omega, OmegaFirstOrder}, real_time_fir_iir_filters};
+use crate::{conf::{All, HighPass, LowPass}, param::{FilterFloat, FirstOrderFilterConf, FirstOrderFilterParam, Omega, OmegaFirstOrder}, real_time_fir_iir_filters};
 
 crate::def_rtf!(
     {
@@ -35,41 +33,38 @@ crate::def_rtf!(
 
         fn make_coeffs<All>(param, rate) -> _
         {
-            let Omega {omega} = param.omega();
-            let two_rate = rate + rate;
+            let calc = FirstOrderCalc::new(param.omega(), rate);
             (
                 ([], [], [
-                    first_order_low_pass_filter_b(omega),
-                    first_order_high_pass_filter_b(two_rate)
+                    calc.b_low(),
+                    calc.b_high()
                 ]),
                 [([], [
-                    first_order_filter_a(omega, two_rate)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<LowPass>(param, rate) -> _
         {
-            let Omega {omega} = param.omega();
-            let two_rate = rate + rate;
+            let calc = FirstOrderCalc::new(param.omega(), rate);
             (
                 ([], [], [
-                    first_order_low_pass_filter_b(omega)
+                    calc.b_low()
                 ]),
                 [([], [
-                    first_order_filter_a(omega, two_rate)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<HighPass>(param, rate) -> _
         {
-            let Omega {omega} = param.omega();
-            let two_rate = rate + rate;
+            let calc = FirstOrderCalc::new(param.omega(), rate);
             (
                 ([], [], [
-                    first_order_high_pass_filter_b(omega)
+                    calc.b_high()
                 ]),
                 [([], [
-                    first_order_filter_a(omega, two_rate)
+                    calc.a()
                 ])]
             )
         }
@@ -78,32 +73,51 @@ crate::def_rtf!(
         [(); <CC as FirstOrderFilterConf>::OUTPUTS]:
 );
 
-pub(crate) fn first_order_low_pass_filter_b<F>(omega: F) -> [F; 2]
+pub(crate) struct FirstOrderCalc<F>
 where
-    F: Float
+    F: FilterFloat
 {
-    [
-        omega,
-        omega
-    ]
+    omega: F,
+    two_rate: F
 }
-pub(crate) fn first_order_high_pass_filter_b<F>(two_rate: F) -> [F; 2]
+
+impl<F> FirstOrderCalc<F>
 where
-    F: Float
+    F: FilterFloat
 {
-    [
-        two_rate,
-        -two_rate
-    ]
-}
-pub(crate) fn first_order_filter_a<F>(omega: F, two_rate: F) -> [F; 2]
-where
-    F: Float
-{
-    [
-        omega + two_rate,
-        omega - two_rate,
-    ]
+    pub fn new(omega: OmegaFirstOrder<F>, rate: F) -> Self
+    {
+        let Omega {omega} = omega;
+        let two_rate = rate + rate;
+        Self {
+            omega,
+            two_rate
+        }
+    }
+
+    pub fn b_low(&self) -> [F; 2]
+    {
+        [
+            self.omega,
+            self.omega
+        ]
+    }
+
+    pub fn b_high(&self) -> [F; 2]
+    {
+        [
+            self.two_rate,
+            -self.two_rate
+        ]
+    }
+
+    pub fn a(&self) -> [F; 2]
+    {
+        [
+            self.omega + self.two_rate,
+            self.omega - self.two_rate
+        ]
+    }
 }
 
 #[cfg(test)]

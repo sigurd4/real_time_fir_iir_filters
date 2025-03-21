@@ -16,6 +16,6 @@ moddef::moddef!(
         second_order_sallen_key for cfg(feature = "param_rc2_sallen_key"),
         third_order for cfg(feature = "param_omega2_zeta"),
         third_order_sallen_key for cfg(feature = "param_rc3_sallen_key"),
-        wah_filter_param for cfg(feature = "param_wah")
+        wah for cfg(feature = "param_wah")
     }
 );
