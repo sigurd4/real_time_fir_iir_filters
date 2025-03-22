@@ -49,14 +49,14 @@ where
 
     type ImplBase = Self;
 }
-impl<F, const TYPE: ChebyshevType, const ORDER: usize, C> ChebyshevFilterParam<C, Self> for Param<OmegaEpsilon<F, TYPE, ORDER>>
+impl<F, const TYPE: ChebyshevType, const ORDER: usize, C> ChebyshevFilterParam<C> for Param<OmegaEpsilon<F, TYPE, ORDER>>
 where
     F: FilterFloat,
     C: ChebyshevFilterConf
 {
     type Conf = C;
 
-    fn omega_epsilon(&self) -> OmegaEpsilon<Self::F, {<Self as ChebyshevFilterParamBase<C>>::TYPE}, {Self::ORDER}>
+    fn omega_epsilon(&self) -> OmegaEpsilon<Self::F, TYPE, ORDER>
     {
         let OmegaEpsilon {omega, epsilon} = **self;
         OmegaEpsilon {

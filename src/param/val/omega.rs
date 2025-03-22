@@ -64,16 +64,12 @@ where
 impl<F, C, const ORDER: usize> ButterworthFilterParam<C> for Param<Omega<F, ORDER>>
 where
     F: FilterFloat,
-    C: ButterworthFilterConf<ORDER> + ButterworthFilterConf<{Self::ORDER}>,
-    [(); Self::ORDER]:
+    C: ButterworthFilterConf<ORDER>
 {
     type Conf = C;
 
-    fn omega(&self) -> Omega<Self::F, {Self::ORDER}>
+    fn omega(&self) -> Omega<Self::F, ORDER>
     {
-        let Omega {omega} = **self;
-        Omega {
-            omega
-        }
+        **self
     }
 }

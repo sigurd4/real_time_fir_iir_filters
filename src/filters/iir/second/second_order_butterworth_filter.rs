@@ -28,7 +28,7 @@ crate::def_rtf!(
     SecondOrderButterworthFilter
     {
         type Conf: SecondOrderButterworthFilterConf as ButterworthFilterConf<2>;
-        type Param<C>: SecondOrderButterworthFilterParam as SecondOrderButterworthFilterParam = OmegaSecondOrder;
+        type Param: SecondOrderButterworthFilterParam = OmegaSecondOrder;
 
         const O_BUFFERS: usize = 1;
         const SOS_BUFFERS: usize = 1;

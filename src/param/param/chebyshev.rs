@@ -4,31 +4,41 @@ use num::{Float, One};
 
 use super::{ButterworthFilterParam, EllipticFilterConf};
 
-use crate::{conf::{All, Conf}, param::{ChebyshevFilterParamBase, EllipticFilterParamBase, Omega, OmegaDyn, OmegaEpsilon, Param}, util::same::Same};
+use crate::{conf::{All, Conf}, param::{ChebyshevFilterParamBase, EllipticFilterParamBase, FilterParam, Omega, OmegaDyn, OmegaEpsilon, Param}, util::same::Same};
 
 pub trait ChebyshevFilterParam<
     C,
+    const TYPE: ChebyshevType = {<Self as ChebyshevFilterParamBase<C>>::TYPE},
+    const ORDER: usize = {<Self as FilterParam>::ORDER},
     ImplBase = <Self as ChebyshevFilterParamBase<C>>::ImplBase,
     ImplBase2 = <Self as EllipticFilterParamBase<C>>::ImplBase
->: ChebyshevFilterParamBase<C, ImplBase: Same<ImplBase>>
+>: ChebyshevFilterParamBase<C, ImplBase: Same<ImplBase>, TYPE = {TYPE}, ORDER = {ORDER}>
     + EllipticFilterParamBase<C, ImplBase: Same<ImplBase2> + ChebyshevFilterParamBase<All, ImplBase: Same<ImplBase2>>>
 where
     C: Conf
 {
     type Conf: ChebyshevFilterConf;
 
-    fn omega_epsilon(&self) -> OmegaEpsilon<Self::F, {Self::TYPE}, {Self::ORDER}>;
+    fn omega_epsilon(&self) -> OmegaEpsilon<Self::F, TYPE, ORDER>;
 }
 
-impl<P, C> ChebyshevFilterParam<C, Param<OmegaDyn<P::F>>> for P
+pub trait Chebyshev1FilterParam<C: Conf> = ChebyshevFilterParam<C, {ChebyshevType::Type1}>;
+pub trait Chebyshev2FilterParam<C: Conf> = ChebyshevFilterParam<C, {ChebyshevType::Type2}>;
+pub trait FirstOrderChebyshev1FilterParam<C: Conf> = ChebyshevFilterParam<C, {ChebyshevType::Type1}, 1>;
+pub trait FirstOrderChebyshev2FilterParam<C: Conf> = ChebyshevFilterParam<C, {ChebyshevType::Type2}, 1>;
+pub trait SecondOrderChebyshev1FilterParam<C: Conf> = ChebyshevFilterParam<C, {ChebyshevType::Type1}, 2>;
+pub trait SecondOrderChebyshev2FilterParam<C: Conf> = ChebyshevFilterParam<C, {ChebyshevType::Type2}, 2>;
+pub trait ThirdOrderChebyshev1FilterParam<C: Conf> = ChebyshevFilterParam<C, {ChebyshevType::Type1}, 3>;
+pub trait ThirdOrderChebyshev2FilterParam<C: Conf> = ChebyshevFilterParam<C, {ChebyshevType::Type2}, 3>;
+
+impl<P, C, const ORDER: usize> ChebyshevFilterParam<C, {ChebyshevType::Type1}, ORDER, Param<OmegaDyn<P::F>>> for P
 where
-    P: ButterworthFilterParam<C, Conf: ChebyshevFilterConf>, // TODO generalize for different orders
-    C: Conf,
-    [(); P::ORDER]:
+    P: ButterworthFilterParam<C, ORDER, Conf: ChebyshevFilterConf>, // TODO generalize for different orders
+    C: Conf
 {
     type Conf = P::Conf;
 
-    fn omega_epsilon(&self) -> OmegaEpsilon<Self::F, {Self::TYPE}, {Self::ORDER}>
+    fn omega_epsilon(&self) -> OmegaEpsilon<Self::F, {ChebyshevType::Type1}, {ORDER}>
     {
         let Omega {omega} = self.omega();
         let x = omega.recip();

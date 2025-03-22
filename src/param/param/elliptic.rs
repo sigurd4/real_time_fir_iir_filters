@@ -2,40 +2,41 @@ use num::{Float, One};
 
 use crate::{conf::{all, All, Conf, HighPass, LowPass}, param::{EllipticFilterParamBase, FilterParam, OmegaEpsilon, OmegaEpsilonXi, Param}, util::same::Same};
 
-use super::{ChebyshevFilterParam, ChebyshevType};
+use super::ChebyshevFilterParam;
 
 pub trait EllipticFilterParam<
     C,
+    const ORDER: usize = {<Self as FilterParam>::ORDER},
     ImplBase = <Self as EllipticFilterParamBase<C>>::ImplBase
->: EllipticFilterParamBase<C, ImplBase: Same<ImplBase>>
+>: EllipticFilterParamBase<C, ImplBase: Same<ImplBase>, ORDER = {ORDER}>
 where
     C: Conf
 {
     type Conf: EllipticFilterConf;
 
-    fn omega_epsilon_xi(&self) -> OmegaEpsilonXi<Self::F, {Self::ORDER}>;
+    fn omega_epsilon_xi(&self) -> OmegaEpsilonXi<Self::F, ORDER>;
 }
 
-impl<P, C> EllipticFilterParam<C, Param<OmegaEpsilon<<P as FilterParam>::F, {P::TYPE}>>> for P
+impl<P, C, const TYPE: bool, const ORDER: usize> EllipticFilterParam<C, ORDER, Param<OmegaEpsilon<<P as FilterParam>::F, TYPE>>> for P
 where
-    P: ChebyshevFilterParam<C, Conf: EllipticFilterConf> + EllipticFilterParamBase<C, ImplBase: Same<Param<OmegaEpsilon<<P as FilterParam>::F, {P::TYPE}>>>>,
+    P: ChebyshevFilterParam<C, TYPE, ORDER, Conf: EllipticFilterConf> + EllipticFilterParamBase<C, ImplBase: Same<Param<OmegaEpsilon<<P as FilterParam>::F, TYPE, ORDER>>>>,
     C: Conf,
-    [(); can_ln_be_calculated_through_recursion::<P, C>() as usize - 1]: // For now. It is possible to do it otherwise, but not implemented yet
+    //[(); can_ln_be_calculated_through_recursion::<P, C>() as usize - 1]: // For now. It is possible to do it otherwise, but not implemented yet
 {
     type Conf = P::Conf;
 
-    fn omega_epsilon_xi(&self) -> OmegaEpsilonXi<Self::F, {Self::ORDER}>
+    fn omega_epsilon_xi(&self) -> OmegaEpsilonXi<Self::F, ORDER>
     {
         let OmegaEpsilon {omega, epsilon} = self.omega_epsilon();
 
         match P::TYPE
         {
-            ChebyshevType::Type1 => OmegaEpsilonXi {
+            false => OmegaEpsilonXi {
                 omega,
                 epsilon,
                 xi: Float::infinity()
             },
-            ChebyshevType::Type2 => {
+            true => {
                 let mut xi = omega.recip();
         
                 // https://en.wikipedia.org/wiki/Elliptic_rational_functions
@@ -214,8 +215,8 @@ where
 {
     match P::TYPE
     {
-        ChebyshevType::Type1 => true,
-        ChebyshevType::Type2 => {
+        false => true,
+        true => {
             let mut o = P::ORDER;
         
             loop

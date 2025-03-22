@@ -8,11 +8,17 @@ pub mod same
 {
     mod private
     {
-        trait _MaybeSame<T>
+        pub trait _MaybeSame<T>
         where
             T: ?Sized
         {
             const IS_SAME: bool;
+
+            fn or_else_if_same<F>(self, eval: F) -> Self
+            where
+                Self: Sized,
+                T: Sized,
+                F: FnOnce() -> T;
         }
         impl<T, U> _MaybeSame<T> for U
         where
@@ -20,12 +26,30 @@ pub mod same
             U: ?Sized
         {
             default const IS_SAME: bool = false;
+
+            default fn or_else_if_same<F>(self, eval: F) -> Self
+            where
+                Self: Sized,
+                T: Sized,
+                F: FnOnce() -> T
+            {
+                self
+            }
         }
         impl<T> _MaybeSame<T> for T
         where
             T: ?Sized
         {
             const IS_SAME: bool = true;
+
+            fn or_else_if_same<F>(self, eval: F) -> Self
+            where
+                Self: Sized,
+                T: Sized,
+                F: FnOnce() -> T
+            {
+                eval()
+            }
         }
     
         pub trait _NotSame<T>
@@ -76,6 +100,15 @@ pub mod same
         U: private::_NotSame<T>
     {
         
+    }
+
+    pub fn eval_if_same<T, U, F>(eval: F, otherwise: T) -> T
+    where
+        F: FnOnce() -> U
+    {
+        use private::_MaybeSame;
+
+        otherwise.or_else_if_same(eval)
     }
 }
 

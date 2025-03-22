@@ -29,15 +29,14 @@ where
 {
     type ImplBase = Self;
 }
-impl<F, const ORDER: usize, C> EllipticFilterParam<C, Self> for Param<OmegaEpsilonXi<F, ORDER>>
+impl<F, const ORDER: usize, C> EllipticFilterParam<C> for Param<OmegaEpsilonXi<F, ORDER>>
 where
     F: FilterFloat,
-    C: EllipticFilterConf,
-    [(); Self::ORDER]:
+    C: EllipticFilterConf
 {
     type Conf = C;
 
-    fn omega_epsilon_xi(&self) -> OmegaEpsilonXi<Self::F, {Self::ORDER}>
+    fn omega_epsilon_xi(&self) -> OmegaEpsilonXi<Self::F, ORDER>
     {
         let OmegaEpsilonXi {omega, epsilon, xi} = **self;
         OmegaEpsilonXi {
