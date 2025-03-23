@@ -14,9 +14,7 @@ pub trait StaticRtfBase: RtfBase + Sized + 'static
     fn get_param_mut(&mut self) -> &mut Self::Param;
     fn into_param(self) -> Self::Param;
     
-    fn get_internals(&self) -> (&rtfinternals!(Self::F, Self::OUTPUTS, Self::O_BUFFERS, Self::SOS_BUFFERS, Self::SOS_STAGES, Self::ORDER, Self::IS_IIR), &Param<Self::Param>)
-    where
-        [(); Self::OUTPUTS]:;
+    fn get_internals(&self) -> (&rtfinternals!(Self::F, Self::OUTPUTS, Self::O_BUFFERS, Self::SOS_BUFFERS, Self::SOS_STAGES, Self::ORDER, Self::IS_IIR), &Param<Self::Param>);
     fn get_internals_mut(&mut self) -> (&mut rtfinternals!(Self::F, Self::OUTPUTS, Self::O_BUFFERS, Self::SOS_BUFFERS, Self::SOS_STAGES, Self::ORDER, Self::IS_IIR), &mut Param<Self::Param>);
     
     fn make_coeffs(param: &Param<Self::Param>, rate: Self::F) -> (

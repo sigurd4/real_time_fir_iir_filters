@@ -1,5 +1,6 @@
-use super::*;
-use crate::{conf::Conf, param::{ChebyshevFilterParamBase, EllipticFilterParamBase, FilterParam, Omega, OmegaDyn, OmegaEpsilonDyn, OmegaFirstOrder, OmegaSecondOrder, OmegaThirdOrder, Param}, util::same::Same};
+use crate::{conf::Conf, param::{ChebyshevFilterParamBase, EllipticFilterParamBase, FilterParam, Omega, OmegaDyn, OmegaEpsilonDyn, Param}, util::same::Same};
+
+use super::{ChebyshevFilterConf, ChebyshevType, FirstOrderFilterConf, FirstOrderFilterParam, SecondOrderFilterConf, SecondOrderFilterParam, ThirdOrderFilterConf, ThirdOrderFilterParam};
 
 pub trait ButterworthFilterParam<
     C
@@ -20,15 +21,35 @@ where
         [(); Self::ORDER]:;
 }
 
-pub trait FirstOrderButterworthFilterParam<C: Conf> = ButterworthFilterParam<C, Conf: FirstOrderButterworthFilterConf, ORDER = 1, Omega = OmegaFirstOrder<<Self as FilterParam>::F>> + FirstOrderFilterParam<C>
-where
-    [(); Self::ORDER]:;
-pub trait SecondOrderButterworthFilterParam<C: Conf> = ButterworthFilterParam<C, Conf: SecondOrderButterworthFilterConf, ORDER = 2, Omega = OmegaSecondOrder<<Self as FilterParam>::F>> + SecondOrderFilterParam<C>
-where
-    [(); Self::ORDER]:;
-pub trait ThirdOrderButterworthFilterParam<C: Conf> = ButterworthFilterParam<C, Conf: ThirdOrderButterworthFilterConf, ORDER = 3, Omega = OmegaThirdOrder<<Self as FilterParam>::F>> + ThirdOrderFilterParam<C>
-where
-    [(); Self::ORDER]:;
+macro_rules! special {
+    ($trait:ident: $of:ident = $order:expr) => {
+        pub trait $trait<C>: $of<C>
+        where
+            C: Conf
+        {
+            type Conf: ButterworthFilterConf<$order>;
+
+            fn omega(&self) -> Omega<<Self as FilterParam>::F, $order>;
+        }
+        impl<P, C> $trait<C> for P
+        where
+            P: ButterworthFilterParam<C, Conf: ButterworthFilterConf<$order>, ORDER = $order, Omega = Omega<<Self as FilterParam>::F, $order>> + $of<C>,
+            C: Conf,
+            [(); Self::ORDER]:
+        {
+            type Conf = <Self as ButterworthFilterParam<C>>::Conf;
+
+            fn omega(&self) -> Omega<<Self as FilterParam>::F, $order>
+            {
+                ButterworthFilterParam::omega(self)
+            }
+        }
+    };
+}
+
+special!(FirstOrderButterworthFilterParam: FirstOrderFilterParam = 1);
+special!(SecondOrderButterworthFilterParam: SecondOrderFilterParam = 2);
+special!(ThirdOrderButterworthFilterParam: ThirdOrderFilterParam = 3);
 
 pub trait FirstOrderButterworthFilterConf = ButterworthFilterConf<1>;
 pub trait SecondOrderButterworthFilterConf = ButterworthFilterConf<2>;

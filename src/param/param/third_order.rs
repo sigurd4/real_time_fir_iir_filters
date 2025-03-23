@@ -116,7 +116,7 @@ impl_composite_conf!(LowPass, Peak<1>, Peak<2>, HighPass => All);
 
 mod private
 {
-    use crate::param::{ButterworthFilterConf, ButterworthFilterParam, Omega2Zeta, OmegaThirdOrder, Param};
+    use crate::param::{ButterworthFilterConf, Omega2Zeta, Param};
 
     use super::{ThirdOrderFilterConf, ThirdOrderFilterParam};
 
@@ -147,9 +147,6 @@ mod private
         >,
         Param<Omega2Zeta<f64>>: ThirdOrderFilterParam<CC, Conf = CC>,
         Param<Omega2Zeta<f32>>: ThirdOrderFilterParam<CC, Conf = CC>,
-
-        Param<OmegaThirdOrder<f64>>: ButterworthFilterParam<CC, Conf = CC>,
-        Param<OmegaThirdOrder<f32>>: ButterworthFilterParam<CC, Conf = CC>
     {
 
     }

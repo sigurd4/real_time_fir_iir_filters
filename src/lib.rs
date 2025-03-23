@@ -665,11 +665,11 @@ macro_rules! def_rtf {
                     self.param.into_value()
                 }
                 
-                fn get_internals(&self) -> (&Internals<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, $conf>, &real_time_fir_iir_filters::param::Param<Self::Param>) //(&Internals<Self::F, $conf>, &real_time_fir_iir_filters::param::Param<P>)
+                fn get_internals(&self) -> (&Internals<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, $conf>, &real_time_fir_iir_filters::param::Param<P>)
                 {
                     (&self.internals, &self.param)
                 }
-                fn get_internals_mut(&mut self) -> (&mut Internals<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, $conf>, &mut real_time_fir_iir_filters::param::Param<Self::Param>) //(&mut Internals<Self::F, $conf>, &mut real_time_fir_iir_filters::param::Param<P>)
+                fn get_internals_mut(&mut self) -> (&mut Internals<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, $conf>, &mut real_time_fir_iir_filters::param::Param<P>)
                 {
                     (&mut self.internals, &mut self.param)
                 }
