@@ -18,7 +18,7 @@ where
 
 impl<P, C> ThirdOrderFilterParam<C, Param<OmegaThirdOrder<P::F>>> for P
 where
-    P: ButterworthFilterParam<C, Conf: ThirdOrderFilterConf> + ThirdOrderFilterParamBase<C, ImplBase = Param<OmegaThirdOrder<<P as FilterParam>::F>>>,
+    P: ButterworthFilterParam<C, Conf: ThirdOrderFilterConf, Omega = OmegaThirdOrder<<P as FilterParam>::F>> + ThirdOrderFilterParamBase<C, ImplBase = Param<OmegaThirdOrder<<P as FilterParam>::F>>>,
     C: Conf,
     [(); P::ORDER]:
 {

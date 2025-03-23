@@ -1,4 +1,4 @@
-use crate::{conf::{all, All, Conf, HighPass, LowPass}, param::{FilterParam, FirstOrderFilterParamBase, Omega, OmegaFirstOrder, Param}, util::same::Same};
+use crate::{conf::{all, All, Conf, HighPass, LowPass}, param::{FilterParam, FirstOrderFilterParamBase, OmegaFirstOrder, Param}, util::same::Same};
 
 use super::ButterworthFilterParam;
 
@@ -16,7 +16,7 @@ where
 
 impl<P, C> FirstOrderFilterParam<C, Param<OmegaFirstOrder<P::F>>> for P
 where
-    P: ButterworthFilterParam<C, ORDER = 1, Conf: FirstOrderFilterConf> + FirstOrderFilterParamBase<C, ImplBase = Param<OmegaFirstOrder<<P as FilterParam>::F>>>,
+    P: ButterworthFilterParam<C, ORDER = 1, Conf: FirstOrderFilterConf, Omega = OmegaFirstOrder<<P as FilterParam>::F>> + FirstOrderFilterParamBase<C, ImplBase = Param<OmegaFirstOrder<<P as FilterParam>::F>>>,
     C: Conf,
     [(); P::ORDER]:
 {
@@ -25,10 +25,7 @@ where
     #[doc(hidden)]
     fn omega(&self) -> OmegaFirstOrder<Self::F>
     {
-        let Omega {omega} = ButterworthFilterParam::omega(self);
-        Omega {
-            omega
-        }
+        ButterworthFilterParam::omega(self)
     }
 }
 

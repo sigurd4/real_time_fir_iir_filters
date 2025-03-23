@@ -1,18 +1,38 @@
 use super::*;
-use crate::{conf::Conf, param::{ChebyshevFilterParamBase, EllipticFilterParamBase, FilterParam, Omega, OmegaDyn, OmegaEpsilonDyn, Param}};
+use crate::{conf::Conf, param::{ChebyshevFilterParamBase, EllipticFilterParamBase, FilterParam, Omega, OmegaDyn, OmegaEpsilonDyn, OmegaFirstOrder, OmegaSecondOrder, OmegaThirdOrder, Param}, util::same::Same};
 
 pub trait ButterworthFilterParam<
-    C,
-    const ORDER: usize = {<Self as FilterParam>::ORDER}
->: ChebyshevFilterParamBase<C, ImplBase = Param<OmegaDyn<<Self as FilterParam>::F>>, TYPE = false, ORDER = {ORDER}>
-    + EllipticFilterParamBase<C, ImplBase = Param<OmegaEpsilonDyn<<Self as FilterParam>::F, false>>>
+    C
+>: ChebyshevFilterParamBase<C, ImplBase = Param<OmegaDyn<<Self as FilterParam>::F>>, TYPE = {ChebyshevType::Type1}>
+    + EllipticFilterParamBase<C, ImplBase = Param<OmegaEpsilonDyn<<Self as FilterParam>::F, {ChebyshevType::Type1}>>>
 where
     C: Conf
 {
-    type Conf: ButterworthFilterConf<ORDER>;
+    type Conf: ButterworthFilterConf<{Self::ORDER}>
+    where
+        [(); Self::ORDER]:;
+    type Omega: Same<Omega<Self::F, {Self::ORDER}>>
+    where
+        [(); Self::ORDER]:;
 
-    fn omega(&self) -> Omega<Self::F, ORDER>;
+    fn omega(&self) -> Self::Omega
+    where
+        [(); Self::ORDER]:;
 }
+
+pub trait FirstOrderButterworthFilterParam<C: Conf> = ButterworthFilterParam<C, Conf: FirstOrderButterworthFilterConf, ORDER = 1, Omega = OmegaFirstOrder<<Self as FilterParam>::F>> + FirstOrderFilterParam<C>
+where
+    [(); Self::ORDER]:;
+pub trait SecondOrderButterworthFilterParam<C: Conf> = ButterworthFilterParam<C, Conf: SecondOrderButterworthFilterConf, ORDER = 2, Omega = OmegaSecondOrder<<Self as FilterParam>::F>> + SecondOrderFilterParam<C>
+where
+    [(); Self::ORDER]:;
+pub trait ThirdOrderButterworthFilterParam<C: Conf> = ButterworthFilterParam<C, Conf: ThirdOrderButterworthFilterConf, ORDER = 3, Omega = OmegaThirdOrder<<Self as FilterParam>::F>> + ThirdOrderFilterParam<C>
+where
+    [(); Self::ORDER]:;
+
+pub trait FirstOrderButterworthFilterConf = ButterworthFilterConf<1>;
+pub trait SecondOrderButterworthFilterConf = ButterworthFilterConf<2>;
+pub trait ThirdOrderButterworthFilterConf = ButterworthFilterConf<3>;
 
 pub trait ButterworthFilterConf<const ORDER: usize>: Conf
 {

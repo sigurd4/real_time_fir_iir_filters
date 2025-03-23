@@ -1,4 +1,4 @@
-use crate::param::{ChebyshevFilterConf, ChebyshevFilterParam, ChebyshevFilterParamBase, ChebyshevType, EllipticFilterParamBase, FilterFloat, FilterParam, Param};
+use crate::{param::{ChebyshevFilterConf, ChebyshevFilterParam, ChebyshevFilterParamBase, ChebyshevType, EllipticFilterParamBase, FilterFloat, FilterParam, Param}, util::same::Same};
 
 pub type OmegaEpsilonDyn<F, const TYPE: ChebyshevType> = OmegaEpsilon<F, TYPE>;
 pub type OmegaEpsilonFirstOrder<F, const TYPE: ChebyshevType> = OmegaEpsilon<F, TYPE, 1>;
@@ -49,19 +49,26 @@ where
 
     type ImplBase = Self;
 }
-impl<F, const TYPE: ChebyshevType, const ORDER: usize, C> ChebyshevFilterParam<C> for Param<OmegaEpsilon<F, TYPE, ORDER>>
+impl<F, const TYPE: ChebyshevType, const ORDER: usize, C> ChebyshevFilterParam<C, Self> for Param<OmegaEpsilon<F, TYPE, ORDER>>
 where
     F: FilterFloat,
-    C: ChebyshevFilterConf
+    C: ChebyshevFilterConf,
+    OmegaEpsilon<F, TYPE, ORDER>: Same<OmegaEpsilon<F, {<Self as ChebyshevFilterParamBase<C>>::TYPE}, {Self::ORDER}>>
 {
-    type Conf = C;
+    type Conf = C
+    where
+        [(); Self::ORDER]:;
 
-    fn omega_epsilon(&self) -> OmegaEpsilon<Self::F, TYPE, ORDER>
+    type OmegaEpsilon = OmegaEpsilon<F, TYPE, ORDER>
+    where
+        [(); Self::ORDER]:,
+        [(); {<Self as ChebyshevFilterParamBase<C>>::TYPE} as usize]:;
+
+    fn omega_epsilon(&self) -> Self::OmegaEpsilon
+    where
+        [(); Self::ORDER]:,
+        [(); {<Self as ChebyshevFilterParamBase<C>>::TYPE} as usize]:
     {
-        let OmegaEpsilon {omega, epsilon} = **self;
-        OmegaEpsilon {
-            omega,
-            epsilon
-        }
+        **self
     }
 }

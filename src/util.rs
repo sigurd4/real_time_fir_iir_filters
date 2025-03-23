@@ -66,15 +66,13 @@ pub mod same
     
         }
     
-        pub trait _Same<T>
-        where
-            T: ?Sized
+        pub trait _Same<T>: Into<T> + From<T>
         {
     
         }
         impl<T> _Same<T> for T
         where
-            T: _MaybeSame<T, IS_SAME = true> + ?Sized
+            T: _MaybeSame<T, IS_SAME = true>
         {
     
         }
@@ -108,7 +106,7 @@ pub mod same
     {
         use private::_MaybeSame;
 
-        otherwise.or_else_if_same(eval)
+        _MaybeSame::<U>::or_else_if_same(otherwise, eval)
     }
 }
 

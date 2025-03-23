@@ -27,7 +27,7 @@ default = [
     "first_order_rc",
     "pi",
     "pid",
-    "second_order_butterworth",
+    #"second_order_butterworth",
     #"second_order_chebyshev",
     #"second_order_elliptic",
     "second_order",

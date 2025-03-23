@@ -1,4 +1,4 @@
-use crate::{calc::iir::second::SecondOrderCalc, conf::{All, HighPass, LowPass, Peak}, param::{ButterworthFilterConf, OmegaSecondOrder, SecondOrderButterworthFilterConf, SecondOrderButterworthFilterParam}, real_time_fir_iir_filters};
+use crate::{calc::iir::second::SecondOrderCalc, conf::{All, HighPass, LowPass, Peak}, param::{ButterworthFilterConf, ButterworthFilterParam, FilterParam, OmegaSecondOrder, Param, SecondOrderButterworthFilterConf, SecondOrderButterworthFilterParam}, real_time_fir_iir_filters};
 
 crate::def_rtf!(
     {
@@ -28,7 +28,7 @@ crate::def_rtf!(
     SecondOrderButterworthFilter
     {
         type Conf: SecondOrderButterworthFilterConf as ButterworthFilterConf<2>;
-        type Param: SecondOrderButterworthFilterParam = OmegaSecondOrder;
+        type Param<C>: SecondOrderButterworthFilterParam as ButterworthFilterParam = OmegaSecondOrder;
 
         const O_BUFFERS: usize = 1;
         const SOS_BUFFERS: usize = 1;
@@ -37,6 +37,9 @@ crate::def_rtf!(
         const IS_IIR: bool = true;
 
         fn make_coeffs<All>(param, rate) -> _
+        where {
+            [(); <Param<P> as FilterParam>::ORDER]:
+        }
         {
             let calc = SecondOrderCalc::new_butterworth(param.omega(), rate);
             (
@@ -51,6 +54,9 @@ crate::def_rtf!(
             )
         }
         fn make_coeffs<LowPass>(param, rate) -> _
+        where {
+            [(); <Param<P> as FilterParam>::ORDER]:
+        }
         {
             let calc = SecondOrderCalc::new_butterworth(param.omega(), rate);
             (
@@ -63,6 +69,9 @@ crate::def_rtf!(
             )
         }
         fn make_coeffs<Peak>(param, rate) -> _
+        where {
+            [(); <Param<P> as FilterParam>::ORDER]:
+        }
         {
             let calc = SecondOrderCalc::new_butterworth(param.omega(), rate);
             (
@@ -75,6 +84,9 @@ crate::def_rtf!(
             )
         }
         fn make_coeffs<HighPass>(param, rate) -> _
+        where {
+            [(); <Param<P> as FilterParam>::ORDER]:
+        }
         {
             let calc = SecondOrderCalc::new_butterworth(param.omega(), rate);
             (
@@ -87,6 +99,9 @@ crate::def_rtf!(
             )
         }
         fn make_coeffs<(LowPass, Peak)>(param, rate) -> _
+        where {
+            [(); <Param<P> as FilterParam>::ORDER]:
+        }
         {
             let calc = SecondOrderCalc::new_butterworth(param.omega(), rate);
             (
@@ -100,6 +115,9 @@ crate::def_rtf!(
             )
         }
         fn make_coeffs<(LowPass, HighPass)>(param, rate) -> _
+        where {
+            [(); <Param<P> as FilterParam>::ORDER]:
+        }
         {
             let calc = SecondOrderCalc::new_butterworth(param.omega(), rate);
             (
@@ -113,6 +131,9 @@ crate::def_rtf!(
             )
         }
         fn make_coeffs<(Peak, HighPass)>(param, rate) -> _
+        where {
+            [(); <Param<P> as FilterParam>::ORDER]:
+        }
         {
             let calc = SecondOrderCalc::new_butterworth(param.omega(), rate);
             (
@@ -127,6 +148,7 @@ crate::def_rtf!(
         }
     }
     where
+        [(); <Param<P> as FilterParam>::ORDER]:,
         [(); <CC as ButterworthFilterConf<2>>::OUTPUTS]:
 );
 
