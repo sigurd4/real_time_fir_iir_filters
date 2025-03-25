@@ -16,7 +16,7 @@ where
 {
     pub fn new(omega_epsilon: OmegaEpsilonCheb1SecondOrder<F>, rate: F) -> Self
     {
-        let OmegaEpsilon {omega, epsilon} = omega_epsilon;
+        let OmegaEpsilon {omega, epsilon, _m: _} = omega_epsilon;
 
         let one = F::one();
         let two = one + one;

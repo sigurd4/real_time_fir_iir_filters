@@ -36,13 +36,13 @@ where
     }
 }
 
-pub trait FilterFloat: Float + FloatConst + Pod
+pub trait FilterFloat: Float + FloatConst + Pod + Default
 {
 
 }
 impl<F> FilterFloat for F
 where
-    F: Float + FloatConst + Pod
+    F: Float + FloatConst + Pod + Default
 {
 
 }

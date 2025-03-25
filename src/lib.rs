@@ -549,7 +549,7 @@ macro_rules! def_rtf {
         impl<F, CC> __Helper<F, CC>
         where
             F: real_time_fir_iir_filters::param::FilterFloat,
-            CC: $conf_trait_alias<Conf = CC> + $conf_trait + real_time_fir_iir_filters::conf::Conf
+            CC: $conf_trait_alias<Conf = CC> + $conf_trait
         {
             const OUTPUTS: usize = real_time_fir_iir_filters::rtf_conf_const!(
                 type Conf: $conf_trait_alias as $conf_trait = CC;
@@ -584,9 +584,8 @@ macro_rules! def_rtf {
         where
             F: real_time_fir_iir_filters::param::FilterFloat,
             C: real_time_fir_iir_filters::conf::Conf,
-            CC: $conf_trait_alias<Conf = CC> + $conf_trait + real_time_fir_iir_filters::conf::Conf,
-            real_time_fir_iir_filters::param::Param<P>: $param_trait_alias<C> + $param_trait<C> + real_time_fir_iir_filters::param::FilterParam<F = F>,
-            <real_time_fir_iir_filters::param::Param<P> as $param_trait<C>>::Conf: $conf_trait_alias<Conf = CC>,
+            CC: $conf_trait_alias<Conf = CC>,
+            real_time_fir_iir_filters::param::Param<P>: $param_trait_alias<C, Conf: $conf_trait_alias<Conf = CC>> + real_time_fir_iir_filters::param::FilterParam<F = F>,
             $($($where)+)?
         {
             pub param: real_time_fir_iir_filters::param::Param<P>,
@@ -594,12 +593,10 @@ macro_rules! def_rtf {
             phantom: core::marker::PhantomData<C>
         }
         
-        impl<P, C, CC> $name<C, <real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, P, CC>
+        impl<P, C> $name<C, <real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, P>
         where
             C: real_time_fir_iir_filters::conf::Conf,
-            CC: $conf_trait_alias<Conf = CC> + $conf_trait + real_time_fir_iir_filters::conf::Conf,
-            real_time_fir_iir_filters::param::Param<P>: $param_trait_alias<C> + $param_trait<C>,
-            <real_time_fir_iir_filters::param::Param<P> as $param_trait<C>>::Conf: $conf_trait_alias<Conf = CC>,
+            real_time_fir_iir_filters::param::Param<P>: $param_trait_alias<C>,
             $($($where)+)?
         {
             pub const fn new(param: P) -> Self
@@ -617,8 +614,7 @@ macro_rules! def_rtf {
             impl<P, C> real_time_fir_iir_filters::rtf::RtfBase for $name<C, <real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, P, $conf>
             where
                 C: real_time_fir_iir_filters::conf::Conf,
-                real_time_fir_iir_filters::param::Param<P>: $param_trait_alias<C> + $param_trait<C> + real_time_fir_iir_filters::param::FilterParam,
-                <real_time_fir_iir_filters::param::Param<P> as $param_trait<C>>::Conf: $conf_trait_alias<Conf = $conf>,
+                real_time_fir_iir_filters::param::Param<P>: $param_trait_alias<C, Conf: $conf_trait_alias<Conf = $conf>> + real_time_fir_iir_filters::param::FilterParam,
                 $conf: $conf_trait_alias<Conf = $conf>,
                 $($($where_c)+)?
             {
@@ -632,8 +628,7 @@ macro_rules! def_rtf {
             impl<P, C> real_time_fir_iir_filters::static_rtf::StaticRtfBase for $name<C, <real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, P, $conf>
             where
                 C: real_time_fir_iir_filters::conf::Conf,
-                real_time_fir_iir_filters::param::Param<P>: $param_trait_alias<C> + $param_trait<C> + real_time_fir_iir_filters::param::FilterParam,
-                <real_time_fir_iir_filters::param::Param<P> as $param_trait<C>>::Conf: $conf_trait_alias<Conf = $conf>,
+                real_time_fir_iir_filters::param::Param<P>: $param_trait_alias<C, Conf: $conf_trait_alias<Conf = $conf>> + real_time_fir_iir_filters::param::FilterParam,
                 $conf: $conf_trait_alias<Conf = $conf>,
                 $($($where_c)+)?
             {

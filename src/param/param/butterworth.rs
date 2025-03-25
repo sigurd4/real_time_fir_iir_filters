@@ -1,11 +1,11 @@
-use crate::{conf::Conf, param::{ChebyshevFilterParamBase, EllipticFilterParamBase, FilterParam, Omega, OmegaDyn, OmegaEpsilonDyn, Param}, util::same::Same};
+use crate::{conf::Conf, param::{Chebyshev1, ChebyshevFilterParamBase, EllipticFilterParamBase, FilterParam, Omega, OmegaDyn, OmegaEpsilonCheb1Dyn, Param}, util::same::Same};
 
-use super::{ChebyshevFilterConf, ChebyshevType, FirstOrderFilterConf, FirstOrderFilterParam, SecondOrderFilterConf, SecondOrderFilterParam, ThirdOrderFilterConf, ThirdOrderFilterParam};
+use super::{EllipticFilterConf, FirstOrderFilterConf, FirstOrderFilterParam, SecondOrderFilterConf, SecondOrderFilterParam, ThirdOrderFilterConf, ThirdOrderFilterParam};
 
 pub trait ButterworthFilterParam<
     C
->: ChebyshevFilterParamBase<C, ImplBase = Param<OmegaDyn<<Self as FilterParam>::F>>, TYPE = {ChebyshevType::Type1}>
-    + EllipticFilterParamBase<C, ImplBase = Param<OmegaEpsilonDyn<<Self as FilterParam>::F, {ChebyshevType::Type1}>>>
+>: ChebyshevFilterParamBase<C, ImplBase = Param<OmegaDyn<<Self as FilterParam>::F>>, Type = Chebyshev1>
+    + EllipticFilterParamBase<C, ImplBase = Param<OmegaEpsilonCheb1Dyn<<Self as FilterParam>::F>>>
 where
     C: Conf
 {
@@ -22,8 +22,8 @@ where
 }
 
 macro_rules! special {
-    ($trait:ident: $of:ident = $order:expr) => {
-        pub trait $trait<C>: $of<C>
+    ($trait:ident$(: $of:ident)? = $order:expr) => {
+        pub trait $trait<C>: FilterParam $(+ $of<C>)?
         where
             C: Conf
         {
@@ -33,7 +33,7 @@ macro_rules! special {
         }
         impl<P, C> $trait<C> for P
         where
-            P: ButterworthFilterParam<C, Conf: ButterworthFilterConf<$order>, ORDER = $order, Omega = Omega<<Self as FilterParam>::F, $order>> + $of<C>,
+            P: ButterworthFilterParam<C, Conf: ButterworthFilterConf<$order>, ORDER = $order, Omega = Omega<<Self as FilterParam>::F, $order>> $(+ $of<C>)?,
             C: Conf,
             [(); Self::ORDER]:
         {
@@ -47,6 +47,7 @@ macro_rules! special {
     };
 }
 
+special!(DynOrderButterworthFilterParam = 0);
 special!(FirstOrderButterworthFilterParam: FirstOrderFilterParam = 1);
 special!(SecondOrderButterworthFilterParam: SecondOrderFilterParam = 2);
 special!(ThirdOrderButterworthFilterParam: ThirdOrderFilterParam = 3);
@@ -64,9 +65,9 @@ pub trait ButterworthFilterConf<const ORDER: usize>: Conf
 
 impl<C, const OUTPUTS: usize> ButterworthFilterConf<0> for C
 where
-    C: ChebyshevFilterConf<OUTPUTS = {OUTPUTS}>
+    C: EllipticFilterConf<OUTPUTS = {OUTPUTS}>
 {
-    type Conf = <Self as ChebyshevFilterConf>::Conf;
+    type Conf = <Self as EllipticFilterConf>::Conf;
 
     const OUTPUTS: usize = OUTPUTS;
 }
@@ -97,7 +98,7 @@ where
 
 mod private
 {
-    use crate::param::{ChebyshevFilterConf, FirstOrderFilterConf, SecondOrderFilterConf, ThirdOrderFilterConf};
+    use crate::param::{EllipticFilterConf, FirstOrderFilterConf, SecondOrderFilterConf, ThirdOrderFilterConf};
 
     use super::ButterworthFilterConf;
 
@@ -119,10 +120,10 @@ mod private
         C
     > ButterworthFilterConfFinal<0, C> for CC
     where
-        CC: ChebyshevFilterConf<
+        CC: EllipticFilterConf<
             Conf = CC
         >,
-        C: ChebyshevFilterConf<
+        C: EllipticFilterConf<
             Conf = CC
         >,
     {

@@ -1,73 +1,107 @@
-use crate::{param::{ChebyshevFilterConf, ChebyshevFilterParam, ChebyshevFilterParamBase, ChebyshevType, EllipticFilterParamBase, FilterFloat, FilterParam, Param}, util::same::Same};
+use core::marker::PhantomData;
 
-pub type OmegaEpsilonDyn<F, const TYPE: ChebyshevType> = OmegaEpsilon<F, TYPE>;
-pub type OmegaEpsilonFirstOrder<F, const TYPE: ChebyshevType> = OmegaEpsilon<F, TYPE, 1>;
-pub type OmegaEpsilonSecondOrder<F, const TYPE: ChebyshevType> = OmegaEpsilon<F, TYPE, 2>;
-pub type OmegaEpsilonThirdOrder<F, const TYPE: ChebyshevType> = OmegaEpsilon<F, TYPE, 3>;
+use crate::{param::{EllipticFilterConf, ChebyshevFilterParam, ChebyshevFilterParamBase, EllipticFilterParamBase, FilterFloat, FilterParam, Param}, util::same::Same};
 
-pub type OmegaEpsilonCheb1<F, const ORDER: usize = 0> = OmegaEpsilon<F, {ChebyshevType::Type1}, ORDER>;
+#[derive(Copy, Clone, Debug)]
+pub enum Chebyshev1 {}
+#[derive(Copy, Clone, Debug)]
+pub enum Chebyshev2 {}
+
+mod private
+{
+    use core::fmt::Debug;
+
+    use super::{Chebyshev1, Chebyshev2};
+
+    pub trait ChebyshevType: Sized + Copy + Clone + Debug + 'static
+    {
+        
+    }
+    impl ChebyshevType for Chebyshev1
+    {
+        
+    }
+    impl ChebyshevType for Chebyshev2
+    {
+        
+    }
+}
+
+pub trait ChebyshevType: private::ChebyshevType {}
+impl<T> ChebyshevType for T where T: private::ChebyshevType {}
+
+pub type OmegaEpsilonDyn<F, T: ChebyshevType> = OmegaEpsilon<F, T>;
+pub type OmegaEpsilonFirstOrder<F, T: ChebyshevType> = OmegaEpsilon<F, T, 1>;
+pub type OmegaEpsilonSecondOrder<F, T: ChebyshevType> = OmegaEpsilon<F, T, 2>;
+pub type OmegaEpsilonThirdOrder<F, T: ChebyshevType> = OmegaEpsilon<F, T, 3>;
+
+pub type OmegaEpsilonCheb1<F, const ORDER: usize = 0> = OmegaEpsilon<F, Chebyshev1, ORDER>;
 pub type OmegaEpsilonCheb1Dyn<F> = OmegaEpsilonCheb1<F>;
 pub type OmegaEpsilonCheb1FirstOrder<F> = OmegaEpsilonCheb1<F, 1>;
 pub type OmegaEpsilonCheb1SecondOrder<F> = OmegaEpsilonCheb1<F, 2>;
 pub type OmegaEpsilonCheb1ThirdOrder<F> = OmegaEpsilonCheb1<F, 3>;
 
-pub type OmegaEpsilonCheb2<F, const ORDER: usize = 0> = OmegaEpsilon<F, {ChebyshevType::Type2}, ORDER>;
+pub type OmegaEpsilonCheb2<F, const ORDER: usize = 0> = OmegaEpsilon<F, Chebyshev2, ORDER>;
 pub type OmegaEpsilonCheb2Dyn<F> = OmegaEpsilonCheb2<F>;
 pub type OmegaEpsilonCheb2FirstOrder<F> = OmegaEpsilonCheb2<F, 1>;
 pub type OmegaEpsilonCheb2SecondOrder<F> = OmegaEpsilonCheb2<F, 2>;
 pub type OmegaEpsilonCheb2ThirdOrder<F> = OmegaEpsilonCheb2<F, 3>;
 
 #[derive(Clone, Copy, Debug)]
-pub struct OmegaEpsilon<F, const TYPE: ChebyshevType, const ORDER: usize = 0>
+pub struct OmegaEpsilon<F, T, const ORDER: usize = 0>
 where
-    F: FilterFloat
+    F: FilterFloat,
+    T: ChebyshevType
 {
     pub omega: F,
-    pub epsilon: F
+    pub epsilon: F,
+    pub _m: PhantomData<T>
 }
-impl<F, const TYPE: ChebyshevType, const ORDER: usize> FilterParam for Param<OmegaEpsilon<F, TYPE, ORDER>>
+impl<F, T, const ORDER: usize> FilterParam for Param<OmegaEpsilon<F, T, ORDER>>
 where
+    T: ChebyshevType,
     F: FilterFloat
 {
     const ORDER: usize = ORDER;
 
     type F = F;
 }
-impl<F, const TYPE: ChebyshevType, const ORDER: usize, C> EllipticFilterParamBase<C> for Param<OmegaEpsilon<F, TYPE, ORDER>>
+impl<F, T, const ORDER: usize, C> EllipticFilterParamBase<C> for Param<OmegaEpsilon<F, T, ORDER>>
 where
+    T: ChebyshevType,
     F: FilterFloat,
-    C: ChebyshevFilterConf
+    C: EllipticFilterConf
 {
-    type ImplBase = Param<OmegaEpsilonDyn<F, TYPE>>;
+    type ImplBase = Param<OmegaEpsilonDyn<F, T>>;
 }
-impl<F, const TYPE: ChebyshevType, const ORDER: usize, C> ChebyshevFilterParamBase<C> for Param<OmegaEpsilon<F, TYPE, ORDER>>
+impl<F, T, const ORDER: usize, C> ChebyshevFilterParamBase<C> for Param<OmegaEpsilon<F, T, ORDER>>
 where
+    T: ChebyshevType,
     F: FilterFloat,
-    C: ChebyshevFilterConf
+    C: EllipticFilterConf
 {
-    const TYPE: ChebyshevType = TYPE;
+    type Type = T;
 
     type ImplBase = Self;
 }
-impl<F, const TYPE: ChebyshevType, const ORDER: usize, C> ChebyshevFilterParam<C, Self> for Param<OmegaEpsilon<F, TYPE, ORDER>>
+impl<F, T, const ORDER: usize, C> ChebyshevFilterParam<C, Self, Param<OmegaEpsilonDyn<F, T>>> for Param<OmegaEpsilon<F, T, ORDER>>
 where
+    T: ChebyshevType,
     F: FilterFloat,
-    C: ChebyshevFilterConf,
-    OmegaEpsilon<F, TYPE, ORDER>: Same<OmegaEpsilon<F, {<Self as ChebyshevFilterParamBase<C>>::TYPE}, {Self::ORDER}>>
+    C: EllipticFilterConf,
+    OmegaEpsilon<F, T, ORDER>: Same<OmegaEpsilon<F, T, {Self::ORDER}>>
 {
     type Conf = C
     where
         [(); Self::ORDER]:;
 
-    type OmegaEpsilon = OmegaEpsilon<F, TYPE, ORDER>
+    type OmegaEpsilon = OmegaEpsilon<F, T, ORDER>
     where
-        [(); Self::ORDER]:,
-        [(); {<Self as ChebyshevFilterParamBase<C>>::TYPE} as usize]:;
+        [(); Self::ORDER]:;
 
     fn omega_epsilon(&self) -> Self::OmegaEpsilon
     where
-        [(); Self::ORDER]:,
-        [(); {<Self as ChebyshevFilterParamBase<C>>::TYPE} as usize]:
+        [(); Self::ORDER]:
     {
         **self
     }

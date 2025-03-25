@@ -1,6 +1,4 @@
-use num::Float;
-
-use crate::{calc::iir::second::SecondOrderChebyshev2Calc, conf::{All, HighPass, LowPass}, param::{Chebyshev2FilterParam, ChebyshevFilterConf, ChebyshevFilterParam, OmegaEpsilonCheb2SecondOrder, SecondOrderChebyshev2FilterParam}, real_time_fir_iir_filters};
+use crate::{calc::iir::second::SecondOrderChebyshev2Calc, conf::{All, HighPass, LowPass}, param::{EllipticFilterConf, OmegaEpsilonCheb2SecondOrder, Param, SecondOrderChebyshev2FilterParam}, real_time_fir_iir_filters};
 
 crate::def_rtf!(
     {
@@ -23,10 +21,10 @@ crate::def_rtf!(
     }
     SecondOrderChebyshev2Filter
     {
-        type Conf: ChebyshevFilterConf;
-        type Param<C>: SecondOrderChebyshev2FilterParam as ChebyshevFilterParam = OmegaEpsilonCheb2SecondOrder;
+        type Conf: EllipticFilterConf;
+        type Param: SecondOrderChebyshev2FilterParam = OmegaEpsilonCheb2SecondOrder;
 
-        const O_BUFFERS: usize = <CC as ChebyshevFilterConf>::OUTPUTS;
+        const O_BUFFERS: usize = <CC as EllipticFilterConf>::OUTPUTS;
         const SOS_BUFFERS: usize = 1;
         const SOS_STAGES: usize = 0;
         const ORDER: usize = 2;
@@ -48,7 +46,7 @@ crate::def_rtf!(
         }
         fn make_coeffs<LowPass>(param, rate) -> _
         {
-            let calc = SecondOrderChebyshev2Calc::new(param.omega_epsilon(), rate);
+            let calc = SecondOrderChebyshev2Calc::<_, _, ()>::new(param.omega_epsilon(), rate);
             (
                 ([], [], [
                     calc.b_low()
@@ -60,7 +58,7 @@ crate::def_rtf!(
         }
         fn make_coeffs<HighPass>(param, rate) -> _
         {
-            let calc = SecondOrderChebyshev2Calc::new(param.omega_epsilon(), rate);
+            let calc = SecondOrderChebyshev2Calc::<_, (), _>::new(param.omega_epsilon(), rate);
             (
                 ([], [], [
                     calc.b_high()
@@ -72,22 +70,54 @@ crate::def_rtf!(
         }
     }
     where
-        [(); <CC as ChebyshevFilterConf>::OUTPUTS]:
+        [(); <<<Param<P> as SecondOrderChebyshev2FilterParam<C>>::Conf as EllipticFilterConf>::Conf as EllipticFilterConf>::OUTPUTS]:
 );
 
+
+mod private
+{
+    use crate::param::EllipticFilterConf;
+    
+    pub trait EllipticFilterConfFinal<C>: EllipticFilterConf<
+        Conf = Self
+    >
+    where
+        C: EllipticFilterConf<
+            Conf = Self
+        >
+    {
+
+    }
+
+    impl<
+        C,
+        CC
+    > EllipticFilterConfFinal<C> for CC
+    where
+        CC: EllipticFilterConf<
+            Conf = CC
+        >,
+        C: EllipticFilterConf<
+            Conf = CC
+        >
+    {
+
+    }
+}
 #[cfg(test)]
 mod test
 {
     use std::f64::consts::TAU;
 
-    use crate::{conf::All, param::OmegaEpsilon};
+    use crate::param::OmegaEpsilon;
 
     use super::SecondOrderChebyshev2Filter;
 
     #[test]
     fn plot()
     {
-        //let mut filter = SecondOrderChebyshev2Filter::<_, _, All>::new(OmegaEpsilon {omega: 10000.0*TAU, epsilon: 1.0});
-        //crate::tests::plot_freq(&mut filter, false).unwrap();
+        /*let par = OmegaEpsilon {omega: 10000.0*TAU, epsilon: 1.0};
+        let mut filter = SecondOrderChebyshev2Filter::new(par);
+        crate::tests::plot_freq(&mut filter, false).unwrap();*/
     }
 }

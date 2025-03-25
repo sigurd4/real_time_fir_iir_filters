@@ -42,12 +42,7 @@ where
 
     fn omega_epsilon_xi(&self) -> Self::OmegaEpsilonXi
     {
-        let OmegaEpsilonXi {omega, epsilon, xi} = **self;
-        OmegaEpsilonXi {
-            omega,
-            epsilon,
-            xi
-        }
+        **self
     }
 }
 /*impl<P, const ORDER: usize> From<P> for OmegaEpsilonXi<P::F, ORDER>

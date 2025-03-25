@@ -23,7 +23,7 @@ where
 {
     pub fn new(omega_epsilon: OmegaEpsilonCheb2SecondOrder<F>, rate: F) -> Self
     {
-        let OmegaEpsilon {omega, epsilon} = omega_epsilon;
+        let OmegaEpsilon {omega, epsilon, _m: _} = omega_epsilon;
 
         let one = F::one();
         let two = one + one;
@@ -32,10 +32,8 @@ where
         let four_rate2 = two_rate*two_rate;
         let four_rate = two_rate + two_rate;
         let eight_rate2 = four_rate2*two_rate;
-        let sixteen_rate2 = four_rate*four_rate;
         let omega2 = omega*omega;
         let two_omega2 = omega2 + omega2;
-        let four_omega2 = two_omega2 + two_omega2;
         let epsilon_inv = epsilon.recip();
         let alpha = epsilon_inv.asinh()/two;
         let cosh_2alpha = (alpha + alpha).cosh();
