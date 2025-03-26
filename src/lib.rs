@@ -271,7 +271,7 @@ macro_rules! def_rtf_internals {
     ) => {
         #[allow(unused)]
         #[allow(type_alias_bounds)]
-        type BInternals<F, CC$(: $conf_trait_alias $(+ $conf_trait)?)? = real_time_fir_iir_filters::conf::All> = real_time_fir_iir_filters::internals::binternals!(
+        type BInternals<F, C$(: $conf_trait_alias $(+ $conf_trait)?)? = real_time_fir_iir_filters::conf::All> = real_time_fir_iir_filters::internals::binternals!(
             F,
             $outputs,
             $o_buffers,
@@ -281,7 +281,7 @@ macro_rules! def_rtf_internals {
         );
         #[allow(unused)]
         #[allow(type_alias_bounds)]
-        type AInternals<F, CC$(: $conf_trait_alias $(+ $conf_trait)?)? = real_time_fir_iir_filters::conf::All> = real_time_fir_iir_filters::internals::ainternals!(
+        type AInternals<F, C$(: $conf_trait_alias $(+ $conf_trait)?)? = real_time_fir_iir_filters::conf::All> = real_time_fir_iir_filters::internals::ainternals!(
             F,
             $o_buffers,
             $sos_buffers,
@@ -290,7 +290,7 @@ macro_rules! def_rtf_internals {
         );
         #[allow(unused)]
         #[allow(type_alias_bounds)]
-        type Internals<F, CC$(: $conf_trait_alias $(+ $conf_trait)?)? = real_time_fir_iir_filters::conf::All> = real_time_fir_iir_filters::internals::rtfinternals!(
+        type Internals<F, C$(: $conf_trait_alias $(+ $conf_trait)?)? = real_time_fir_iir_filters::conf::All> = real_time_fir_iir_filters::internals::rtfinternals!(
             F,
             $outputs,
             $o_buffers,
@@ -311,88 +311,88 @@ macro_rules! def_rtf_internals {
         $(const IS_IIR: bool = $is_iir:expr;)?
     ) => {
         #[allow(type_alias_bounds)]
-        type BInternals<F, CC: $conf_trait_alias $(+ $conf_trait)?> = real_time_fir_iir_filters::internals::binternals!(
+        type BInternals<F, C: $conf_trait_alias $(+ $conf_trait)?> = real_time_fir_iir_filters::internals::binternals!(
             F,
             real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
 
                 const OUTPUTS: usize $(= $outputs)?;
             ),
             real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
 
                 const O_BUFFERS: usize $(= $o_buffers)?;
             ),
             real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
 
                 const SOS_BUFFERS: usize $(= $sos_buffers)?;
             ),
             real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
 
                 const SOS_STAGES: usize $(= $sos_stages)?;
             ),
             real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
 
                 const ORDER: usize $(= $order)?;
             )
         );
         #[allow(type_alias_bounds)]
-        type AInternals<F, CC: $conf_trait_alias $(+ $conf_trait)?> = real_time_fir_iir_filters::internals::ainternals!(
+        type AInternals<F, C: $conf_trait_alias $(+ $conf_trait)?> = real_time_fir_iir_filters::internals::ainternals!(
             F,
             real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
 
                 const O_BUFFERS: usize $(= $o_buffers)?;
             ),
             real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
 
                 const SOS_BUFFERS: usize $(= $sos_buffers)?;
             ),
             real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
 
                 const SOS_STAGES: usize $(= $sos_stages)?;
             ),
             real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
 
                 const ORDER: usize $(= $order)?;
             )
         );
         #[allow(type_alias_bounds)]
-        type Internals<F, CC: $conf_trait_alias $(+ $conf_trait)?> = real_time_fir_iir_filters::internals::rtfinternals!(
+        type Internals<F, C: $conf_trait_alias $(+ $conf_trait)?> = real_time_fir_iir_filters::internals::rtfinternals!(
             F,
             real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
 
                 const OUTPUTS: usize $(= $outputs)?;
             ),
             real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
 
                 const O_BUFFERS: usize $(= $o_buffers)?;
             ),
             real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
 
                 const SOS_BUFFERS: usize $(= $sos_buffers)?;
             ),
             real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
 
                 const SOS_STAGES: usize $(= $sos_stages)?;
             ),
             real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
 
                 const ORDER: usize $(= $order)?;
             ),
             real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = CC;
+                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
 
                 const IS_IIR: bool $(= $is_iir)?;
             )
@@ -541,38 +541,38 @@ macro_rules! def_rtf {
             const IS_IIR: bool = $is_iir;
         );
 
-        struct __Helper<F, CC>
+        struct __Helper<F, C>
         {
-            phantom: core::marker::PhantomData<(F, CC)>
+            phantom: core::marker::PhantomData<(F, C)>
         }
 
-        impl<F, CC> __Helper<F, CC>
+        impl<F, C> __Helper<F, C>
         where
             F: real_time_fir_iir_filters::param::FilterFloat,
-            CC: $conf_trait_alias<Conf = CC> + $conf_trait
+            C: $conf_trait_alias<Conf = C> + $conf_trait
         {
             const OUTPUTS: usize = real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias as $conf_trait = CC;
+                type Conf: $conf_trait_alias as $conf_trait = C;
 
                 const OUTPUTS: usize $(= $outputs)?;
             );
             const O_BUFFERS: usize = real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias as $conf_trait = CC;
+                type Conf: $conf_trait_alias as $conf_trait = C;
 
                 const O_BUFFERS: usize $(= $o_buffers)?;
             );
             const SOS_BUFFERS: usize = real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias as $conf_trait = CC;
+                type Conf: $conf_trait_alias as $conf_trait = C;
 
                 const SOS_BUFFERS: usize $(= $sos_buffers)?;
             );
             const SOS_STAGES: usize = real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias as $conf_trait = CC;
+                type Conf: $conf_trait_alias as $conf_trait = C;
 
                 const SOS_STAGES: usize $(= $sos_stages)?;
             );
             const ORDER: usize = real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias as $conf_trait = CC;
+                type Conf: $conf_trait_alias as $conf_trait = C;
 
                 const ORDER: usize $(= $order)?;
             );
@@ -580,26 +580,29 @@ macro_rules! def_rtf {
 
         $($($docs)*)?
         #[derive(Clone, Copy, Debug)]
-        pub struct $name<C = real_time_fir_iir_filters::conf::All, F = f64, P = $param_default<F>, CC = <<real_time_fir_iir_filters::param::Param<P> as $param_trait<C>>::Conf as $conf_trait>::Conf>
+        pub struct $name<C = real_time_fir_iir_filters::conf::All, F = f64, P = $param_default<F>>
         where
             F: real_time_fir_iir_filters::param::FilterFloat,
-            C: real_time_fir_iir_filters::conf::Conf,
-            CC: $conf_trait_alias<Conf = CC>,
-            real_time_fir_iir_filters::param::Param<P>: $param_trait_alias<C, Conf: $conf_trait_alias<Conf = CC>> + real_time_fir_iir_filters::param::FilterParam<F = F>,
+            C: $conf_trait_alias<Conf = C>,
+            real_time_fir_iir_filters::param::Param<P>: $param_trait_alias<C, Conf = C> + real_time_fir_iir_filters::param::FilterParam<F = F>,
             $($($where)+)?
         {
             pub param: real_time_fir_iir_filters::param::Param<P>,
-            pub internals: Internals<F, CC>,
+            pub internals: Internals<F, C>,
             phantom: core::marker::PhantomData<C>
         }
         
-        impl<P, C> $name<C, <real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, P>
+        impl<C, F, P> $name<C, F, P>
         where
-            C: real_time_fir_iir_filters::conf::Conf,
-            real_time_fir_iir_filters::param::Param<P>: $param_trait_alias<C>,
+            F: real_time_fir_iir_filters::param::FilterFloat,
+            C: $conf_trait_alias<Conf = C>,
+            real_time_fir_iir_filters::param::Param<P>: $param_trait_alias<C, Conf = C> + real_time_fir_iir_filters::param::FilterParam<F = F>,
             $($($where)+)?
         {
-            pub const fn new(param: P) -> Self
+            pub const fn new<Conf>(param: P) -> Self
+            where
+                real_time_fir_iir_filters::param::Param<P>: $param_trait_alias<Conf, Conf: $conf_trait_alias<Conf = C>>,
+                Conf: real_time_fir_iir_filters::conf::Conf
             {
                 Self {
                     param: real_time_fir_iir_filters::param::Param::new(param),
@@ -611,11 +614,10 @@ macro_rules! def_rtf {
 
         $(
             #[allow(unused_braces)]
-            impl<P, C> real_time_fir_iir_filters::rtf::RtfBase for $name<C, <real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, P, $conf>
+            impl<P> real_time_fir_iir_filters::rtf::RtfBase for $name<$conf, <real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, P>
             where
-                C: real_time_fir_iir_filters::conf::Conf,
-                real_time_fir_iir_filters::param::Param<P>: $param_trait_alias<C, Conf: $conf_trait_alias<Conf = $conf>> + real_time_fir_iir_filters::param::FilterParam,
                 $conf: $conf_trait_alias<Conf = $conf>,
+                real_time_fir_iir_filters::param::Param<P>: $param_trait_alias<$conf, Conf = $conf> + real_time_fir_iir_filters::param::FilterParam,
                 $($($where_c)+)?
             {
                 type Conf = $conf;
@@ -625,11 +627,10 @@ macro_rules! def_rtf {
                 const OUTPUTS: usize = __Helper::<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, $conf>::OUTPUTS;
             }
             #[allow(unused_braces)]
-            impl<P, C> real_time_fir_iir_filters::static_rtf::StaticRtfBase for $name<C, <real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, P, $conf>
+            impl<P> real_time_fir_iir_filters::static_rtf::StaticRtfBase for $name<$conf, <real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, P>
             where
-                C: real_time_fir_iir_filters::conf::Conf,
-                real_time_fir_iir_filters::param::Param<P>: $param_trait_alias<C, Conf: $conf_trait_alias<Conf = $conf>> + real_time_fir_iir_filters::param::FilterParam,
                 $conf: $conf_trait_alias<Conf = $conf>,
+                real_time_fir_iir_filters::param::Param<P>: $param_trait_alias<$conf, Conf = $conf> + real_time_fir_iir_filters::param::FilterParam,
                 $($($where_c)+)?
             {
                 type Param = P;
@@ -674,15 +675,14 @@ macro_rules! def_rtf {
                     [AInternals<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, $conf>; $is_iir as usize]
                 )
                 {
-                    fn make_coeffs<F, P, C>($arg_param: &real_time_fir_iir_filters::param::Param<P>, $arg_rate: F) -> (
+                    fn make_coeffs<F, P>($arg_param: &real_time_fir_iir_filters::param::Param<P>, $arg_rate: F) -> (
                         BInternals<F, $conf>,
                         [AInternals<F, $conf>; $is_iir as usize]
                     )
                     where
                         F: real_time_fir_iir_filters::param::FilterFloat,
-                        real_time_fir_iir_filters::param::Param<P>: $param_trait_alias<C> + $param_trait<C> + real_time_fir_iir_filters::param::FilterParam<F = F>,
-                        <real_time_fir_iir_filters::param::Param<P> as $param_trait<C>>::Conf: $conf_trait_alias<Conf = $conf>,
-                        C: real_time_fir_iir_filters::conf::Conf,
+                        $conf: $conf_trait_alias<Conf = $conf>,
+                        real_time_fir_iir_filters::param::Param<P>: $param_trait_alias<$conf, Conf = $conf> + real_time_fir_iir_filters::param::FilterParam<F = F>,
                         $($($where_c)+)?
                     $make_coeffs
     

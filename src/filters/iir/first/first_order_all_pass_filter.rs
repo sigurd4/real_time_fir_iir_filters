@@ -52,7 +52,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = FirstOrderAllPassFilter::<All>::new(Tau {tau: 0.001});
+        let mut filter = FirstOrderAllPassFilter::new::<All>(Tau {tau: 0.001});
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

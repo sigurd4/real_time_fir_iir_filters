@@ -31,7 +31,7 @@ where
         let two_rate = rate + rate;
         let four_rate2 = two_rate*two_rate;
         let four_rate = two_rate + two_rate;
-        let eight_rate2 = four_rate2*two_rate;
+        let eight_rate2 = four_rate2 + four_rate2;
         let omega2 = omega*omega;
         let two_omega2 = omega2 + omega2;
         let epsilon_inv = epsilon.recip();

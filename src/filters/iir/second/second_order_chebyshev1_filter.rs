@@ -24,7 +24,7 @@ crate::def_rtf!(
         type Conf: EllipticFilterConf;
         type Param: SecondOrderChebyshev1FilterParam = OmegaEpsilonCheb1SecondOrder;
 
-        const O_BUFFERS: usize = <CC as EllipticFilterConf>::OUTPUTS;
+        const O_BUFFERS: usize = <C as EllipticFilterConf>::OUTPUTS;
         const SOS_BUFFERS: usize = 1;
         const SOS_STAGES: usize = 0;
         const ORDER: usize = 2;
@@ -44,12 +44,6 @@ crate::def_rtf!(
                 ])]
             )
         }
-    }
-    where
-        [(); <<<Param<P> as SecondOrderChebyshev1FilterParam<C>>::Conf as EllipticFilterConf>::Conf as EllipticFilterConf>::OUTPUTS]:
-);
-
-/*
         fn make_coeffs<LowPass>(param, rate) -> _
         {
             let calc = SecondOrderChebyshev1Calc::new(param.omega_epsilon(), rate);
@@ -74,7 +68,10 @@ crate::def_rtf!(
                 ])]
             )
         }
-*/
+    }
+    where
+        [(); <<<Param<P> as SecondOrderChebyshev1FilterParam<C>>::Conf as EllipticFilterConf>::Conf as EllipticFilterConf>::OUTPUTS]:
+);
 
 #[cfg(test)]
 mod test
@@ -95,12 +92,7 @@ mod test
     #[test]
     fn plot()
     {
-        //let mut filter = SecondOrderChebyshev1Filter::<All>::new(OmegaEpsilon {omega: 10000.0*TAU, epsilon: 1.0, _m: PhantomData});
-        let mut filter = SecondOrderChebyshev1Filter::<All> {
-            param: Param::new(OmegaEpsilon {omega: 10000.0*TAU, epsilon: 1.0, _m: PhantomData}),
-            internals: Internals::new(),
-            phantom: PhantomData
-        };
+        let mut filter = SecondOrderChebyshev1Filter::new::<All>(OmegaEpsilon {omega: 10000.0*TAU, epsilon: 1.0, _m: PhantomData});
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

@@ -24,7 +24,7 @@ crate::def_rtf!(
         type Conf: EllipticFilterConf;
         type Param: SecondOrderChebyshev2FilterParam = OmegaEpsilonCheb2SecondOrder;
 
-        const O_BUFFERS: usize = <CC as EllipticFilterConf>::OUTPUTS;
+        const O_BUFFERS: usize = <C as EllipticFilterConf>::OUTPUTS;
         const SOS_BUFFERS: usize = 1;
         const SOS_STAGES: usize = 0;
         const ORDER: usize = 2;
@@ -73,51 +73,20 @@ crate::def_rtf!(
         [(); <<<Param<P> as SecondOrderChebyshev2FilterParam<C>>::Conf as EllipticFilterConf>::Conf as EllipticFilterConf>::OUTPUTS]:
 );
 
-
-mod private
-{
-    use crate::param::EllipticFilterConf;
-    
-    pub trait EllipticFilterConfFinal<C>: EllipticFilterConf<
-        Conf = Self
-    >
-    where
-        C: EllipticFilterConf<
-            Conf = Self
-        >
-    {
-
-    }
-
-    impl<
-        C,
-        CC
-    > EllipticFilterConfFinal<C> for CC
-    where
-        CC: EllipticFilterConf<
-            Conf = CC
-        >,
-        C: EllipticFilterConf<
-            Conf = CC
-        >
-    {
-
-    }
-}
 #[cfg(test)]
 mod test
 {
+    use core::marker::PhantomData;
     use std::f64::consts::TAU;
 
-    use crate::param::OmegaEpsilon;
+    use crate::{conf::All, param::OmegaEpsilon};
 
     use super::SecondOrderChebyshev2Filter;
 
     #[test]
     fn plot()
     {
-        /*let par = OmegaEpsilon {omega: 10000.0*TAU, epsilon: 1.0};
-        let mut filter = SecondOrderChebyshev2Filter::new(par);
-        crate::tests::plot_freq(&mut filter, false).unwrap();*/
+        let mut filter = SecondOrderChebyshev2Filter::new::<All>(OmegaEpsilon {omega: 10000.0*TAU, epsilon: 1.0, _m: PhantomData});
+        crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

@@ -85,7 +85,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = FirstOrderFilter::<All>::new(Omega {omega: 10000.0*TAU});
+        let mut filter = FirstOrderFilter::new::<All>(Omega {omega: 10000.0*TAU});
         //let mut filter = FirstOrderFilter::new(RC::new(100.0e3, 47.0e-9));
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }

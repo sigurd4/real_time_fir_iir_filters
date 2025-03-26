@@ -92,7 +92,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = FirstOrderRCFilter::<All>::new(RC {r: 10000.0, c: 0.000000033});
+        let mut filter = FirstOrderRCFilter::new::<All>(RC {r: 10000.0, c: 0.000000033});
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

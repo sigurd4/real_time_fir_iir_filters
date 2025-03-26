@@ -30,10 +30,10 @@ mod private
 pub trait ChebyshevType: private::ChebyshevType {}
 impl<T> ChebyshevType for T where T: private::ChebyshevType {}
 
-pub type OmegaEpsilonDyn<F, T: ChebyshevType> = OmegaEpsilon<F, T>;
-pub type OmegaEpsilonFirstOrder<F, T: ChebyshevType> = OmegaEpsilon<F, T, 1>;
-pub type OmegaEpsilonSecondOrder<F, T: ChebyshevType> = OmegaEpsilon<F, T, 2>;
-pub type OmegaEpsilonThirdOrder<F, T: ChebyshevType> = OmegaEpsilon<F, T, 3>;
+pub type OmegaEpsilonDyn<F, T> = OmegaEpsilon<F, T>;
+pub type OmegaEpsilonFirstOrder<F, T> = OmegaEpsilon<F, T, 1>;
+pub type OmegaEpsilonSecondOrder<F, T> = OmegaEpsilon<F, T, 2>;
+pub type OmegaEpsilonThirdOrder<F, T> = OmegaEpsilon<F, T, 3>;
 
 pub type OmegaEpsilonCheb1<F, const ORDER: usize = 0> = OmegaEpsilon<F, Chebyshev1, ORDER>;
 pub type OmegaEpsilonCheb1Dyn<F> = OmegaEpsilonCheb1<F>;
@@ -84,16 +84,14 @@ where
 
     type ImplBase = Self;
 }
-impl<F, T, const ORDER: usize, C> ChebyshevFilterParam<C, Self, Param<OmegaEpsilonDyn<F, T>>> for Param<OmegaEpsilon<F, T, ORDER>>
+impl<F, T, const ORDER: usize, C> ChebyshevFilterParam<C, Self> for Param<OmegaEpsilon<F, T, ORDER>>
 where
     T: ChebyshevType,
     F: FilterFloat,
     C: EllipticFilterConf,
-    OmegaEpsilon<F, T, ORDER>: Same<OmegaEpsilon<F, T, {Self::ORDER}>>
+    //OmegaEpsilon<F, T, ORDER>: Same<OmegaEpsilon<F, T, {Self::ORDER}>>
 {
-    type Conf = C
-    where
-        [(); Self::ORDER]:;
+    type Conf = C;
 
     type OmegaEpsilon = OmegaEpsilon<F, T, ORDER>
     where

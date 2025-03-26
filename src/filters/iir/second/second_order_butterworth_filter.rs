@@ -142,7 +142,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = SecondOrderButterworthFilter::<All>::new(Omega {omega: 10000.0*TAU});
+        let mut filter = SecondOrderButterworthFilter::new::<All>(Omega {omega: 10000.0*TAU});
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

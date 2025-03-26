@@ -16,7 +16,7 @@ where
     C: Conf
 {
     type Conf: EllipticFilterConf;
-    type OmegaEpsilon: Same<OmegaEpsilon<Self::F, Self::Type, {Self::ORDER}>>
+    type OmegaEpsilon//: Same<OmegaEpsilon<Self::F, Self::Type, {Self::ORDER}>>
     where
         [(); Self::ORDER]:;
 
@@ -37,7 +37,7 @@ macro_rules! special {
         }
         impl<P, C> $trait<C> for P
         where
-            P: ChebyshevFilterParam<C, ORDER = $order, Type = $type, OmegaEpsilon = OmegaEpsilon<<Self as FilterParam>::F, $type, $order>>,
+            P: ChebyshevFilterParam<C, Type = $type, OmegaEpsilon = OmegaEpsilon<<Self as FilterParam>::F, $type, $order>>,
             C: Conf,
             [(); Self::ORDER]:
         {
