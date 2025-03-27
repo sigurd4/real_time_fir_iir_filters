@@ -37,7 +37,7 @@ macro_rules! special {
         }
         impl<P, C> $trait<C> for P
         where
-            P: ChebyshevFilterParam<C, OmegaEpsilon = OmegaEpsilon<<Self as FilterParam>::F, $type, $order>>,
+            P: ChebyshevFilterParam<C, TYPE = $type, ORDER = {$order}, OmegaEpsilon = OmegaEpsilon<<Self as FilterParam>::F, $type, $order>>,
             C: Conf,
             [(); Self::ORDER]:,
             [(); {<Self as ChebyshevFilterParamBase<C>>::TYPE} as usize]:
