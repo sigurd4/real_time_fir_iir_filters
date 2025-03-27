@@ -14,7 +14,7 @@ where
     C: Conf
 {
     type Conf: EllipticFilterConf;
-    type OmegaEpsilon//: Same<OmegaEpsilon<Self::F, {<Self as ChebyshevFilterParamBase<C>>::TYPE}, {Self::ORDER}>>
+    type OmegaEpsilon//: Same<OmegaEpsilon<Self::F, {<Self as ChebyshevFilterParamBase<C>>::TYPE}, {Self::ORDER}>> // I don't understand why this doesn't work :(
     where
         [(); Self::ORDER]:,
         [(); {<Self as ChebyshevFilterParamBase<C>>::TYPE} as usize]:;

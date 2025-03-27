@@ -1,4 +1,4 @@
-use crate::{param::{ChebyshevFilterParam, ChebyshevFilterParamBase, EllipticFilterConf, EllipticFilterParamBase, FilterFloat, FilterParam, Param}, util::same::Same};
+use crate::param::{ChebyshevFilterParam, ChebyshevFilterParamBase, EllipticFilterConf, EllipticFilterParamBase, FilterFloat, FilterParam, Param};
 
 pub type OmegaEpsilonDyn<F, const TYPE: bool> = OmegaEpsilon<F, TYPE>;
 pub type OmegaEpsilonFirstOrder<F, const TYPE: bool> = OmegaEpsilon<F, TYPE, 1>;

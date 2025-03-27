@@ -66,36 +66,43 @@ pub mod same
     
         }
     
-        pub trait _Same<T>: Into<T> + From<T>
+        pub trait _Same<T>
+        where
+            T: ?Sized
         {
     
         }
         impl<T> _Same<T> for T
         where
-            T: _MaybeSame<T, IS_SAME = true>
+            T: ?Sized
         {
     
         }
     }
 
     pub trait Same<T>: private::_Same<T>
+    where
+        T: ?Sized
     {
 
     }
-    impl<T, U> Same<T> for U
+    impl<T> Same<T> for T
     where
-        U: private::_Same<T>
+        T: ?Sized
     {
 
     }
     
     pub trait NotSame<T>: private::_NotSame<T>
+    where
+        T: ?Sized
     {
 
     }
     impl<T, U> NotSame<T> for U
     where
-        U: private::_NotSame<T>
+        T: ?Sized,
+        U: private::_NotSame<T> + ?Sized
     {
         
     }
