@@ -1,4 +1,4 @@
-use crate::{param::{EllipticFilterConf, EllipticFilterParam, EllipticFilterParamBase, FilterFloat, FilterParam, Param}, util::same::Same};
+use crate::param::{EllipticFilterConf, EllipticFilterParam, EllipticFilterParamBase, FilterFloat, FilterParam, Param};
 
 pub type OmegaEpsilonXiDyn<F> = OmegaEpsilonXi<F>;
 pub type OmegaEpsilonXiFirstOrder<F> = OmegaEpsilonXi<F, 1>;
@@ -33,7 +33,7 @@ impl<F, const ORDER: usize, C> EllipticFilterParam<C, Self> for Param<OmegaEpsil
 where
     F: FilterFloat,
     C: EllipticFilterConf,
-    OmegaEpsilonXi<F, ORDER>: Same<OmegaEpsilonXi<F, {Self::ORDER}>>
+    //OmegaEpsilonXi<F, ORDER>: Same<OmegaEpsilonXi<F, {Self::ORDER}>>
 {
     type Conf = C;
     type OmegaEpsilonXi = OmegaEpsilonXi<F, ORDER>
@@ -41,6 +41,8 @@ where
         [(); Self::ORDER]:;
 
     fn omega_epsilon_xi(&self) -> Self::OmegaEpsilonXi
+    where
+        [(); Self::ORDER]:
     {
         **self
     }
