@@ -1,6 +1,4 @@
-use num::Float;
-
-use crate::{conf::{All, BandPass, BandStop, HighPass, LowPass}, param::{SecondOrderRLCFilterConf, SecondOrderRLCFilterParam}, params::RLC, real_time_fir_iir_filters};
+use crate::{calc::iir::second::SecondOrderRLCCalc, conf::{All, BandPass, BandStop, HighPass, LowPass}, param::{SecondOrderRLCFilterConf, SecondOrderRLCFilterParam, RLC}, real_time_fir_iir_filters};
 
 crate::def_rtf!(
     {
@@ -54,496 +52,205 @@ crate::def_rtf!(
 
         fn make_coeffs<All>(param, rate) -> _
         {
-            let r = param.r();
-            let l = param.l();
-            let c = param.c();
-
-            let one = F::one();
-            let two = one + one;
-
-            let c_rate = c*rate;
-            let l_rate = l*rate;
-            let two_c_rate = c_rate + c_rate;
-            let two_l_rate = l_rate + l_rate;
-
-            let two_c_r_rate = two_c_rate*r;
-            let four_c_l_rate2 = two_c_rate*two_l_rate;
-            let eight_c_l_rate2 = four_c_l_rate2 + four_c_l_rate2;
-            let one_p_four_c_l_rate2 = one + four_c_l_rate2;
-            let two_m_eight_c_l_rate2 = two - eight_c_l_rate2;
+            let calc = SecondOrderRLCCalc::new(param.rlc(), rate);
             (
                 ([], [], [
-                    second_order_rlc_low_pass_filter_b(one, two),
-                    second_order_rlc_band_stop_filter_b(one_p_four_c_l_rate2, two_m_eight_c_l_rate2),
-                    second_order_rlc_band_pass_filter_b(two_c_r_rate),
-                    second_order_rlc_high_pass_filter_b(four_c_l_rate2, two_c_r_rate, eight_c_l_rate2),
+                    calc.b_low(),
+                    calc.b_band_stop(),
+                    calc.b_band_pass(),
+                    calc.b_high()
                 ]),
                 [([], [
-                    second_order_rlc_filter_a(one_p_four_c_l_rate2, two_c_r_rate, two_m_eight_c_l_rate2)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<LowPass>(param, rate) -> _
         {
-            let r = param.r();
-            let l = param.l();
-            let c = param.c();
-
-            let one = F::one();
-            let two = one + one;
-
-            let c_rate = c*rate;
-            let l_rate = l*rate;
-            let two_c_rate = c_rate + c_rate;
-            let two_l_rate = l_rate + l_rate;
-
-            let two_c_r_rate = two_c_rate*r;
-            let four_c_l_rate2 = two_c_rate*two_l_rate;
-            let eight_c_l_rate2 = four_c_l_rate2 + four_c_l_rate2;
-            let one_p_four_c_l_rate2 = one + four_c_l_rate2;
-            let two_m_eight_c_l_rate2 = two - eight_c_l_rate2;
+            let calc = SecondOrderRLCCalc::new(param.rlc(), rate);
             (
                 ([], [], [
-                    second_order_rlc_low_pass_filter_b(one, two)
+                    calc.b_low()
                 ]),
                 [([], [
-                    second_order_rlc_filter_a(one_p_four_c_l_rate2, two_c_r_rate, two_m_eight_c_l_rate2)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<BandStop>(param, rate) -> _
         {
-            let r = param.r();
-            let l = param.l();
-            let c = param.c();
-
-            let one = F::one();
-            let two = one + one;
-
-            let c_rate = c*rate;
-            let l_rate = l*rate;
-            let two_c_rate = c_rate + c_rate;
-            let two_l_rate = l_rate + l_rate;
-
-            let two_c_r_rate = two_c_rate*r;
-            let four_c_l_rate2 = two_c_rate*two_l_rate;
-            let eight_c_l_rate2 = four_c_l_rate2 + four_c_l_rate2;
-            let one_p_four_c_l_rate2 = one + four_c_l_rate2;
-            let two_m_eight_c_l_rate2 = two - eight_c_l_rate2;
+            let calc = SecondOrderRLCCalc::new(param.rlc(), rate);
             (
                 ([], [], [
-                    second_order_rlc_band_stop_filter_b(one_p_four_c_l_rate2, two_m_eight_c_l_rate2)
+                    calc.b_band_stop()
                 ]),
                 [([], [
-                    second_order_rlc_filter_a(one_p_four_c_l_rate2, two_c_r_rate, two_m_eight_c_l_rate2)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<BandPass>(param, rate) -> _
         {
-            let r = param.r();
-            let l = param.l();
-            let c = param.c();
-
-            let one = F::one();
-            let two = one + one;
-
-            let c_rate = c*rate;
-            let l_rate = l*rate;
-            let two_c_rate = c_rate + c_rate;
-            let two_l_rate = l_rate + l_rate;
-
-            let two_c_r_rate = two_c_rate*r;
-            let four_c_l_rate2 = two_c_rate*two_l_rate;
-            let eight_c_l_rate2 = four_c_l_rate2 + four_c_l_rate2;
-            let one_p_four_c_l_rate2 = one + four_c_l_rate2;
-            let two_m_eight_c_l_rate2 = two - eight_c_l_rate2;
+            let calc = SecondOrderRLCCalc::new(param.rlc(), rate);
             (
                 ([], [], [
-                    second_order_rlc_band_pass_filter_b(two_c_r_rate)
+                    calc.b_band_pass()
                 ]),
                 [([], [
-                    second_order_rlc_filter_a(one_p_four_c_l_rate2, two_c_r_rate, two_m_eight_c_l_rate2)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<HighPass>(param, rate) -> _
         {
-            let r = param.r();
-            let l = param.l();
-            let c = param.c();
-
-            let one = F::one();
-            let two = one + one;
-
-            let c_rate = c*rate;
-            let l_rate = l*rate;
-            let two_c_rate = c_rate + c_rate;
-            let two_l_rate = l_rate + l_rate;
-
-            let two_c_r_rate = two_c_rate*r;
-            let four_c_l_rate2 = two_c_rate*two_l_rate;
-            let eight_c_l_rate2 = four_c_l_rate2 + four_c_l_rate2;
-            let one_p_four_c_l_rate2 = one + four_c_l_rate2;
-            let two_m_eight_c_l_rate2 = two - eight_c_l_rate2;
+            let calc = SecondOrderRLCCalc::new(param.rlc(), rate);
             (
                 ([], [], [
-                    second_order_rlc_high_pass_filter_b(four_c_l_rate2, two_c_r_rate, eight_c_l_rate2)
+                    calc.b_high()
                 ]),
                 [([], [
-                    second_order_rlc_filter_a(one_p_four_c_l_rate2, two_c_r_rate, two_m_eight_c_l_rate2)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<(LowPass, BandStop)>(param, rate) -> _
         {
-            let r = param.r();
-            let l = param.l();
-            let c = param.c();
-
-            let one = F::one();
-            let two = one + one;
-
-            let c_rate = c*rate;
-            let l_rate = l*rate;
-            let two_c_rate = c_rate + c_rate;
-            let two_l_rate = l_rate + l_rate;
-
-            let two_c_r_rate = two_c_rate*r;
-            let four_c_l_rate2 = two_c_rate*two_l_rate;
-            let eight_c_l_rate2 = four_c_l_rate2 + four_c_l_rate2;
-            let one_p_four_c_l_rate2 = one + four_c_l_rate2;
-            let two_m_eight_c_l_rate2 = two - eight_c_l_rate2;
+            let calc = SecondOrderRLCCalc::new(param.rlc(), rate);
             (
                 ([], [], [
-                    second_order_rlc_low_pass_filter_b(one, two),
-                    second_order_rlc_band_stop_filter_b(one_p_four_c_l_rate2, two_m_eight_c_l_rate2)
+                    calc.b_low(),
+                    calc.b_band_stop()
                 ]),
                 [([], [
-                    second_order_rlc_filter_a(one_p_four_c_l_rate2, two_c_r_rate, two_m_eight_c_l_rate2)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<(LowPass, BandPass)>(param, rate) -> _
         {
-            let r = param.r();
-            let l = param.l();
-            let c = param.c();
-
-            let one = F::one();
-            let two = one + one;
-
-            let c_rate = c*rate;
-            let l_rate = l*rate;
-            let two_c_rate = c_rate + c_rate;
-            let two_l_rate = l_rate + l_rate;
-
-            let two_c_r_rate = two_c_rate*r;
-            let four_c_l_rate2 = two_c_rate*two_l_rate;
-            let eight_c_l_rate2 = four_c_l_rate2 + four_c_l_rate2;
-            let one_p_four_c_l_rate2 = one + four_c_l_rate2;
-            let two_m_eight_c_l_rate2 = two - eight_c_l_rate2;
+            let calc = SecondOrderRLCCalc::new(param.rlc(), rate);
             (
                 ([], [], [
-                    second_order_rlc_low_pass_filter_b(one, two),
-                    second_order_rlc_band_pass_filter_b(two_c_r_rate)
+                    calc.b_low(),
+                    calc.b_band_pass()
                 ]),
                 [([], [
-                    second_order_rlc_filter_a(one_p_four_c_l_rate2, two_c_r_rate, two_m_eight_c_l_rate2)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<(LowPass, HighPass)>(param, rate) -> _
         {
-            let r = param.r();
-            let l = param.l();
-            let c = param.c();
-
-            let one = F::one();
-            let two = one + one;
-
-            let c_rate = c*rate;
-            let l_rate = l*rate;
-            let two_c_rate = c_rate + c_rate;
-            let two_l_rate = l_rate + l_rate;
-
-            let two_c_r_rate = two_c_rate*r;
-            let four_c_l_rate2 = two_c_rate*two_l_rate;
-            let eight_c_l_rate2 = four_c_l_rate2 + four_c_l_rate2;
-            let one_p_four_c_l_rate2 = one + four_c_l_rate2;
-            let two_m_eight_c_l_rate2 = two - eight_c_l_rate2;
+            let calc = SecondOrderRLCCalc::new(param.rlc(), rate);
             (
                 ([], [], [
-                    second_order_rlc_low_pass_filter_b(one, two),
-                    second_order_rlc_high_pass_filter_b(four_c_l_rate2, two_c_r_rate, eight_c_l_rate2)
+                    calc.b_low(),
+                    calc.b_high()
                 ]),
                 [([], [
-                    second_order_rlc_filter_a(one_p_four_c_l_rate2, two_c_r_rate, two_m_eight_c_l_rate2)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<(BandStop, BandPass)>(param, rate) -> _
         {
-            let r = param.r();
-            let l = param.l();
-            let c = param.c();
-
-            let one = F::one();
-            let two = one + one;
-
-            let c_rate = c*rate;
-            let l_rate = l*rate;
-            let two_c_rate = c_rate + c_rate;
-            let two_l_rate = l_rate + l_rate;
-
-            let two_c_r_rate = two_c_rate*r;
-            let four_c_l_rate2 = two_c_rate*two_l_rate;
-            let eight_c_l_rate2 = four_c_l_rate2 + four_c_l_rate2;
-            let one_p_four_c_l_rate2 = one + four_c_l_rate2;
-            let two_m_eight_c_l_rate2 = two - eight_c_l_rate2;
+            let calc = SecondOrderRLCCalc::new(param.rlc(), rate);
             (
                 ([], [], [
-                    second_order_rlc_band_stop_filter_b(one_p_four_c_l_rate2, two_m_eight_c_l_rate2),
-                    second_order_rlc_band_pass_filter_b(two_c_r_rate)
+                    calc.b_band_stop(),
+                    calc.b_band_pass()
                 ]),
                 [([], [
-                    second_order_rlc_filter_a(one_p_four_c_l_rate2, two_c_r_rate, two_m_eight_c_l_rate2)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<(BandStop, HighPass)>(param, rate) -> _
         {
-            let r = param.r();
-            let l = param.l();
-            let c = param.c();
-
-            let one = F::one();
-            let two = one + one;
-
-            let c_rate = c*rate;
-            let l_rate = l*rate;
-            let two_c_rate = c_rate + c_rate;
-            let two_l_rate = l_rate + l_rate;
-
-            let two_c_r_rate = two_c_rate*r;
-            let four_c_l_rate2 = two_c_rate*two_l_rate;
-            let eight_c_l_rate2 = four_c_l_rate2 + four_c_l_rate2;
-            let one_p_four_c_l_rate2 = one + four_c_l_rate2;
-            let two_m_eight_c_l_rate2 = two - eight_c_l_rate2;
+            let calc = SecondOrderRLCCalc::new(param.rlc(), rate);
             (
                 ([], [], [
-                    second_order_rlc_band_stop_filter_b(one_p_four_c_l_rate2, two_m_eight_c_l_rate2),
-                    second_order_rlc_high_pass_filter_b(four_c_l_rate2, two_c_r_rate, eight_c_l_rate2)
+                    calc.b_band_stop(),
+                    calc.b_high()
                 ]),
                 [([], [
-                    second_order_rlc_filter_a(one_p_four_c_l_rate2, two_c_r_rate, two_m_eight_c_l_rate2)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<(BandPass, HighPass)>(param, rate) -> _
         {
-            let r = param.r();
-            let l = param.l();
-            let c = param.c();
-
-            let one = F::one();
-            let two = one + one;
-
-            let c_rate = c*rate;
-            let l_rate = l*rate;
-            let two_c_rate = c_rate + c_rate;
-            let two_l_rate = l_rate + l_rate;
-
-            let two_c_r_rate = two_c_rate*r;
-            let four_c_l_rate2 = two_c_rate*two_l_rate;
-            let eight_c_l_rate2 = four_c_l_rate2 + four_c_l_rate2;
-            let one_p_four_c_l_rate2 = one + four_c_l_rate2;
-            let two_m_eight_c_l_rate2 = two - eight_c_l_rate2;
+            let calc = SecondOrderRLCCalc::new(param.rlc(), rate);
             (
                 ([], [], [
-                    second_order_rlc_band_pass_filter_b(two_c_r_rate),
-                    second_order_rlc_high_pass_filter_b(four_c_l_rate2, two_c_r_rate, eight_c_l_rate2)
+                    calc.b_band_pass(),
+                    calc.b_high()
                 ]),
                 [([], [
-                    second_order_rlc_filter_a(one_p_four_c_l_rate2, two_c_r_rate, two_m_eight_c_l_rate2)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<(LowPass, BandStop, BandPass)>(param, rate) -> _
         {
-            let r = param.r();
-            let l = param.l();
-            let c = param.c();
-
-            let one = F::one();
-            let two = one + one;
-
-            let c_rate = c*rate;
-            let l_rate = l*rate;
-            let two_c_rate = c_rate + c_rate;
-            let two_l_rate = l_rate + l_rate;
-
-            let two_c_r_rate = two_c_rate*r;
-            let four_c_l_rate2 = two_c_rate*two_l_rate;
-            let eight_c_l_rate2 = four_c_l_rate2 + four_c_l_rate2;
-            let one_p_four_c_l_rate2 = one + four_c_l_rate2;
-            let two_m_eight_c_l_rate2 = two - eight_c_l_rate2;
+            let calc = SecondOrderRLCCalc::new(param.rlc(), rate);
             (
                 ([], [], [
-                    second_order_rlc_low_pass_filter_b(one, two),
-                    second_order_rlc_band_stop_filter_b(one_p_four_c_l_rate2, two_m_eight_c_l_rate2),
-                    second_order_rlc_band_pass_filter_b(two_c_r_rate)
+                    calc.b_low(),
+                    calc.b_band_stop(),
+                    calc.b_band_pass()
                 ]),
                 [([], [
-                    second_order_rlc_filter_a(one_p_four_c_l_rate2, two_c_r_rate, two_m_eight_c_l_rate2)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<(LowPass, BandStop, HighPass)>(param, rate) -> _
         {
-            let r = param.r();
-            let l = param.l();
-            let c = param.c();
-
-            let one = F::one();
-            let two = one + one;
-
-            let c_rate = c*rate;
-            let l_rate = l*rate;
-            let two_c_rate = c_rate + c_rate;
-            let two_l_rate = l_rate + l_rate;
-
-            let two_c_r_rate = two_c_rate*r;
-            let four_c_l_rate2 = two_c_rate*two_l_rate;
-            let eight_c_l_rate2 = four_c_l_rate2 + four_c_l_rate2;
-            let one_p_four_c_l_rate2 = one + four_c_l_rate2;
-            let two_m_eight_c_l_rate2 = two - eight_c_l_rate2;
+            let calc = SecondOrderRLCCalc::new(param.rlc(), rate);
             (
                 ([], [], [
-                    second_order_rlc_low_pass_filter_b(one, two),
-                    second_order_rlc_band_stop_filter_b(one_p_four_c_l_rate2, two_m_eight_c_l_rate2),
-                    second_order_rlc_high_pass_filter_b(four_c_l_rate2, two_c_r_rate, eight_c_l_rate2)
+                    calc.b_low(),
+                    calc.b_band_stop(),
+                    calc.b_high()
                 ]),
                 [([], [
-                    second_order_rlc_filter_a(one_p_four_c_l_rate2, two_c_r_rate, two_m_eight_c_l_rate2)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<(LowPass, BandPass, HighPass)>(param, rate) -> _
         {
-            let r = param.r();
-            let l = param.l();
-            let c = param.c();
-
-            let one = F::one();
-            let two = one + one;
-
-            let c_rate = c*rate;
-            let l_rate = l*rate;
-            let two_c_rate = c_rate + c_rate;
-            let two_l_rate = l_rate + l_rate;
-
-            let two_c_r_rate = two_c_rate*r;
-            let four_c_l_rate2 = two_c_rate*two_l_rate;
-            let eight_c_l_rate2 = four_c_l_rate2 + four_c_l_rate2;
-            let one_p_four_c_l_rate2 = one + four_c_l_rate2;
-            let two_m_eight_c_l_rate2 = two - eight_c_l_rate2;
+            let calc = SecondOrderRLCCalc::new(param.rlc(), rate);
             (
                 ([], [], [
-                    second_order_rlc_low_pass_filter_b(one, two),
-                    second_order_rlc_band_pass_filter_b(two_c_r_rate),
-                    second_order_rlc_high_pass_filter_b(four_c_l_rate2, two_c_r_rate, eight_c_l_rate2)
+                    calc.b_low(),
+                    calc.b_band_pass(),
+                    calc.b_high()
                 ]),
                 [([], [
-                    second_order_rlc_filter_a(one_p_four_c_l_rate2, two_c_r_rate, two_m_eight_c_l_rate2)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<(BandStop, BandPass, HighPass)>(param, rate) -> _
         {
-            let r = param.r();
-            let l = param.l();
-            let c = param.c();
-
-            let one = F::one();
-            let two = one + one;
-
-            let c_rate = c*rate;
-            let l_rate = l*rate;
-            let two_c_rate = c_rate + c_rate;
-            let two_l_rate = l_rate + l_rate;
-
-            let two_c_r_rate = two_c_rate*r;
-            let four_c_l_rate2 = two_c_rate*two_l_rate;
-            let eight_c_l_rate2 = four_c_l_rate2 + four_c_l_rate2;
-            let one_p_four_c_l_rate2 = one + four_c_l_rate2;
-            let two_m_eight_c_l_rate2 = two - eight_c_l_rate2;
+            let calc = SecondOrderRLCCalc::new(param.rlc(), rate);
             (
                 ([], [], [
-                    second_order_rlc_band_stop_filter_b(one_p_four_c_l_rate2, two_m_eight_c_l_rate2),
-                    second_order_rlc_band_pass_filter_b(two_c_r_rate),
-                    second_order_rlc_high_pass_filter_b(four_c_l_rate2, two_c_r_rate, eight_c_l_rate2)
+                    calc.b_band_stop(),
+                    calc.b_band_pass(),
+                    calc.b_high()
                 ]),
                 [([], [
-                    second_order_rlc_filter_a(one_p_four_c_l_rate2, two_c_r_rate, two_m_eight_c_l_rate2)
+                    calc.a()
                 ])]
             )
         }
     }
     where
-        [(); <CC as SecondOrderRLCFilterConf>::OUTPUTS]:
+        [(); <C as SecondOrderRLCFilterConf>::OUTPUTS]:
 );
-
-pub(crate) fn second_order_rlc_low_pass_filter_b<F>(one: F, two: F) -> [F; 3]
-where
-    F: Float
-{
-    [
-        one,
-        two,
-        one,
-    ]
-}
-pub(crate) fn second_order_rlc_band_stop_filter_b<F>(one_p_four_c_l_rate2: F, two_m_eight_c_l_rate2: F) -> [F; 3]
-where
-    F: Float
-{
-    [
-        one_p_four_c_l_rate2,
-        two_m_eight_c_l_rate2,
-        one_p_four_c_l_rate2,
-    ]
-}
-pub(crate) fn second_order_rlc_band_pass_filter_b<F>(two_c_r_rate: F) -> [F; 3]
-where
-    F: Float
-{
-    [
-        two_c_r_rate,
-        F::zero(),
-        -two_c_r_rate,
-    ]
-}
-pub(crate) fn second_order_rlc_high_pass_filter_b<F>(four_c_l_rate2: F, two_c_r_rate: F, eight_c_l_rate2: F) -> [F; 3]
-where
-    F: Float
-{
-    [
-        four_c_l_rate2 + two_c_r_rate,
-        -eight_c_l_rate2,
-        four_c_l_rate2 + two_c_r_rate,
-    ]
-}
-pub(crate) fn second_order_rlc_filter_a<F>(one_p_four_c_l_rate2: F, two_c_r_rate: F, two_m_eight_c_l_rate2: F) -> [F; 3]
-where
-    F: Float
-{
-    [
-        one_p_four_c_l_rate2 + two_c_r_rate,
-        two_m_eight_c_l_rate2,
-        one_p_four_c_l_rate2 - two_c_r_rate,
-    ]
-}
 
 #[cfg(test)]
 mod test
@@ -555,7 +262,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = SecondOrderRLCFilter::new::<All>(RLC::new(1000.0, 0.01, 0.000000033));
+        let mut filter = SecondOrderRLCFilter::new::<All>(RLC {r: 1e3, l: 10e-3, c: 33e-9});
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }
