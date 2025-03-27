@@ -12,7 +12,7 @@ where
     C: Conf
 {
     type Conf: EllipticFilterConf;
-    type OmegaEpsilonXi//: Same<OmegaEpsilonXi<Self::F, {Self::ORDER}>>
+    type OmegaEpsilonXi//: Same<OmegaEpsilonXi<Self::F, {Self::ORDER}>> // I don't know why this doesn't work :(
     where
         [(); Self::ORDER]:;
 
