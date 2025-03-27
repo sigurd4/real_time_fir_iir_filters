@@ -2,7 +2,7 @@ use num::One;
 
 use super::{ButterworthFilterParam, EllipticFilterConf};
 
-use crate::{conf::{All, Conf}, param::{ChebyshevFilterParamBase, ChebyshevType, EllipticFilterParamBase, FilterFloat, FilterParam, Omega, OmegaDyn, OmegaEpsilon, OmegaEpsilonCheb1, Param}, util::same::Same};
+use crate::{conf::{All, Conf}, param::{ChebyshevFilterParamBase, EllipticFilterParamBase, FilterFloat, FilterParam, Omega, OmegaDyn, OmegaEpsilon, OmegaEpsilonCheb1, Param}, util::same::Same};
 
 pub trait ChebyshevFilterParam<
     C,
@@ -14,13 +14,15 @@ where
     C: Conf
 {
     type Conf: EllipticFilterConf;
-    type OmegaEpsilon//: Same<OmegaEpsilon<Self::F, Self::Type, {Self::ORDER}>>
+    type OmegaEpsilon//: Same<OmegaEpsilon<Self::F, {<Self as ChebyshevFilterParamBase<C>>::TYPE}, {Self::ORDER}>>
     where
-        [(); Self::ORDER]:;
+        [(); Self::ORDER]:,
+        [(); {<Self as ChebyshevFilterParamBase<C>>::TYPE} as usize]:;
 
     fn omega_epsilon(&self) -> Self::OmegaEpsilon
     where
-        [(); Self::ORDER]:;
+        [(); Self::ORDER]:,
+        [(); {<Self as ChebyshevFilterParamBase<C>>::TYPE} as usize]:;
 }
 
 macro_rules! special {
@@ -37,7 +39,8 @@ macro_rules! special {
         where
             P: ChebyshevFilterParam<C, OmegaEpsilon = OmegaEpsilon<<Self as FilterParam>::F, $type, $order>>,
             C: Conf,
-            [(); Self::ORDER]:
+            [(); Self::ORDER]:,
+            [(); {<Self as ChebyshevFilterParamBase<C>>::TYPE} as usize]:
         {
             type Conf = <Self as ChebyshevFilterParam<C>>::Conf;
 
@@ -49,22 +52,23 @@ macro_rules! special {
     };
 }
 
-special!(DynOrderChebyshev1FilterParam = {ChebyshevType::Type1}, 0);
-special!(DynOrderChebyshev2FilterParam = {ChebyshevType::Type2}, 0);
-special!(FirstOrderChebyshev1FilterParam = {ChebyshevType::Type1}, 1);
-special!(FirstOrderChebyshev2FilterParam = {ChebyshevType::Type2}, 1);
-special!(SecondOrderChebyshev1FilterParam = {ChebyshevType::Type1}, 2);
-special!(SecondOrderChebyshev2FilterParam = {ChebyshevType::Type2}, 2);
-special!(ThirdOrderChebyshev1FilterParam = {ChebyshevType::Type1}, 3);
-special!(ThirdOrderChebyshev2FilterParam = {ChebyshevType::Type2}, 3);
+special!(DynOrderChebyshev1FilterParam = false, 0);
+special!(DynOrderChebyshev2FilterParam = true, 0);
+special!(FirstOrderChebyshev1FilterParam = false, 1);
+special!(FirstOrderChebyshev2FilterParam = true, 1);
+special!(SecondOrderChebyshev1FilterParam = false, 2);
+special!(SecondOrderChebyshev2FilterParam = true, 2);
+special!(ThirdOrderChebyshev1FilterParam = false, 3);
+special!(ThirdOrderChebyshev2FilterParam = true, 3);
 
 impl<F, P, C, const ORDER: usize> ChebyshevFilterParam<C, Param<OmegaDyn<F>>> for P
 where
     P: ButterworthFilterParam<C, F = F, ORDER = {ORDER}, Omega = Omega<F, ORDER>, Conf: EllipticFilterConf>, // TODO generalize for different orders
     C: Conf,
     F: FilterFloat,
-    OmegaEpsilonCheb1<F, ORDER>: Same<OmegaEpsilon<F, {ChebyshevType::Type1}, {Self::ORDER}>>,
-    [(); Self::ORDER]:
+    OmegaEpsilonCheb1<F, ORDER>: Same<OmegaEpsilon<F, {<Self as ChebyshevFilterParamBase<C>>::TYPE}, {Self::ORDER}>>,
+    [(); Self::ORDER]:,
+    [(); {<Self as ChebyshevFilterParamBase<C>>::TYPE} as usize]:
 {
     type Conf = P::Conf;
 

@@ -1,6 +1,6 @@
 use num::{Float, One};
 
-use crate::{conf::{all, All, Conf, HighPass, LowPass}, param::{ChebyshevType, EllipticFilterParamBase, FilterParam, OmegaEpsilon, OmegaEpsilonXi, Param}, util::same::Same};
+use crate::{conf::{all, All, Conf, HighPass, LowPass}, param::{EllipticFilterParamBase, FilterParam, OmegaEpsilon, OmegaEpsilonXi, Param}, util::same::Same};
 
 use super::ChebyshevFilterParam;
 
@@ -52,41 +52,49 @@ special!(FirstOrderEllipticFilterParam = 1);
 special!(SecondOrderEllipticFilterParam = 2);
 special!(ThirdOrderEllipticFilterParam = 3);
 
-const fn can_ln_be_calculated_through_recursion_cheb2(mut order: usize) -> bool
+const fn can_ln_be_calculated_through_recursion(cheb_type: bool, mut order: usize) -> bool
 {
-    loop
+    if cheb_type
     {
-        match order
+        loop
         {
-            0 => return false,
-            1..=4 => return true,
-            _ => {
-                if order % 4 == 0
-                {
-                    order /= 4
-                }
-                else if order % 3 == 0
-                {
-                    order /= 3
-                }
-                else if order % 2 == 0
-                {
-                    order /= 2
-                }
-                else
-                {
-                    return false
+            match order
+            {
+                0 => return false,
+                1..=4 => return true,
+                _ => {
+                    if order % 4 == 0
+                    {
+                        order /= 4
+                    }
+                    else if order % 3 == 0
+                    {
+                        order /= 3
+                    }
+                    else if order % 2 == 0
+                    {
+                        order /= 2
+                    }
+                    else
+                    {
+                        return false
+                    }
                 }
             }
         }
     }
+    else
+    {
+        true
+    }
 }
 
-impl<P, C, const ORDER: usize> EllipticFilterParam<C, Param<OmegaEpsilon<<P as FilterParam>::F, {ChebyshevType::Type1}, ORDER>>> for P
+impl<P, C, const ORDER: usize> EllipticFilterParam<C, Param<OmegaEpsilon<<P as FilterParam>::F, false, ORDER>>> for P
 where
-    P: ChebyshevFilterParam<C, TYPE = {ChebyshevType::Type1}, ORDER = {ORDER}, OmegaEpsilon = OmegaEpsilon<<P as FilterParam>::F, {ChebyshevType::Type1}, ORDER>, Conf: EllipticFilterConf> + EllipticFilterParamBase<C, ImplBase: Same<Param<OmegaEpsilon<<P as FilterParam>::F, {ChebyshevType::Type1}, ORDER>>>>,
+    P: ChebyshevFilterParam<C, TYPE = false, ORDER = {ORDER}, OmegaEpsilon = OmegaEpsilon<<P as FilterParam>::F, false, ORDER>, Conf: EllipticFilterConf> + EllipticFilterParamBase<C, ImplBase: Same<Param<OmegaEpsilon<<P as FilterParam>::F, false, ORDER>>>>,
     C: Conf,
-    OmegaEpsilonXi<P::F, ORDER>: Same<OmegaEpsilonXi<P::F, {Self::ORDER}>>
+    OmegaEpsilonXi<P::F, ORDER>: Same<OmegaEpsilonXi<P::F, {Self::ORDER}>>,
+    [(); {Self::TYPE} as usize]:
 {
     type Conf = P::Conf;
     type OmegaEpsilonXi = OmegaEpsilonXi<P::F, ORDER>
@@ -106,12 +114,13 @@ where
     }
 }
 
-impl<P, C, const ORDER: usize> EllipticFilterParam<C, Param<OmegaEpsilon<<P as FilterParam>::F, {ChebyshevType::Type2}, ORDER>>> for P
+impl<P, C, const TYPE: bool, const ORDER: usize> EllipticFilterParam<C, Param<OmegaEpsilon<<P as FilterParam>::F, TYPE, ORDER>>> for P
 where
-    P: ChebyshevFilterParam<C, TYPE = {ChebyshevType::Type2}, ORDER = {ORDER}, OmegaEpsilon = OmegaEpsilon<<P as FilterParam>::F, {ChebyshevType::Type2}, ORDER>, Conf: EllipticFilterConf> + EllipticFilterParamBase<C, ImplBase: Same<Param<OmegaEpsilon<<P as FilterParam>::F, {ChebyshevType::Type2}, ORDER>>>>,
+    P: ChebyshevFilterParam<C, TYPE = {TYPE}, ORDER = {ORDER}, OmegaEpsilon = OmegaEpsilon<<P as FilterParam>::F, TYPE, ORDER>, Conf: EllipticFilterConf> + EllipticFilterParamBase<C, ImplBase: Same<Param<OmegaEpsilon<<P as FilterParam>::F, TYPE, ORDER>>>>,
     C: Conf,
     OmegaEpsilonXi<P::F, ORDER>: Same<OmegaEpsilonXi<P::F, {Self::ORDER}>>,
-    [(); can_ln_be_calculated_through_recursion_cheb2(Self::ORDER) as usize - 1]: // For now. It is possible to do it otherwise, but not implemented yet
+    [(); {Self::TYPE} as usize]:,
+    [(); can_ln_be_calculated_through_recursion(Self::TYPE, Self::ORDER) as usize - 1]: // For now. It is possible to do it otherwise, but not implemented yet
 {
     type Conf = P::Conf;
     type OmegaEpsilonXi = OmegaEpsilonXi<P::F, ORDER>
@@ -119,123 +128,136 @@ where
         [(); Self::ORDER]:;
 
     fn omega_epsilon_xi(&self) -> Self::OmegaEpsilonXi
+    where
+        [(); Self::ORDER]:
     {
         let OmegaEpsilon {omega, epsilon} = self.omega_epsilon();
 
-        let mut xi = omega.recip();
-
-        // https://en.wikipedia.org/wiki/Elliptic_rational_functions
-
-        let ln = match Self::ORDER
+        if TYPE
         {
-            0 => panic!(),
-            1 => xi,
-            2 => {
-                let one = One::one();
-                let xi2 = xi*xi;
-                
-                let ln_sqrt = xi + (xi2 - one).sqrt();
-                ln_sqrt*ln_sqrt
-            },
-            3 => {
-                let one = One::one();
-                let xi2 = xi*xi;
-                let xi3 = xi2*xi;
-                let two_xi2 = xi2 + xi2;
-                let four_xi2 = two_xi2 + two_xi2;
-                let eight_xi2 = four_xi2 + four_xi2;
-                let twelve_xi2 = eight_xi2 + four_xi2;
+            let mut xi = omega.recip();
 
-                let mut g = four_xi2*(xi2 - one);
-                let g2 = four_xi2 + (g*g).cbrt();
-                g = g2.sqrt();
-                let g3 = g2*g;
+            // https://en.wikipedia.org/wiki/Elliptic_rational_functions
 
-                let xp2 = two_xi2*g.sqrt()/((eight_xi2*(xi2 + one) + twelve_xi2*g - g3).sqrt() - g3.sqrt());
+            let ln = match Self::ORDER
+            {
+                0 => panic!(),
+                1 => xi,
+                2 => {
+                    let one = One::one();
+                    let xi2 = xi*xi;
+                    
+                    let ln_sqrt = xi + (xi2 - one).sqrt();
+                    ln_sqrt*ln_sqrt
+                },
+                3 => {
+                    let one = One::one();
+                    let xi2 = xi*xi;
+                    let xi3 = xi2*xi;
+                    let two_xi2 = xi2 + xi2;
+                    let four_xi2 = two_xi2 + two_xi2;
+                    let eight_xi2 = four_xi2 + four_xi2;
+                    let twelve_xi2 = eight_xi2 + four_xi2;
 
-                let ln_rhs_sqrt = (one - xp2)/(xi2 - xp2);
-                xi3*(ln_rhs_sqrt*ln_rhs_sqrt)
-            },
-            4 => {
-                let one = <P::F as One>::one();
-                let xi2 = xi*xi;
-                let sqrt_one_m_xi2 = (one - xi2).sqrt();
+                    let mut g = four_xi2*(xi2 - one);
+                    let g2 = four_xi2 + (g*g).cbrt();
+                    g = g2.sqrt();
+                    let g3 = g2*g;
 
-                let ln_lhs_4thrt = xi.sqrt() + sqrt_one_m_xi2.sqrt();
-                let ln_lhs_sqrt = ln_lhs_4thrt*ln_lhs_4thrt;
+                    let xp2 = two_xi2*g.sqrt()/((eight_xi2*(xi2 + one) + twelve_xi2*g - g3).sqrt() - g3.sqrt());
 
-                let ln_rhs_sqrt = xi + sqrt_one_m_xi2;
-
-                (ln_lhs_sqrt*ln_lhs_sqrt)*(ln_rhs_sqrt*ln_rhs_sqrt)
-            },
-            _ => {
-                let mut o = Self::ORDER;
-                
-                if can_ln_be_calculated_through_recursion_cheb2(o)
-                {
+                    let ln_rhs_sqrt = (one - xp2)/(xi2 - xp2);
+                    xi3*(ln_rhs_sqrt*ln_rhs_sqrt)
+                },
+                4 => {
                     let one = <P::F as One>::one();
+                    let xi2 = xi*xi;
+                    let sqrt_one_m_xi2 = (one - xi2).sqrt();
 
-                    loop
+                    let ln_lhs_4thrt = xi.sqrt() + sqrt_one_m_xi2.sqrt();
+                    let ln_lhs_sqrt = ln_lhs_4thrt*ln_lhs_4thrt;
+
+                    let ln_rhs_sqrt = xi + sqrt_one_m_xi2;
+
+                    (ln_lhs_sqrt*ln_lhs_sqrt)*(ln_rhs_sqrt*ln_rhs_sqrt)
+                },
+                _ => {
+                    if can_ln_be_calculated_through_recursion(Self::TYPE, Self::ORDER)
                     {
-                        match o
-                        {
-                            0 => panic!(),
-                            1 => break xi,
-                            _ => {
-                                let xi2 = xi*xi;
+                        let mut o = Self::ORDER;
+                        
+                        let one = <P::F as One>::one();
 
-                                if o % 4 == 0
-                                {
-                                    let sqrt_one_m_xi2 = (one - xi2).sqrt();
-                
-                                    let ln_lhs_4thrt = xi.sqrt() + sqrt_one_m_xi2.sqrt();
-                                    let ln_lhs_sqrt = ln_lhs_4thrt*ln_lhs_4thrt;
-                
-                                    let ln_rhs_sqrt = xi + sqrt_one_m_xi2;
-                
-                                    xi = (ln_lhs_sqrt*ln_lhs_sqrt)*(ln_rhs_sqrt*ln_rhs_sqrt);
-                                    o /= 4
-                                }
-                                else if o % 3 == 0
-                                {
-                                    let xi3 = xi2*xi;
-                                    let two_xi2 = xi2 + xi2;
-                                    let four_xi2 = two_xi2 + two_xi2;
-                                    let eight_xi2 = four_xi2 + four_xi2;
-                                    let twelve_xi2 = eight_xi2 + four_xi2;
-                
-                                    let mut g = four_xi2*(xi2 - one);
-                                    let g2 = four_xi2 + (g*g).cbrt();
-                                    g = g2.sqrt();
-                                    let g3 = g2*g;
-                
-                                    let xp2 = two_xi2*g.sqrt()/((eight_xi2*(xi2 + one) + twelve_xi2*g - g3).sqrt() - g3.sqrt());
-                
-                                    let ln_rhs_sqrt = (one - xp2)/(xi2 - xp2);
-                                    xi = xi3*(ln_rhs_sqrt*ln_rhs_sqrt);
-                                    o /= 3
-                                }
-                                else if o % 2 == 0
-                                {                                        
-                                    let ln_sqrt = xi + (xi2 - one).sqrt();
-                                    xi = ln_sqrt*ln_sqrt;
-                                    o /= 2
+                        loop
+                        {
+                            match o
+                            {
+                                0 => panic!(),
+                                1 => break xi,
+                                _ => {
+                                    let xi2 = xi*xi;
+
+                                    if o % 4 == 0
+                                    {
+                                        let sqrt_one_m_xi2 = (one - xi2).sqrt();
+                    
+                                        let ln_lhs_4thrt = xi.sqrt() + sqrt_one_m_xi2.sqrt();
+                                        let ln_lhs_sqrt = ln_lhs_4thrt*ln_lhs_4thrt;
+                    
+                                        let ln_rhs_sqrt = xi + sqrt_one_m_xi2;
+                    
+                                        xi = (ln_lhs_sqrt*ln_lhs_sqrt)*(ln_rhs_sqrt*ln_rhs_sqrt);
+                                        o /= 4
+                                    }
+                                    else if o % 3 == 0
+                                    {
+                                        let xi3 = xi2*xi;
+                                        let two_xi2 = xi2 + xi2;
+                                        let four_xi2 = two_xi2 + two_xi2;
+                                        let eight_xi2 = four_xi2 + four_xi2;
+                                        let twelve_xi2 = eight_xi2 + four_xi2;
+                    
+                                        let mut g = four_xi2*(xi2 - one);
+                                        let g2 = four_xi2 + (g*g).cbrt();
+                                        g = g2.sqrt();
+                                        let g3 = g2*g;
+                    
+                                        let xp2 = two_xi2*g.sqrt()/((eight_xi2*(xi2 + one) + twelve_xi2*g - g3).sqrt() - g3.sqrt());
+                    
+                                        let ln_rhs_sqrt = (one - xp2)/(xi2 - xp2);
+                                        xi = xi3*(ln_rhs_sqrt*ln_rhs_sqrt);
+                                        o /= 3
+                                    }
+                                    else if o % 2 == 0
+                                    {                                        
+                                        let ln_sqrt = xi + (xi2 - one).sqrt();
+                                        xi = ln_sqrt*ln_sqrt;
+                                        o /= 2
+                                    }
                                 }
                             }
                         }
                     }
+                    else
+                    {
+                        todo!("Radix not supported.")
+                    }
                 }
-                else
-                {
-                    todo!()
-                }
-            }
-        };
+            };
 
-        OmegaEpsilonXi {
-            omega,
-            epsilon: epsilon*ln,
-            xi: omega.recip()
+            OmegaEpsilonXi {
+                omega,
+                epsilon: epsilon*ln,
+                xi: omega.recip()
+            }
+        }
+        else
+        {
+            OmegaEpsilonXi {
+                omega,
+                epsilon,
+                xi: Float::infinity()
+            }
         }
     }
 }

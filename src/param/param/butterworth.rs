@@ -1,10 +1,10 @@
-use crate::{conf::Conf, param::{ChebyshevFilterParamBase, ChebyshevType, EllipticFilterParamBase, FilterParam, Omega, OmegaDyn, OmegaEpsilonCheb1Dyn, Param}, util::same::Same};
+use crate::{conf::Conf, param::{ChebyshevFilterParamBase, EllipticFilterParamBase, FilterParam, Omega, OmegaDyn, OmegaEpsilonCheb1Dyn, Param}, util::same::Same};
 
 use super::{EllipticFilterConf, FirstOrderFilterConf, FirstOrderFilterParam, SecondOrderFilterConf, SecondOrderFilterParam, ThirdOrderFilterConf, ThirdOrderFilterParam};
 
 pub trait ButterworthFilterParam<
     C
->: ChebyshevFilterParamBase<C, ImplBase = Param<OmegaDyn<<Self as FilterParam>::F>>, TYPE = {ChebyshevType::Type1}>
+>: ChebyshevFilterParamBase<C, ImplBase = Param<OmegaDyn<<Self as FilterParam>::F>>, TYPE = false>
     + EllipticFilterParamBase<C, ImplBase = Param<OmegaEpsilonCheb1Dyn<<Self as FilterParam>::F>>>
 where
     C: Conf
