@@ -76,23 +76,16 @@ crate::def_rtf!(
 #[cfg(test)]
 mod test
 {
-    use core::marker::PhantomData;
     use std::f64::consts::TAU;
 
-    use crate::{conf::All, param::{EllipticFilterConf, OmegaEpsilon, OmegaEpsilonCheb1SecondOrder, Param, SecondOrderChebyshev1FilterParam}};
+    use crate::{conf::All, param::OmegaEpsilon};
 
-    use super::{Internals, SecondOrderChebyshev1Filter};
-
-    fn test(a: All) -> <<Param<OmegaEpsilonCheb1SecondOrder<f64>> as SecondOrderChebyshev1FilterParam<All>>::Conf as EllipticFilterConf>::Conf
-    {
-        let b: <Param<OmegaEpsilonCheb1SecondOrder<f64>> as SecondOrderChebyshev1FilterParam<All>>::Conf = a;
-        b
-    }
+    use super::SecondOrderChebyshev1Filter;
 
     #[test]
     fn plot()
     {
-        let mut filter = SecondOrderChebyshev1Filter::new::<All>(OmegaEpsilon {omega: 10000.0*TAU, epsilon: 1.0, _m: PhantomData});
+        let mut filter = SecondOrderChebyshev1Filter::new::<All>(OmegaEpsilon {omega: 10000.0*TAU, epsilon: 1.0});
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

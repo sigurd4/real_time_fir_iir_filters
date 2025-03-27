@@ -76,7 +76,6 @@ crate::def_rtf!(
 #[cfg(test)]
 mod test
 {
-    use core::marker::PhantomData;
     use std::f64::consts::TAU;
 
     use crate::{conf::All, param::OmegaEpsilon};
@@ -86,7 +85,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = SecondOrderChebyshev2Filter::new::<All>(OmegaEpsilon {omega: 10000.0*TAU, epsilon: 1.0, _m: PhantomData});
+        let mut filter = SecondOrderChebyshev2Filter::new::<All>(OmegaEpsilon {omega: 10000.0*TAU, epsilon: 1.0});
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

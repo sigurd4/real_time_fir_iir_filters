@@ -1,4 +1,4 @@
-use crate::{calc::iir::first::FirstOrderCalc, conf::{All, HighPass, LowPass}, param::{FirstOrderAllPassFilterParam, FirstOrderFilterConf, FirstOrderFilterParam, OmegaFirstOrder, Param}, real_time_fir_iir_filters};
+use crate::{calc::iir::first::FirstOrderCalc, conf::{All, HighPass, LowPass}, param::{FirstOrderFilterConf, FirstOrderFilterParam, OmegaFirstOrder, Param}, real_time_fir_iir_filters};
 
 crate::def_rtf!(
     {

@@ -1,6 +1,6 @@
 use crate::{param::{ButterworthFilterConf, ButterworthFilterParam, ChebyshevFilterParamBase, EllipticFilterParamBase, FilterFloat, FilterParam, FirstOrderFilterParamBase, Param, SecondOrderFilterParamBase, ThirdOrderFilterParamBase}, util::same::Same};
 
-use super::{Chebyshev1, OmegaEpsilonCheb1Dyn};
+use super::{ChebyshevType, OmegaEpsilonCheb1Dyn};
 
 pub type OmegaDyn<F> = Omega<F>;
 pub type OmegaFirstOrder<F> = Omega<F, 1>;
@@ -57,7 +57,7 @@ where
     F: FilterFloat,
     C: ButterworthFilterConf<ORDER>
 {
-    type Type = Chebyshev1;
+    const TYPE: ChebyshevType = ChebyshevType::Type1;
 
     type ImplBase = Param<OmegaDyn<F>>;
 }

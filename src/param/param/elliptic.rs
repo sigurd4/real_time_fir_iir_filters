@@ -1,6 +1,6 @@
 use num::{Float, One};
 
-use crate::{conf::{all, All, Conf, HighPass, LowPass}, param::{Chebyshev1, Chebyshev2, EllipticFilterParamBase, FilterParam, OmegaEpsilon, OmegaEpsilonXi, Param}, util::same::Same};
+use crate::{conf::{all, All, Conf, HighPass, LowPass}, param::{ChebyshevType, EllipticFilterParamBase, FilterParam, OmegaEpsilon, OmegaEpsilonXi, Param}, util::same::Same};
 
 use super::ChebyshevFilterParam;
 
@@ -82,9 +82,9 @@ const fn can_ln_be_calculated_through_recursion_cheb2(mut order: usize) -> bool
     }
 }
 
-impl<P, C, const ORDER: usize> EllipticFilterParam<C, Param<OmegaEpsilon<<P as FilterParam>::F, Chebyshev1, ORDER>>> for P
+impl<P, C, const ORDER: usize> EllipticFilterParam<C, Param<OmegaEpsilon<<P as FilterParam>::F, {ChebyshevType::Type1}, ORDER>>> for P
 where
-    P: ChebyshevFilterParam<C, Type = Chebyshev1, ORDER = {ORDER}, OmegaEpsilon = OmegaEpsilon<<P as FilterParam>::F, Chebyshev1, ORDER>, Conf: EllipticFilterConf> + EllipticFilterParamBase<C, ImplBase: Same<Param<OmegaEpsilon<<P as FilterParam>::F, Chebyshev1, ORDER>>>>,
+    P: ChebyshevFilterParam<C, TYPE = {ChebyshevType::Type1}, ORDER = {ORDER}, OmegaEpsilon = OmegaEpsilon<<P as FilterParam>::F, {ChebyshevType::Type1}, ORDER>, Conf: EllipticFilterConf> + EllipticFilterParamBase<C, ImplBase: Same<Param<OmegaEpsilon<<P as FilterParam>::F, {ChebyshevType::Type1}, ORDER>>>>,
     C: Conf,
     OmegaEpsilonXi<P::F, ORDER>: Same<OmegaEpsilonXi<P::F, {Self::ORDER}>>
 {
@@ -97,7 +97,7 @@ where
     where
         [(); Self::ORDER]:
     {
-        let OmegaEpsilon {omega, epsilon, _m: _} = self.omega_epsilon();
+        let OmegaEpsilon {omega, epsilon} = self.omega_epsilon();
         OmegaEpsilonXi {
             omega,
             epsilon,
@@ -106,9 +106,9 @@ where
     }
 }
 
-impl<P, C, const ORDER: usize> EllipticFilterParam<C, Param<OmegaEpsilon<<P as FilterParam>::F, Chebyshev2, ORDER>>> for P
+impl<P, C, const ORDER: usize> EllipticFilterParam<C, Param<OmegaEpsilon<<P as FilterParam>::F, {ChebyshevType::Type2}, ORDER>>> for P
 where
-    P: ChebyshevFilterParam<C, Type = Chebyshev2, ORDER = {ORDER}, OmegaEpsilon = OmegaEpsilon<<P as FilterParam>::F, Chebyshev2, ORDER>, Conf: EllipticFilterConf> + EllipticFilterParamBase<C, ImplBase: Same<Param<OmegaEpsilon<<P as FilterParam>::F, Chebyshev2, ORDER>>>>,
+    P: ChebyshevFilterParam<C, TYPE = {ChebyshevType::Type2}, ORDER = {ORDER}, OmegaEpsilon = OmegaEpsilon<<P as FilterParam>::F, {ChebyshevType::Type2}, ORDER>, Conf: EllipticFilterConf> + EllipticFilterParamBase<C, ImplBase: Same<Param<OmegaEpsilon<<P as FilterParam>::F, {ChebyshevType::Type2}, ORDER>>>>,
     C: Conf,
     OmegaEpsilonXi<P::F, ORDER>: Same<OmegaEpsilonXi<P::F, {Self::ORDER}>>,
     [(); can_ln_be_calculated_through_recursion_cheb2(Self::ORDER) as usize - 1]: // For now. It is possible to do it otherwise, but not implemented yet
@@ -120,7 +120,7 @@ where
 
     fn omega_epsilon_xi(&self) -> Self::OmegaEpsilonXi
     {
-        let OmegaEpsilon {omega, epsilon, _m: _} = self.omega_epsilon();
+        let OmegaEpsilon {omega, epsilon} = self.omega_epsilon();
 
         let mut xi = omega.recip();
 
@@ -294,9 +294,9 @@ impl_composite_conf!(LowPass, HighPass => All);
 
 mod private
 {
-    use crate::param::{ButterworthFilterConf, ButterworthFilterParam, ChebyshevFilterParam, DynOrderButterworthFilterParam, DynOrderChebyshev1FilterParam, DynOrderChebyshev2FilterParam, EllipticFilterConf, FirstOrderButterworthFilterParam, FirstOrderChebyshev1FilterParam, FirstOrderChebyshev2FilterParam, OmegaDyn, OmegaEpsilonCheb1Dyn, OmegaEpsilonCheb1FirstOrder, OmegaEpsilonCheb1SecondOrder, OmegaEpsilonCheb2Dyn, OmegaEpsilonCheb2FirstOrder, OmegaEpsilonCheb2SecondOrder, OmegaEpsilonXiDyn, OmegaEpsilonXiFirstOrder, OmegaEpsilonXiSecondOrder, OmegaFirstOrder, OmegaSecondOrder, Param, SecondOrderButterworthFilterParam, SecondOrderChebyshev1FilterParam, SecondOrderChebyshev2FilterParam};
+    use crate::param::{ButterworthFilterConf, DynOrderButterworthFilterParam, DynOrderChebyshev1FilterParam, DynOrderChebyshev2FilterParam, EllipticFilterConf, FirstOrderButterworthFilterParam, FirstOrderChebyshev1FilterParam, FirstOrderChebyshev2FilterParam, OmegaDyn, OmegaEpsilonCheb1Dyn, OmegaEpsilonCheb1FirstOrder, OmegaEpsilonCheb1SecondOrder, OmegaEpsilonCheb2Dyn, OmegaEpsilonCheb2FirstOrder, OmegaEpsilonCheb2SecondOrder, OmegaEpsilonXiDyn, OmegaEpsilonXiFirstOrder, OmegaEpsilonXiSecondOrder, OmegaFirstOrder, OmegaSecondOrder, Param, SecondOrderButterworthFilterParam, SecondOrderChebyshev1FilterParam, SecondOrderChebyshev2FilterParam};
 
-    use super::{DynOrderEllipticFilterParam, EllipticFilterParam, FirstOrderEllipticFilterParam, SecondOrderEllipticFilterParam};
+    use super::{DynOrderEllipticFilterParam, FirstOrderEllipticFilterParam, SecondOrderEllipticFilterParam};
 
     pub trait EllipticFilterConfFinal<C>: EllipticFilterConf<
         Conf = Self

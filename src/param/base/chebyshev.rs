@@ -6,7 +6,7 @@ pub trait ChebyshevFilterParamBase<C>: EllipticFilterParamBase<C>
 where
     C: Conf
 {
-    type Type: ChebyshevType;
+    const TYPE: ChebyshevType;
 
     /// If in doubt, set this to [Self]
     type ImplBase: ChebyshevFilterParamBase<All, ImplBase = <Self as ChebyshevFilterParamBase<C>>::ImplBase>;
