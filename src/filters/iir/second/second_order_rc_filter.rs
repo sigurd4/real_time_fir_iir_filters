@@ -1,6 +1,4 @@
-use num::Float;
-
-use crate::{conf::{All, BandPass, HighPass, LowPass}, param::{SecondOrderRCFilterConf, SecondOrderRCFilterParam}, params::RC2, real_time_fir_iir_filters};
+use crate::{calc::iir::second::SecondOrderRCCalc, conf::{All, BandPass, HighPass, LowPass}, param::{SecondOrderRCFilterConf, SecondOrderRCFilterParam, RC2}, real_time_fir_iir_filters};
 
 crate::def_rtf!(
     {
@@ -50,432 +48,205 @@ crate::def_rtf!(
 
         fn make_coeffs<All>(param, rate) -> _
         {
-            let r1 = param.r1();
-            let c1 = param.c1();
-            let r2 = param.r2();
-            let c2 = param.c2();
-
-            let one = F::one();
-            let zero = F::zero();
-
-            let two_rate = rate + rate;
-            let two_r1_rate = r1*two_rate;
-            let two_c1_r1_rate = c1*two_r1_rate;
-            let two_c2_r2_rate = c2*r2*two_rate;
-            let two_c2_r1_rate = c2*two_r1_rate;
+            let calc = SecondOrderRCCalc::new(param.rc2(), rate);
             (
                 ([], [], [
-                    second_order_rc_low_pass_filter_b(one),
-                    second_order_rc_band_pass_filter1_b(two_c1_r1_rate, zero),
-                    second_order_rc_band_pass_filter2_b(two_c2_r2_rate, zero),
-                    second_order_rc_high_pass_filter_b(two_c1_r1_rate, two_c2_r2_rate)
+                    calc.b_low(),
+                    calc.b_band1(),
+                    calc.b_band2(),
+                    calc.b_high()
                 ]),
                 [([], [
-                    second_order_rc_filter_a(two_c1_r1_rate, two_c2_r2_rate, two_c2_r1_rate)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<LowPass>(param, rate) -> _
         {
-            let r1 = param.r1();
-            let c1 = param.c1();
-            let r2 = param.r2();
-            let c2 = param.c2();
-
-            let one = F::one();
-
-            let two_rate = rate + rate;
-            let two_r1_rate = r1*two_rate;
-            let two_c1_r1_rate = c1*two_r1_rate;
-            let two_c2_r2_rate = c2*r2*two_rate;
-            let two_c2_r1_rate = c2*two_r1_rate;
+            let calc = SecondOrderRCCalc::<F, ()>::new(param.rc2(), rate);
             (
                 ([], [], [
-                    second_order_rc_low_pass_filter_b(one)
+                    calc.b_low()
                 ]),
                 [([], [
-                    second_order_rc_filter_a(two_c1_r1_rate, two_c2_r2_rate, two_c2_r1_rate)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<BandPass<1>>(param, rate) -> _
         {
-            let r1 = param.r1();
-            let c1 = param.c1();
-            let r2 = param.r2();
-            let c2 = param.c2();
-
-            let zero = F::zero();
-
-            let two_rate = rate + rate;
-            let two_r1_rate = r1*two_rate;
-            let two_c1_r1_rate = c1*two_r1_rate;
-            let two_c2_r2_rate = c2*r2*two_rate;
-            let two_c2_r1_rate = c2*two_r1_rate;
+            let calc = SecondOrderRCCalc::new(param.rc2(), rate);
             (
                 ([], [], [
-                    second_order_rc_band_pass_filter1_b(two_c1_r1_rate, zero)
+                    calc.b_band1()
                 ]),
                 [([], [
-                    second_order_rc_filter_a(two_c1_r1_rate, two_c2_r2_rate, two_c2_r1_rate)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<BandPass<2>>(param, rate) -> _
         {
-            let r1 = param.r1();
-            let c1 = param.c1();
-            let r2 = param.r2();
-            let c2 = param.c2();
-
-            let zero = F::zero();
-
-            let two_rate = rate + rate;
-            let two_r1_rate = r1*two_rate;
-            let two_c1_r1_rate = c1*two_r1_rate;
-            let two_c2_r2_rate = c2*r2*two_rate;
-            let two_c2_r1_rate = c2*two_r1_rate;
+            let calc = SecondOrderRCCalc::new(param.rc2(), rate);
             (
                 ([], [], [
-                    second_order_rc_band_pass_filter2_b(two_c2_r2_rate, zero)
+                    calc.b_band2()
                 ]),
                 [([], [
-                    second_order_rc_filter_a(two_c1_r1_rate, two_c2_r2_rate, two_c2_r1_rate)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<HighPass>(param, rate) -> _
         {
-            let r1 = param.r1();
-            let c1 = param.c1();
-            let r2 = param.r2();
-            let c2 = param.c2();
-
-            let two_rate = rate + rate;
-            let two_r1_rate = r1*two_rate;
-            let two_c1_r1_rate = c1*two_r1_rate;
-            let two_c2_r2_rate = c2*r2*two_rate;
-            let two_c2_r1_rate = c2*two_r1_rate;
+            let calc = SecondOrderRCCalc::<F, ()>::new(param.rc2(), rate);
             (
                 ([], [], [
-                    second_order_rc_high_pass_filter_b(two_c1_r1_rate, two_c2_r2_rate)
+                    calc.b_high()
                 ]),
                 [([], [
-                    second_order_rc_filter_a(two_c1_r1_rate, two_c2_r2_rate, two_c2_r1_rate)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<(LowPass, BandPass<1>)>(param, rate) -> _
         {
-            let r1 = param.r1();
-            let c1 = param.c1();
-            let r2 = param.r2();
-            let c2 = param.c2();
-
-            let one = F::one();
-            let zero = F::zero();
-
-            let two_rate = rate + rate;
-            let two_r1_rate = r1*two_rate;
-            let two_c1_r1_rate = c1*two_r1_rate;
-            let two_c2_r2_rate = c2*r2*two_rate;
-            let two_c2_r1_rate = c2*two_r1_rate;
+            let calc = SecondOrderRCCalc::new(param.rc2(), rate);
             (
                 ([], [], [
-                    second_order_rc_low_pass_filter_b(one),
-                    second_order_rc_band_pass_filter1_b(two_c1_r1_rate, zero)
+                    calc.b_low(),
+                    calc.b_band1()
                 ]),
                 [([], [
-                    second_order_rc_filter_a(two_c1_r1_rate, two_c2_r2_rate, two_c2_r1_rate)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<(LowPass, BandPass<2>)>(param, rate) -> _
         {
-            let r1 = param.r1();
-            let c1 = param.c1();
-            let r2 = param.r2();
-            let c2 = param.c2();
-
-            let one = F::one();
-            let zero = F::zero();
-
-            let two_rate = rate + rate;
-            let two_r1_rate = r1*two_rate;
-            let two_c1_r1_rate = c1*two_r1_rate;
-            let two_c2_r2_rate = c2*r2*two_rate;
-            let two_c2_r1_rate = c2*two_r1_rate;
+            let calc = SecondOrderRCCalc::new(param.rc2(), rate);
             (
                 ([], [], [
-                    second_order_rc_low_pass_filter_b(one),
-                    second_order_rc_band_pass_filter2_b(two_c2_r2_rate, zero)
+                    calc.b_low(),
+                    calc.b_band2()
                 ]),
                 [([], [
-                    second_order_rc_filter_a(two_c1_r1_rate, two_c2_r2_rate, two_c2_r1_rate)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<(LowPass, HighPass)>(param, rate) -> _
         {
-            let r1 = param.r1();
-            let c1 = param.c1();
-            let r2 = param.r2();
-            let c2 = param.c2();
-
-            let one = F::one();
-
-            let two_rate = rate + rate;
-            let two_r1_rate = r1*two_rate;
-            let two_c1_r1_rate = c1*two_r1_rate;
-            let two_c2_r2_rate = c2*r2*two_rate;
-            let two_c2_r1_rate = c2*two_r1_rate;
+            let calc = SecondOrderRCCalc::<F, ()>::new(param.rc2(), rate);
             (
                 ([], [], [
-                    second_order_rc_low_pass_filter_b(one),
-                    second_order_rc_high_pass_filter_b(two_c1_r1_rate, two_c2_r2_rate)
+                    calc.b_low(),
+                    calc.b_high()
                 ]),
                 [([], [
-                    second_order_rc_filter_a(two_c1_r1_rate, two_c2_r2_rate, two_c2_r1_rate)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<BandPass>(param, rate) -> _
         {
-            let r1 = param.r1();
-            let c1 = param.c1();
-            let r2 = param.r2();
-            let c2 = param.c2();
-
-            let zero = F::zero();
-
-            let two_rate = rate + rate;
-            let two_r1_rate = r1*two_rate;
-            let two_c1_r1_rate = c1*two_r1_rate;
-            let two_c2_r2_rate = c2*r2*two_rate;
-            let two_c2_r1_rate = c2*two_r1_rate;
+            let calc = SecondOrderRCCalc::new(param.rc2(), rate);
             (
                 ([], [], [
-                    second_order_rc_band_pass_filter1_b(two_c1_r1_rate, zero),
-                    second_order_rc_band_pass_filter2_b(two_c2_r2_rate, zero)
+                    calc.b_band1(),
+                    calc.b_band2()
                 ]),
                 [([], [
-                    second_order_rc_filter_a(two_c1_r1_rate, two_c2_r2_rate, two_c2_r1_rate)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<(BandPass<1>, HighPass)>(param, rate) -> _
         {
-            let r1 = param.r1();
-            let c1 = param.c1();
-            let r2 = param.r2();
-            let c2 = param.c2();
-
-            let zero = F::zero();
-
-            let two_rate = rate + rate;
-            let two_r1_rate = r1*two_rate;
-            let two_c1_r1_rate = c1*two_r1_rate;
-            let two_c2_r2_rate = c2*r2*two_rate;
-            let two_c2_r1_rate = c2*two_r1_rate;
+            let calc = SecondOrderRCCalc::new(param.rc2(), rate);
             (
                 ([], [], [
-                    second_order_rc_band_pass_filter1_b(two_c1_r1_rate, zero),
-                    second_order_rc_high_pass_filter_b(two_c1_r1_rate, two_c2_r2_rate)
+                    calc.b_band1(),
+                    calc.b_high()
                 ]),
                 [([], [
-                    second_order_rc_filter_a(two_c1_r1_rate, two_c2_r2_rate, two_c2_r1_rate)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<(BandPass<2>, HighPass)>(param, rate) -> _
         {
-            let r1 = param.r1();
-            let c1 = param.c1();
-            let r2 = param.r2();
-            let c2 = param.c2();
-
-            let zero = F::zero();
-
-            let two_rate = rate + rate;
-            let two_r1_rate = r1*two_rate;
-            let two_c1_r1_rate = c1*two_r1_rate;
-            let two_c2_r2_rate = c2*r2*two_rate;
-            let two_c2_r1_rate = c2*two_r1_rate;
+            let calc = SecondOrderRCCalc::new(param.rc2(), rate);
             (
                 ([], [], [
-                    second_order_rc_band_pass_filter2_b(two_c2_r2_rate, zero),
-                    second_order_rc_high_pass_filter_b(two_c1_r1_rate, two_c2_r2_rate)
+                    calc.b_band2(),
+                    calc.b_high()
                 ]),
                 [([], [
-                    second_order_rc_filter_a(two_c1_r1_rate, two_c2_r2_rate, two_c2_r1_rate)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<(LowPass, BandPass)>(param, rate) -> _
         {
-            let r1 = param.r1();
-            let c1 = param.c1();
-            let r2 = param.r2();
-            let c2 = param.c2();
-
-            let one = F::one();
-            let zero = F::zero();
-
-            let two_rate = rate + rate;
-            let two_r1_rate = r1*two_rate;
-            let two_c1_r1_rate = c1*two_r1_rate;
-            let two_c2_r2_rate = c2*r2*two_rate;
-            let two_c2_r1_rate = c2*two_r1_rate;
+            let calc = SecondOrderRCCalc::new(param.rc2(), rate);
             (
                 ([], [], [
-                    second_order_rc_low_pass_filter_b(one),
-                    second_order_rc_band_pass_filter1_b(two_c1_r1_rate, zero),
-                    second_order_rc_band_pass_filter2_b(two_c2_r2_rate, zero)
+                    calc.b_low(),
+                    calc.b_band1(),
+                    calc.b_band2()
                 ]),
                 [([], [
-                    second_order_rc_filter_a(two_c1_r1_rate, two_c2_r2_rate, two_c2_r1_rate)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<(LowPass, BandPass<1>, HighPass)>(param, rate) -> _
         {
-            let r1 = param.r1();
-            let c1 = param.c1();
-            let r2 = param.r2();
-            let c2 = param.c2();
-
-            let one = F::one();
-            let zero = F::zero();
-
-            let two_rate = rate + rate;
-            let two_r1_rate = r1*two_rate;
-            let two_c1_r1_rate = c1*two_r1_rate;
-            let two_c2_r2_rate = c2*r2*two_rate;
-            let two_c2_r1_rate = c2*two_r1_rate;
+            let calc = SecondOrderRCCalc::new(param.rc2(), rate);
             (
                 ([], [], [
-                    second_order_rc_low_pass_filter_b(one),
-                    second_order_rc_band_pass_filter1_b(two_c1_r1_rate, zero),
-                    second_order_rc_high_pass_filter_b(two_c1_r1_rate, two_c2_r2_rate)
+                    calc.b_low(),
+                    calc.b_band1(),
+                    calc.b_high()
                 ]),
                 [([], [
-                    second_order_rc_filter_a(two_c1_r1_rate, two_c2_r2_rate, two_c2_r1_rate)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<(LowPass, BandPass<2>, HighPass)>(param, rate) -> _
         {
-            let r1 = param.r1();
-            let c1 = param.c1();
-            let r2 = param.r2();
-            let c2 = param.c2();
-
-            let one = F::one();
-            let zero = F::zero();
-
-            let two_rate = rate + rate;
-            let two_r1_rate = r1*two_rate;
-            let two_c1_r1_rate = c1*two_r1_rate;
-            let two_c2_r2_rate = c2*r2*two_rate;
-            let two_c2_r1_rate = c2*two_r1_rate;
+            let calc = SecondOrderRCCalc::new(param.rc2(), rate);
             (
                 ([], [], [
-                    second_order_rc_low_pass_filter_b(one),
-                    second_order_rc_band_pass_filter2_b(two_c2_r2_rate, zero),
-                    second_order_rc_high_pass_filter_b(two_c1_r1_rate, two_c2_r2_rate)
+                    calc.b_low(),
+                    calc.b_band2(),
+                    calc.b_high()
                 ]),
                 [([], [
-                    second_order_rc_filter_a(two_c1_r1_rate, two_c2_r2_rate, two_c2_r1_rate)
+                    calc.a()
                 ])]
             )
         }
         fn make_coeffs<(BandPass, HighPass)>(param, rate) -> _
         {
-            let r1 = param.r1();
-            let c1 = param.c1();
-            let r2 = param.r2();
-            let c2 = param.c2();
-
-            let zero = F::zero();
-
-            let two_rate = rate + rate;
-            let two_r1_rate = r1*two_rate;
-            let two_c1_r1_rate = c1*two_r1_rate;
-            let two_c2_r2_rate = c2*r2*two_rate;
-            let two_c2_r1_rate = c2*two_r1_rate;
+            let calc = SecondOrderRCCalc::new(param.rc2(), rate);
             (
                 ([], [], [
-                    second_order_rc_band_pass_filter1_b(two_c1_r1_rate, zero),
-                    second_order_rc_band_pass_filter2_b(two_c2_r2_rate, zero),
-                    second_order_rc_high_pass_filter_b(two_c1_r1_rate, two_c2_r2_rate)
+                    calc.b_band1(),
+                    calc.b_band2(),
+                    calc.b_high()
                 ]),
                 [([], [
-                    second_order_rc_filter_a(two_c1_r1_rate, two_c2_r2_rate, two_c2_r1_rate)
+                    calc.a()
                 ])]
             )
         }
     }
     where
-        [(); <CC as SecondOrderRCFilterConf>::OUTPUTS]:
+        [(); <C as SecondOrderRCFilterConf>::OUTPUTS]:
 );
-
-pub(crate) fn second_order_rc_low_pass_filter_b<F>(one: F) -> [F; 3]
-where
-    F: Float
-{
-    [
-        one,
-        one + one,
-        one,
-    ]
-}
-pub(crate) fn second_order_rc_band_pass_filter1_b<F>(two_c1_r1_rate: F, zero: F) -> [F; 3]
-where
-    F: Float
-{
-    [
-        two_c1_r1_rate,
-        zero,
-        -two_c1_r1_rate,
-    ]
-}
-pub(crate) fn second_order_rc_band_pass_filter2_b<F>(two_c2_r2_rate: F, zero: F) -> [F; 3]
-where
-    F: Float
-{
-    [
-        two_c2_r2_rate,
-        zero,
-        -two_c2_r2_rate,
-    ]
-}
-pub(crate) fn second_order_rc_high_pass_filter_b<F>(two_c1_r1_rate: F, two_c2_r2_rate: F) -> [F; 3]
-where
-    F: Float
-{
-    let four_c1_c2_r1_r2_rate2 = two_c1_r1_rate*two_c2_r2_rate;
-    let eight_c1_c2_r1_r2_rate2 = four_c1_c2_r1_r2_rate2 + four_c1_c2_r1_r2_rate2;
-    [
-        four_c1_c2_r1_r2_rate2,
-        -eight_c1_c2_r1_r2_rate2,
-        four_c1_c2_r1_r2_rate2,
-    ]
-}
-pub(crate) fn second_order_rc_filter_a<F>(two_c1_r1_rate: F, two_c2_r2_rate: F, two_c2_r1_rate: F) -> [F; 3]
-where
-    F: Float
-{
-    let one = F::one();
-    let two_c2_r2_rate_p_two_c2_r1_rate_p_two_c1_r1_rate = two_c2_r2_rate + two_c2_r1_rate + two_c1_r1_rate;
-    let four_c1_c2_r1_r2_rate2 = two_c1_r1_rate*two_c2_r2_rate;
-    let four_c1_c2_r1_r2_rate2_p_one = four_c1_c2_r1_r2_rate2 + one;
-    let one_m_four_c1_c2_r1_r2_rate2 = one - four_c1_c2_r1_r2_rate2;
-    [
-        four_c1_c2_r1_r2_rate2_p_one + two_c2_r2_rate_p_two_c2_r1_rate_p_two_c1_r1_rate,
-        one_m_four_c1_c2_r1_r2_rate2 + one_m_four_c1_c2_r1_r2_rate2,
-        four_c1_c2_r1_r2_rate2_p_one - two_c2_r2_rate_p_two_c2_r1_rate_p_two_c1_r1_rate,
-    ]
-}
 
 #[cfg(test)]
 mod test
@@ -487,7 +258,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = SecondOrderRCFilter::new::<All>(RC2::new(390e3, 100e-9, 4.7e3, 47e-12));
+        let mut filter = SecondOrderRCFilter::new::<All>(RC2 {r1: 390e3, c1: 100e-9, r2: 4.7e3, c2: 47e-12});
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }
