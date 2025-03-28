@@ -35,8 +35,6 @@ default = [
     "second_order_rlc",
     "second_order_sallen_key",
     "third_order_butterworth",
-    #"third_order_chebyshev",
-    #"third_order_elliptic",
     "third_order",
     "third_order_sallen_key",
     "wah"
@@ -77,20 +75,20 @@ second_order_rlc = ["param_rlc"]
 second_order_sallen_key = ["param_rc2_sallen_key"]
 
 third_order_butterworth = ["param_omega"]
-third_order_chebyshev1 = ["param_omega_epsilon"]
-third_order_chebyshev2 = ["param_omega_epsilon"]
-third_order_chebyshev = ["third_order_chebyshev1", "third_order_chebyshev2"]
-third_order_elliptic = ["param_omega_epsilon_xi"]
+#third_order_chebyshev1 = ["param_omega_epsilon"]
+#third_order_chebyshev2 = ["param_omega_epsilon"]
+#third_order_chebyshev = ["third_order_chebyshev1", "third_order_chebyshev2"]
+#third_order_elliptic = ["param_omega_epsilon_xi"]
 third_order = ["param_omega2_zeta"]
 third_order_sallen_key = ["param_rc3_sallen_key"]
 
 wah = ["param_wah"]
 
 butterworth = ["first_order", "second_order_butterworth", "third_order_butterworth"]
-chebyshev1 = ["second_order_chebyshev1", "third_order_chebyshev1"]
-chebyshev2 = ["second_order_chebyshev2", "third_order_chebyshev2"]
-chebyshev = ["chebyshev1", "chebyshev2", "second_order_chebyshev", "third_order_chebyshev"]
-elliptic = ["second_order_elliptic", "third_order_elliptic"]
+chebyshev1 = ["second_order_chebyshev1"]
+chebyshev2 = ["second_order_chebyshev2"]
+chebyshev = ["chebyshev1", "chebyshev2", "second_order_chebyshev"]
+elliptic = ["second_order_elliptic"]
 all_pass = ["first_order_all_pass"]
 lr = ["first_order_lr"]
 rc = ["first_order_rc", "second_order_rc"]
