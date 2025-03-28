@@ -45,7 +45,7 @@ where
                 let eight_c1_c2_r1_r2_g_rate2 = two*four_c1_c2_r1_r2_g_rate2;
                 (four_c1_c2_r1_r2_g_rate2, eight_c1_c2_r1_r2_g_rate2)
             },
-            Default::default()
+            Default::default
         );
 
         let one_p_four_c1_c2_r1_r2_rate2 = one + four_c1_c2_r1_r2_rate2;
@@ -59,10 +59,10 @@ where
             one_p_four_c1_c2_r1_r2_rate2,
             two_m_eight_c1_c2_r1_r2_rate2,
             two_c2_r1_rate_p_two_c2_r2_rate_p_two_c1_r1_rate,
-            two_g: util::same::eval_if_same(|| two*g, Default::default()),
-            two_c1_r1_g_rate: util::same::eval_if_same(|| two_c1_r1_rate*g, Default::default()),
-            zero: util::same::eval_if_same(<F as Zero>::zero, Default::default()),
-            two_c2_r2_g_rate: util::same::eval_if_same(|| two_c2_r2_rate*g, Default::default()),
+            two_g: util::same::eval_if_same(|| two*g, Default::default),
+            two_c1_r1_g_rate: util::same::eval_if_same(|| two_c1_r1_rate*g, Default::default),
+            zero: util::same::eval_if_same(<F as Zero>::zero, Default::default),
+            two_c2_r2_g_rate: util::same::eval_if_same(|| two_c2_r2_rate*g, Default::default),
             four_c1_c2_r1_r2_g_rate2,
             eight_c1_c2_r1_r2_g_rate2
         }

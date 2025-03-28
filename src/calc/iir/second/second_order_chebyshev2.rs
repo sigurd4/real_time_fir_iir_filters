@@ -43,10 +43,10 @@ where
         Self {
             omega2,
             two_omega2,
-            four_omega2: util::same::eval_if_same(|| two_omega2 + two_omega2, Default::default()),
+            four_omega2: util::same::eval_if_same(|| two_omega2 + two_omega2, Default::default),
             four_rate2,
             eight_rate2,
-            sixteen_rate2: util::same::eval_if_same(|| eight_rate2 + eight_rate2, Default::default()),
+            sixteen_rate2: util::same::eval_if_same(|| eight_rate2 + eight_rate2, Default::default),
             epsilon_inv,
             cosh_2alpha,
             four_sqrt2_rate_omega_sinh_alpha

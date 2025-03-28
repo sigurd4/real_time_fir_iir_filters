@@ -32,7 +32,7 @@ where
 
         Self {
             one,
-            zero: util::same::eval_if_same(<F as Zero>::zero, Default::default()),
+            zero: util::same::eval_if_same(<F as Zero>::zero, Default::default),
             two_c1_r1_rate,
             two_c2_r2_rate,
             two_c2_r1_rate

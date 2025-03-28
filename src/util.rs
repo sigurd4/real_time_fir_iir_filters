@@ -14,11 +14,12 @@ pub mod same
         {
             const IS_SAME: bool;
 
-            fn or_else_if_same<F>(self, eval: F) -> Self
+            fn eval_if_same<F1, F2>(if_same: F1, otherwise: F2) -> Self
             where
                 Self: Sized,
                 T: Sized,
-                F: FnOnce() -> T;
+                F1: FnOnce() -> T,
+                F2: FnOnce() -> Self;
         }
         impl<T, U> _MaybeSame<T> for U
         where
@@ -27,13 +28,14 @@ pub mod same
         {
             default const IS_SAME: bool = false;
 
-            default fn or_else_if_same<F>(self, eval: F) -> Self
+            default fn eval_if_same<F1, F2>(if_same: F1, otherwise: F2) -> Self
             where
                 Self: Sized,
                 T: Sized,
-                F: FnOnce() -> T
+                F1: FnOnce() -> T,
+                F2: FnOnce() -> Self
             {
-                self
+                otherwise()
             }
         }
         impl<T> _MaybeSame<T> for T
@@ -42,13 +44,14 @@ pub mod same
         {
             const IS_SAME: bool = true;
 
-            fn or_else_if_same<F>(self, eval: F) -> Self
+            fn eval_if_same<F1, F2>(if_same: F1, otherwise: F2) -> Self
             where
                 Self: Sized,
                 T: Sized,
-                F: FnOnce() -> T
+                F1: FnOnce() -> T,
+                F2: FnOnce() -> Self
             {
-                eval()
+                if_same()
             }
         }
     
@@ -107,13 +110,14 @@ pub mod same
         
     }
 
-    pub fn eval_if_same<T, U, F>(eval: F, otherwise: T) -> T
+    pub fn eval_if_same<T, U, F1, F2>(if_same: F1, otherwise: F2) -> T
     where
-        F: FnOnce() -> U
+        F1: FnOnce() -> U,
+        F2: FnOnce() -> T
     {
         use private::_MaybeSame;
 
-        _MaybeSame::<U>::or_else_if_same(otherwise, eval)
+        <T as _MaybeSame<U>>::eval_if_same(if_same, otherwise)
     }
 }
 
