@@ -38,7 +38,11 @@ where
             two_c2_r1_rate
         }
     }
-
+}
+impl<F, B> SecondOrderRCCalc<F, B>
+where
+    F: FilterFloat
+{
     pub fn b_low(&self) -> [F; 3]
     {
         [
