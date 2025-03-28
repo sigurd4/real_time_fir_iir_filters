@@ -51,85 +51,45 @@ where
 
     pub fn b_low_low(&self) -> [F; 4]
     {
-        let g_r2 = self.g*self.r2;
-        let three_g_r2 = g_r2*self.three;
-        [
-            g_r2,
-            three_g_r2,
-            three_g_r2,
-            g_r2,
-        ]
+        let p0 = self.g*self.r2;
+        let three_p0 = p0*self.three;
+        super::billinear4_0(p0, three_p0)
     }
     pub fn b_high_low(&self) -> [F; 4]
     {
-        let two_g_r1_c1_r2_rate = self.g*self.r1*self.c1*self.r2*self.two_rate;
-        [
-            two_g_r1_c1_r2_rate,
-            two_g_r1_c1_r2_rate,
-            -two_g_r1_c1_r2_rate,
-            -two_g_r1_c1_r2_rate,
-        ]
+        let two_p1_rate = self.g*self.r1*self.c1*self.r2*self.two_rate;
+        super::billinear4_1(two_p1_rate)
     }
     pub fn b_low_band1(&self) -> [F; 4]
     {
-        let two_g_r2_c2_rate = self.g*self.r2*self.c2*self.two_rate;
-        [
-            two_g_r2_c2_rate,
-            two_g_r2_c2_rate,
-            -two_g_r2_c2_rate,
-            -two_g_r2_c2_rate,
-        ]
+        let two_p1_rate = self.g*self.r2*self.c2*self.two_rate;
+        super::billinear4_1(two_p1_rate)
     }
     pub fn b_high_band1(&self) -> [F; 4]
     {
-        let four_g_r1_c1_r2_c2_rate2 = self.g*self.r1*self.c1*self.r2*self.c2*self.four_rate2;
-        [
-            four_g_r1_c1_r2_c2_rate2,
-            -four_g_r1_c1_r2_c2_rate2,
-            -four_g_r1_c1_r2_c2_rate2,
-            four_g_r1_c1_r2_c2_rate2,
-        ]
+        let four_p2_rate2 = self.g*self.r1*self.c1*self.r2*self.c2*self.four_rate2;
+        super::billinear4_2(four_p2_rate2)
     }
     pub fn b_low_band2(&self) -> [F; 4]
     {
-        let two_g_r2_r3_c3_rate = self.g*self.r2*self.r3*self.c3*self.two_rate;
-        [
-            two_g_r2_r3_c3_rate,
-            two_g_r2_r3_c3_rate,
-            -two_g_r2_r3_c3_rate,
-            -two_g_r2_r3_c3_rate,
-        ]
+        let two_p1_rate = self.g*self.r2*self.r3*self.c3*self.two_rate;
+        super::billinear4_1(two_p1_rate)
     }
     pub fn b_high_band2(&self) -> [F; 4]
     {
-        let four_g_r1_c1_r2_r3_c3_rate2 = self.g*self.r1*self.c1*self.r2*self.r3*self.c3*self.four_rate2;
-        [
-            four_g_r1_c1_r2_r3_c3_rate2,
-            -four_g_r1_c1_r2_r3_c3_rate2,
-            -four_g_r1_c1_r2_r3_c3_rate2,
-            four_g_r1_c1_r2_r3_c3_rate2,
-        ]
+        let four_p2_rate2 = self.g*self.r1*self.c1*self.r2*self.r3*self.c3*self.four_rate2;
+        super::billinear4_2(four_p2_rate2)
     }
     pub fn b_low_high(&self) -> [F; 4]
     {
-        let four_g_r2_c2_r3_c3_rate2 = self.g*self.r2*self.c2*self.r3*self.c3*self.four_rate2;
-        [
-            four_g_r2_c2_r3_c3_rate2,
-            -four_g_r2_c2_r3_c3_rate2,
-            -four_g_r2_c2_r3_c3_rate2,
-            four_g_r2_c2_r3_c3_rate2,
-        ]
+        let four_p2_rate2 = self.g*self.r2*self.c2*self.r3*self.c3*self.four_rate2;
+        super::billinear4_2(four_p2_rate2)
     }
     pub fn b_high_high(&self) -> [F; 4]
     {
-        let eight_g_r1_c1_r2_c2_r3_c3_rate3 = self.g*self.r1*self.c1*self.r2*self.c2*self.r3*self.c3*self.eight_rate3;
-        let twenty_four_g_r1_c1_r2_c2_r3_c3_rate3 = eight_g_r1_c1_r2_c2_r3_c3_rate3*self.three;
-        [
-            eight_g_r1_c1_r2_c2_r3_c3_rate3,
-            -twenty_four_g_r1_c1_r2_c2_r3_c3_rate3,
-            twenty_four_g_r1_c1_r2_c2_r3_c3_rate3,
-            -eight_g_r1_c1_r2_c2_r3_c3_rate3,
-        ]
+        let eight_p3_rate3 = self.g*self.r1*self.c1*self.r2*self.c2*self.r3*self.c3*self.eight_rate3;
+        let twenty_four_p3_rate3 = eight_p3_rate3*self.three;
+        super::billinear4_3(eight_p3_rate3, twenty_four_p3_rate3)
     }
     pub fn a_low(&self) -> [F; 4]
     {
@@ -145,18 +105,7 @@ where
         let four_p2_rate2 = p2*self.four_rate2;
         let eight_p3_rate3 = p3*self.eight_rate3;
         let twenty_four_p3_rate3 = eight_p3_rate3*self.three;
-        
-        let p0_p_four_p2_rate2 = p0 + four_p2_rate2;
-        let three_p0_m_four_p2_rate2 = three_p0 - four_p2_rate2;
-    
-        let two_p1_rate_p_eight_p3_rate3 = two_p1_rate + eight_p3_rate3;
-        let two_p1_rate_m_twenty_four_p3_rate3 = two_p1_rate - twenty_four_p3_rate3;
-        [
-            p0_p_four_p2_rate2 + two_p1_rate_p_eight_p3_rate3,
-            three_p0_m_four_p2_rate2 + two_p1_rate_m_twenty_four_p3_rate3,
-            three_p0_m_four_p2_rate2 - two_p1_rate_m_twenty_four_p3_rate3,
-            p0_p_four_p2_rate2 - two_p1_rate_p_eight_p3_rate3,
-        ]
+        super::billinear4_0_1_2_3(p0, three_p0, two_p1_rate, four_p2_rate2, eight_p3_rate3, twenty_four_p3_rate3)
     }
     pub fn a_band1(&self) -> [F; 4]
     {
@@ -172,18 +121,7 @@ where
         let four_p2_rate2 = p2*self.four_rate2;
         let eight_p3_rate3 = p3*self.eight_rate3;
         let twenty_four_p3_rate3 = eight_p3_rate3*self.three;
-        
-        let p0_p_four_p2_rate2 = p0 + four_p2_rate2;
-        let three_p0_m_four_p2_rate2 = three_p0 - four_p2_rate2;
-    
-        let two_p1_rate_p_eight_p3_rate3 = two_p1_rate + eight_p3_rate3;
-        let two_p1_rate_m_twenty_four_p3_rate3 = two_p1_rate - twenty_four_p3_rate3;
-        [
-            p0_p_four_p2_rate2 + two_p1_rate_p_eight_p3_rate3,
-            three_p0_m_four_p2_rate2 + two_p1_rate_m_twenty_four_p3_rate3,
-            three_p0_m_four_p2_rate2 - two_p1_rate_m_twenty_four_p3_rate3,
-            p0_p_four_p2_rate2 - two_p1_rate_p_eight_p3_rate3,
-        ]
+        super::billinear4_0_1_2_3(p0, three_p0, two_p1_rate, four_p2_rate2, eight_p3_rate3, twenty_four_p3_rate3)
     }
     pub fn a_band2(&self) -> [F; 4]
     {
@@ -199,18 +137,7 @@ where
         let four_p2_rate2 = p2*self.four_rate2;
         let eight_p3_rate3 = p3*self.eight_rate3;
         let twenty_four_p3_rate3 = eight_p3_rate3*self.three;
-
-        let p0_p_four_p2_rate2 = p0 + four_p2_rate2;
-        let three_p0_m_four_p2_rate2 = three_p0 - four_p2_rate2;
-    
-        let two_p1_rate_p_eight_p3_rate3 = two_p1_rate + eight_p3_rate3;
-        let two_p1_rate_m_twenty_four_p3_rate3 = two_p1_rate - twenty_four_p3_rate3;
-        [
-            p0_p_four_p2_rate2 + two_p1_rate_p_eight_p3_rate3,
-            three_p0_m_four_p2_rate2 + two_p1_rate_m_twenty_four_p3_rate3,
-            three_p0_m_four_p2_rate2 - two_p1_rate_m_twenty_four_p3_rate3,
-            p0_p_four_p2_rate2 - two_p1_rate_p_eight_p3_rate3,
-        ]
+        super::billinear4_0_1_2_3(p0, three_p0, two_p1_rate, four_p2_rate2, eight_p3_rate3, twenty_four_p3_rate3)
     }
     pub fn a_high(&self) -> [F; 4]
     {
@@ -226,17 +153,6 @@ where
         let four_p2_rate2 = p2*self.four_rate2;
         let eight_p3_rate3 = p3*self.eight_rate3;
         let twenty_four_p3_rate3 = eight_p3_rate3*self.three;
-
-        let p0_p_four_p2_rate2 = p0 + four_p2_rate2;
-        let three_p0_m_four_p2_rate2 = three_p0 - four_p2_rate2;
-    
-        let two_p1_rate_p_eight_p3_rate3 = two_p1_rate + eight_p3_rate3;
-        let two_p1_rate_m_twenty_four_p3_rate3 = two_p1_rate - twenty_four_p3_rate3;
-        [
-            p0_p_four_p2_rate2 + two_p1_rate_p_eight_p3_rate3,
-            three_p0_m_four_p2_rate2 + two_p1_rate_m_twenty_four_p3_rate3,
-            three_p0_m_four_p2_rate2 - two_p1_rate_m_twenty_four_p3_rate3,
-            p0_p_four_p2_rate2 - two_p1_rate_p_eight_p3_rate3,
-        ]
+        super::billinear4_0_1_2_3(p0, three_p0, two_p1_rate, four_p2_rate2, eight_p3_rate3, twenty_four_p3_rate3)
     }
 }

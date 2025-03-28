@@ -130,7 +130,6 @@ macro_rules! impl_from {
 }
 
 pub(crate) use impl_from;
-use num::Float;
 
 #[doc(hidden)]
 pub macro first_expr {
