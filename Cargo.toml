@@ -34,7 +34,7 @@ default = [
     "second_order_rc",
     "second_order_rlc",
     "second_order_sallen_key",
-    #"third_order_butterworth",
+    "third_order_butterworth",
     #"third_order_chebyshev",
     #"third_order_elliptic",
     #"third_order",
