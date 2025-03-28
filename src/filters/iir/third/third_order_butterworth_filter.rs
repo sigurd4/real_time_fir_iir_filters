@@ -1,4 +1,4 @@
-use crate::{calc::iir::third::ThirdOrderButterworthCalc, conf::{All, HighPass, LowPass, Peak}, param::{ButterworthFilterConf, ButterworthFilterParam, OmegaThirdOrder, ThirdOrderButterworthFilterConf, ThirdOrderButterworthFilterParam}, real_time_fir_iir_filters};
+use crate::{calc::iir::third::ThirdOrderButterworthCalc, conf::{All, HighPass, LowPass, Peak}, param::{ButterworthFilterConf, OmegaThirdOrder, ThirdOrderButterworthFilterConf, ThirdOrderButterworthFilterParam}, real_time_fir_iir_filters};
 
 // TODO: Do it in SOS
 crate::def_rtf!(
