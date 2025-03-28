@@ -1,29 +1,27 @@
-use num::Float;
-
-use crate::{conf::{All, BandPass, Conf, HighPass, LowPass}, internals::{ainternals, binternals, rtfinternals}, param::{FilterFloat, FirstOrderRCFilterConf, SecondOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParam}, params::RC3GSallenKey, rtf::RtfBase, static_rtf::StaticRtfBase, util::same::Same};
+use crate::{calc::iir::third::ThirdOrderSallenKeyCalc, conf::{self, All, BandPass, HighPass, LowPass}, internals::{ainternals, binternals, rtfinternals}, param::{FilterFloat, FilterParam, FirstOrderRCFilterConf, Param, RC3GSallenKey, SecondOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParam}, rtf::RtfBase, static_rtf::StaticRtfBase};
 
 #[allow(type_alias_bounds)]
-type BInternals<F, CC1: FirstOrderRCFilterConf, CC2: SecondOrderSallenKeyFilterConf> = binternals!(
+type BInternals<F, C1: FirstOrderRCFilterConf, C2: SecondOrderSallenKeyFilterConf> = binternals!(
     F,
-    <CC2 as SecondOrderSallenKeyFilterConf>::OUTPUTS*<CC1 as FirstOrderRCFilterConf>::OUTPUTS,
-    <CC2 as SecondOrderSallenKeyFilterConf>::OUTPUTS,
+    <C2 as SecondOrderSallenKeyFilterConf>::OUTPUTS*<C1 as FirstOrderRCFilterConf>::OUTPUTS,
+    <C2 as SecondOrderSallenKeyFilterConf>::OUTPUTS,
     1,
     0,
     3
 );
 #[allow(type_alias_bounds)]
-type AInternals<F, CC1: FirstOrderRCFilterConf, CC2: SecondOrderSallenKeyFilterConf> = ainternals!(
+type AInternals<F, C1: FirstOrderRCFilterConf, C2: SecondOrderSallenKeyFilterConf> = ainternals!(
     F,
-    <CC2 as SecondOrderSallenKeyFilterConf>::OUTPUTS,
+    <C2 as SecondOrderSallenKeyFilterConf>::OUTPUTS,
     1,
     0,
     3
 );
 #[allow(type_alias_bounds)]
-type Internals<F, CC1: FirstOrderRCFilterConf, CC2: SecondOrderSallenKeyFilterConf> = rtfinternals!(
+type Internals<F, C1: FirstOrderRCFilterConf, C2: SecondOrderSallenKeyFilterConf> = rtfinternals!(
     F,
-    <CC2 as SecondOrderSallenKeyFilterConf>::OUTPUTS*<CC1 as FirstOrderRCFilterConf>::OUTPUTS,
-    <CC2 as SecondOrderSallenKeyFilterConf>::OUTPUTS,
+    <C2 as SecondOrderSallenKeyFilterConf>::OUTPUTS*<C1 as FirstOrderRCFilterConf>::OUTPUTS,
+    <C2 as SecondOrderSallenKeyFilterConf>::OUTPUTS,
     1,
     0,
     3,
@@ -116,46 +114,43 @@ type Internals<F, CC1: FirstOrderRCFilterConf, CC2: SecondOrderSallenKeyFilterCo
 ///           GND           GND
 /// ```
 pub struct ThirdOrderSallenKeyFilter<
+    C,
     F,
     P = RC3GSallenKey<F>,
-    C = All,
-    CC1 = <<P as ThirdOrderSallenKeyFilterParam<C>>::Conf as ThirdOrderSallenKeyFilterConf>::S1Conf,
-    CC2 = <<P as ThirdOrderSallenKeyFilterParam<C>>::Conf as ThirdOrderSallenKeyFilterConf>::S2Conf,
-    CC = <<P as ThirdOrderSallenKeyFilterParam<C>>::Conf as ThirdOrderSallenKeyFilterConf>::Conf
+    C1 = <C as ThirdOrderSallenKeyFilterConf>::S1Conf,
+    C2 = <C as ThirdOrderSallenKeyFilterConf>::S2Conf
 >
 where
     F: FilterFloat,
-    P: ThirdOrderSallenKeyFilterParam<C, F = F>,
-    C: Conf,
-    CC1: FirstOrderRCFilterConf,
-    CC2: SecondOrderSallenKeyFilterConf,
-    CC: ThirdOrderSallenKeyFilterConf,
-    P::Conf: ThirdOrderSallenKeyFilterConf<Conf = CC, S1Conf = CC1, S2Conf = CC2>,
-    [(); <CC2 as SecondOrderSallenKeyFilterConf>::OUTPUTS]:,
-    [(); <CC2 as SecondOrderSallenKeyFilterConf>::OUTPUTS*<CC1 as FirstOrderRCFilterConf>::OUTPUTS]:
+    Param<P>: ThirdOrderSallenKeyFilterParam<C, Conf = C, F = F>,
+    C: ThirdOrderSallenKeyFilterConf<Conf = C, S1Conf = C1, S2Conf = C2>,
+    C1: FirstOrderRCFilterConf<Conf = C1>,
+    C2: SecondOrderSallenKeyFilterConf<Conf = C2>,
+    [(); <C1 as FirstOrderRCFilterConf>::OUTPUTS]:,
+    [(); <C2 as SecondOrderSallenKeyFilterConf>::OUTPUTS*<C1 as FirstOrderRCFilterConf>::OUTPUTS]:
 {
-    pub param: P,
-    pub internals: Internals<P::F, CC1, CC2>,
+    pub param: Param<P>,
+    pub internals: Internals<F, C1, C2>,
     phantom: core::marker::PhantomData<C>
 }
 
-impl<P, C, CC1, CC2> ThirdOrderSallenKeyFilter<P::F, P, C, CC1, CC2>
+impl<P, C, C1, C2> ThirdOrderSallenKeyFilter<C, <Param<P> as FilterParam>::F, P, C1, C2>
 where
-    P: ThirdOrderSallenKeyFilterParam<C>,
-    C: Conf,
-    CC1: FirstOrderRCFilterConf,
-    CC2: SecondOrderSallenKeyFilterConf,
-    P::Conf: ThirdOrderSallenKeyFilterConf<S1Conf = CC1, S2Conf = CC2>,
-    [(); <CC2 as SecondOrderSallenKeyFilterConf>::OUTPUTS]:,
-    [(); <CC2 as SecondOrderSallenKeyFilterConf>::OUTPUTS*<CC1 as FirstOrderRCFilterConf>::OUTPUTS]:
+    Param<P>: ThirdOrderSallenKeyFilterParam<C, Conf = C>,
+    C: ThirdOrderSallenKeyFilterConf<Conf = C, S1Conf = C1, S2Conf = C2>,
+    C1: FirstOrderRCFilterConf<Conf = C1>,
+    C2: SecondOrderSallenKeyFilterConf<Conf = C2>,
+    [(); <C1 as FirstOrderRCFilterConf>::OUTPUTS]:,
+    [(); <C2 as SecondOrderSallenKeyFilterConf>::OUTPUTS*<C1 as FirstOrderRCFilterConf>::OUTPUTS]:
 {
-    pub const fn new<CCC>(param: P) -> Self
+    pub const fn new<Conf>(param: P) -> Self
     where
-        CCC: Conf + Same<C>
+        Param<P>: ThirdOrderSallenKeyFilterParam<Conf, Conf: ThirdOrderSallenKeyFilterConf<Conf = C, S1Conf = C1, S2Conf = C2>>,
+        Conf: conf::Conf
     {
         Self {
-            param,
-            internals: Internals::<P::F, CC1, CC2>::new(),
+            param: Param::new(param),
+            internals: Internals::new(),
             phantom: core::marker::PhantomData
         }
     }
@@ -171,24 +166,22 @@ macro_rules! c {
         )*
     ) => {
         $(
-            impl<P, C> RtfBase for ThirdOrderSallenKeyFilter<P::F, P, C, $conf1, $conf2, <P::Conf as ThirdOrderSallenKeyFilterConf>::Conf>
+            impl<P, C> RtfBase for ThirdOrderSallenKeyFilter<C, <Param<P> as FilterParam>::F, P, $conf1, $conf2>
             where
-                P: ThirdOrderSallenKeyFilterParam<C>,
-                C: Conf,
-                P::Conf: ThirdOrderSallenKeyFilterConf<S1Conf = $conf1, S2Conf = $conf2>,
+                Param<P>: ThirdOrderSallenKeyFilterParam<C, Conf = C>,
+                C: ThirdOrderSallenKeyFilterConf<Conf = C, S1Conf = $conf1, S2Conf = $conf2>,
                 $($($where_c)+)?
             {
-                type Conf = <P::Conf as ThirdOrderSallenKeyFilterConf>::Conf;
-                type F = P::F;
+                type Conf = C;
+                type F = <Param<P> as FilterParam>::F;
             
                 const IS_IIR: bool = true;
                 const OUTPUTS: usize = <$conf2 as SecondOrderSallenKeyFilterConf>::OUTPUTS*<$conf1 as FirstOrderRCFilterConf>::OUTPUTS;
             }
-            impl<P, C> StaticRtfBase for ThirdOrderSallenKeyFilter<P::F, P, C, $conf1, $conf2, <P::Conf as ThirdOrderSallenKeyFilterConf>::Conf>
+            impl<P, C> StaticRtfBase for ThirdOrderSallenKeyFilter<C, <Param<P> as FilterParam>::F, P, $conf1, $conf2>
             where
-                P: ThirdOrderSallenKeyFilterParam<C>,
-                C: Conf,
-                P::Conf: ThirdOrderSallenKeyFilterConf<S1Conf = $conf1, S2Conf = $conf2>,
+                Param<P>: ThirdOrderSallenKeyFilterParam<C, Conf = C>,
+                C: ThirdOrderSallenKeyFilterConf<Conf = C, S1Conf = $conf1, S2Conf = $conf2>,
                 $($($where_c)+)?
             {
                 type Param = P;
@@ -201,47 +194,46 @@ macro_rules! c {
                 fn from_param(param: Self::Param) -> Self
                 {
                     Self {
-                        param,
-                        internals: Internals::<P::F, $conf1, $conf2>::new(),
+                        param: Param::new(param),
+                        internals: Internals::new(),
                         phantom: core::marker::PhantomData
                     }
                 }
                 fn get_param(&self) -> &Self::Param
                 {
-                    &self.param
+                    &*self.param
                 }
                 fn get_param_mut(&mut self) -> &mut Self::Param
                 {
-                    &mut self.param
+                    &mut *self.param
                 }
                 fn into_param(self) -> Self::Param
                 {
-                    self.param
+                    self.param.into_value()
                 }
                 
-                fn get_internals(&self) -> (&Internals<P::F, $conf1, $conf2>, &Self::Param)
+                fn get_internals(&self) -> (&Internals<<Param<P> as FilterParam>::F, $conf1, $conf2>, &Param<Self::Param>)
                 {
                     (&self.internals, &self.param)
                 }
-                fn get_internals_mut(&mut self) -> (&mut Internals<P::F, $conf1, $conf2>, &mut Self::Param)
+                fn get_internals_mut(&mut self) -> (&mut Internals<<Param<P> as FilterParam>::F, $conf1, $conf2>, &mut Param<Self::Param>)
                 {
                     (&mut self.internals, &mut self.param)
                 }
 
-                fn make_coeffs($arg_param: &Self::Param, $arg_rate: Self::F) -> (
-                    BInternals<P::F, $conf1, $conf2>,
-                    [AInternals<P::F, $conf1, $conf2>; true as usize]
+                fn make_coeffs($arg_param: &Param<Self::Param>, $arg_rate: Self::F) -> (
+                    BInternals<<Param<P> as FilterParam>::F, $conf1, $conf2>,
+                    [AInternals<<Param<P> as FilterParam>::F, $conf1, $conf2>; true as usize]
                 )
                 {
-                    fn make_coeffs<F, P, C>($arg_param: &P, $arg_rate: F) -> (
+                    fn make_coeffs<F, P, C>($arg_param: &Param<P>, $arg_rate: F) -> (
                         BInternals<F, $conf1, $conf2>,
                         [AInternals<F, $conf1, $conf2>; true as usize]
                     )
                     where
                         F: FilterFloat,
-                        P: ThirdOrderSallenKeyFilterParam<C, F = F>,
-                        C: Conf,
-                        P::Conf: ThirdOrderSallenKeyFilterConf<S1Conf = $conf1, S2Conf = $conf2>,
+                        Param<P>: ThirdOrderSallenKeyFilterParam<C, Conf = C, F = F>,
+                        C: ThirdOrderSallenKeyFilterConf<Conf = C, S1Conf = $conf1, S2Conf = $conf2>,
                         $($($where_c)+)?
                     $make_coeffs
 
@@ -255,376 +247,211 @@ macro_rules! c {
 c!(
     fn make_coeffs<All, All>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_low_pass_filter_b(g, r2),
-                third_order_sallen_key_band_pass_filter1_b(c1, g, r1, r2, rate),
-                third_order_sallen_key_band_pass_filter2_b(c2, g, r2, rate),
-                third_order_sallen_key_band_pass_filter3_b(c1, c2, g, r1, r2, rate2),
-                third_order_sallen_key_band_pass_filter4_b(c3, g, r2, r3, rate),
-                third_order_sallen_key_band_pass_filter5_b(c1, c3, g, r1, r2, r3, rate2),
-                third_order_sallen_key_band_pass_filter6_b(c2, c3, g, r2, r3, rate2),
-                third_order_sallen_key_high_pass_filter_b(c1, c2, c3, g, r1, r2, r3, rate3)
+                calc.b_low_low(),
+                calc.b_high_low(),
+                calc.b_low_band1(),
+                calc.b_high_band1(),
+                calc.b_low_band2(),
+                calc.b_high_band2(),
+                calc.b_low_high(),
+                calc.b_high_high()
             ]),
             [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_low(),
+                calc.a_band1(),
+                calc.a_band2(),
+                calc.a_high()
             ])]
         )
     }
     fn make_coeffs<LowPass, All>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_low_pass_filter_b(g, r2),
-                third_order_sallen_key_band_pass_filter2_b(c2, g, r2, rate),
-                third_order_sallen_key_band_pass_filter4_b(c3, g, r2, r3, rate),
-                third_order_sallen_key_band_pass_filter6_b(c2, c3, g, r2, r3, rate2)
+                calc.b_low_low(),
+                calc.b_low_band1(),
+                calc.b_low_band2(),
+                calc.b_low_high()
             ]),
             [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_low(),
+                calc.a_band1(),
+                calc.a_band2(),
+                calc.a_high()
             ])]
         )
     }
     fn make_coeffs<HighPass, All>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter1_b(c1, g, r1, r2, rate),
-                third_order_sallen_key_band_pass_filter3_b(c1, c2, g, r1, r2, rate2),
-                third_order_sallen_key_band_pass_filter5_b(c1, c3, g, r1, r2, r3, rate2),
-                third_order_sallen_key_high_pass_filter_b(c1, c2, c3, g, r1, r2, r3, rate3)
+                calc.b_high_low(),
+                calc.b_high_band1(),
+                calc.b_high_band2(),
+                calc.b_high_high()
             ]),
             [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_low(),
+                calc.a_band1(),
+                calc.a_band2(),
+                calc.a_high()
             ])]
         )
     }
 
     fn make_coeffs<All, LowPass>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_low_pass_filter_b(g, r2),
-                third_order_sallen_key_band_pass_filter1_b(c1, g, r1, r2, rate)
+                calc.b_low_low(),
+                calc.b_high_low()
             ]),
             [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_low()
             ])]
         )
     }
     fn make_coeffs<LowPass, LowPass>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_low_pass_filter_b(g, r2)
+                calc.b_low_low()
             ]),
             [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_low()
             ])]
         )
     }
     fn make_coeffs<HighPass, LowPass>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter1_b(c1, g, r1, r2, rate)
+                calc.b_high_low()
             ]),
             [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_low()
             ])]
         )
     }
     
     fn make_coeffs<All, BandPass<1>>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter2_b(c2, g, r2, rate),
-                third_order_sallen_key_band_pass_filter3_b(c1, c2, g, r1, r2, rate2)
+                calc.b_low_band1(),
+                calc.b_high_band1()
             ]),
             [([], [
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_band1()
             ])]
         )
     }
     fn make_coeffs<LowPass, BandPass<1>>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter2_b(c2, g, r2, rate)
+                calc.b_low_band1()
             ]),
             [([], [
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_band1()
             ])]
         )
     }
     fn make_coeffs<HighPass, BandPass<1>>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter3_b(c1, c2, g, r1, r2, rate2)
+                calc.b_high_band1()
             ]),
             [([], [
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_band1()
             ])]
         )
     }
     
     fn make_coeffs<All, BandPass<2>>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter4_b(c3, g, r2, r3, rate),
-                third_order_sallen_key_band_pass_filter5_b(c1, c3, g, r1, r2, r3, rate2)
+                calc.b_low_band2(),
+                calc.b_high_band2()
             ]),
             [([], [
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_band2()
             ])]
         )
     }
     fn make_coeffs<LowPass, BandPass<2>>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter4_b(c3, g, r2, r3, rate)
+                calc.b_low_band2()
             ]),
             [([], [
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_band2()
             ])]
         )
     }
     fn make_coeffs<HighPass, BandPass<2>>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter5_b(c1, c3, g, r1, r2, r3, rate2)
+                calc.b_high_band2()
             ]),
             [([], [
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_band2()
             ])]
         )
     }
     
     fn make_coeffs<All, HighPass>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter6_b(c2, c3, g, r2, r3, rate2),
-                third_order_sallen_key_high_pass_filter_b(c1, c2, c3, g, r1, r2, r3, rate3)
+                calc.b_low_high(),
+                calc.b_high_high()
             ]),
             [([], [
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_high()
             ])]
         )
     }
     fn make_coeffs<LowPass, HighPass>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter6_b(c2, c3, g, r2, r3, rate2)
+                calc.b_low_high()
             ]),
             [([], [
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_high()
             ])]
         )
     }
     fn make_coeffs<HighPass, HighPass>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_high_pass_filter_b(c1, c2, c3, g, r1, r2, r3, rate3)
+                calc.b_high_high()
             ]),
             [([], [
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_high()
             ])]
         )
     }
@@ -633,1030 +460,496 @@ c!(
 
     fn make_coeffs<All, (LowPass, BandPass<1>)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_low_pass_filter_b(g, r2),
-                third_order_sallen_key_band_pass_filter1_b(c1, g, r1, r2, rate),
-                third_order_sallen_key_band_pass_filter2_b(c2, g, r2, rate),
-                third_order_sallen_key_band_pass_filter3_b(c1, c2, g, r1, r2, rate2)
+                calc.b_low_low(),
+                calc.b_high_low(),
+                calc.b_low_band1(),
+                calc.b_high_band1()
             ]),
             [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_low(),
+                calc.a_band1()
             ])]
         )
     }
     fn make_coeffs<LowPass, (LowPass, BandPass<1>)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_low_pass_filter_b(g, r2),
-                third_order_sallen_key_band_pass_filter2_b(c2, g, r2, rate)
+                calc.b_low_low(),
+                calc.b_low_band1()
             ]),
             [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_low(),
+                calc.a_band1()
             ])]
         )
     }
     fn make_coeffs<HighPass, (LowPass, BandPass<1>)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter1_b(c1, g, r1, r2, rate),
-                third_order_sallen_key_band_pass_filter3_b(c1, c2, g, r1, r2, rate2)
+                calc.b_high_low(),
+                calc.b_high_band1()
             ]),
             [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_low(),
+                calc.a_band1()
             ])]
         )
     }
     
     fn make_coeffs<All, (LowPass, BandPass<2>)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_low_pass_filter_b(g, r2),
-                third_order_sallen_key_band_pass_filter1_b(c1, g, r1, r2, rate),
-                third_order_sallen_key_band_pass_filter4_b(c3, g, r2, r3, rate),
-                third_order_sallen_key_band_pass_filter5_b(c1, c3, g, r1, r2, r3, rate2)
+                calc.b_low_low(),
+                calc.b_high_low(),
+                calc.b_low_band2(),
+                calc.b_high_band2()
             ]),
             [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_low(),
+                calc.a_band2()
             ])]
         )
     }
     fn make_coeffs<LowPass, (LowPass, BandPass<2>)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_low_pass_filter_b(g, r2),
-                third_order_sallen_key_band_pass_filter4_b(c3, g, r2, r3, rate)
+                calc.b_low_low(),
+                calc.b_low_band2()
             ]),
             [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_low(),
+                calc.a_band2()
             ])]
         )
     }
     fn make_coeffs<HighPass, (LowPass, BandPass<2>)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter1_b(c1, g, r1, r2, rate),
-                third_order_sallen_key_band_pass_filter5_b(c1, c3, g, r1, r2, r3, rate2)
+                calc.b_high_low(),
+                calc.b_high_band2()
             ]),
             [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_low(),
+                calc.a_band2()
             ])]
         )
     }
     
     fn make_coeffs<All, (LowPass, HighPass)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_low_pass_filter_b(g, r2),
-                third_order_sallen_key_band_pass_filter1_b(c1, g, r1, r2, rate),
-                third_order_sallen_key_band_pass_filter6_b(c2, c3, g, r2, r3, rate2),
-                third_order_sallen_key_high_pass_filter_b(c1, c2, c3, g, r1, r2, r3, rate3)
+                calc.b_low_low(),
+                calc.b_high_low(),
+                calc.b_low_high(),
+                calc.b_high_high()
             ]),
             [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_low(),
+                calc.a_high()
             ])]
         )
     }
     fn make_coeffs<LowPass, (LowPass, HighPass)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_low_pass_filter_b(g, r2),
-                third_order_sallen_key_band_pass_filter6_b(c2, c3, g, r2, r3, rate2)
+                calc.b_low_low(),
+                calc.b_low_high()
             ]),
             [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_low(),
+                calc.a_high()
             ])]
         )
     }
     fn make_coeffs<HighPass, (LowPass, HighPass)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter1_b(c1, g, r1, r2, rate),
-                third_order_sallen_key_high_pass_filter_b(c1, c2, c3, g, r1, r2, r3, rate3)
+                calc.b_high_low(),
+                calc.b_high_high()
             ]),
             [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_low(),
+                calc.a_high()
             ])]
         )
     }
     
     fn make_coeffs<All, BandPass>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter2_b(c2, g, r2, rate),
-                third_order_sallen_key_band_pass_filter3_b(c1, c2, g, r1, r2, rate2),
-                third_order_sallen_key_band_pass_filter4_b(c3, g, r2, r3, rate),
-                third_order_sallen_key_band_pass_filter5_b(c1, c3, g, r1, r2, r3, rate2)
+                calc.b_low_band1(),
+                calc.b_high_band1(),
+                calc.b_low_band2(),
+                calc.b_high_band2()
             ]),
             [([], [
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_band1(),
+                calc.a_band2()
             ])]
         )
     }
     fn make_coeffs<LowPass, BandPass>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter2_b(c2, g, r2, rate),
-                third_order_sallen_key_band_pass_filter4_b(c3, g, r2, r3, rate)
+                calc.b_low_band1(),
+                calc.b_low_band2()
             ]),
             [([], [
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_band1(),
+                calc.a_band2()
             ])]
         )
     }
     fn make_coeffs<HighPass, BandPass>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter3_b(c1, c2, g, r1, r2, rate2),
-                third_order_sallen_key_band_pass_filter5_b(c1, c3, g, r1, r2, r3, rate2)
+                calc.b_high_band1(),
+                calc.b_high_band2()
             ]),
             [([], [
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_band1(),
+                calc.a_band2()
             ])]
         )
     }
     
     fn make_coeffs<All, (BandPass<1>, HighPass)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter2_b(c2, g, r2, rate),
-                third_order_sallen_key_band_pass_filter3_b(c1, c2, g, r1, r2, rate2),
-                third_order_sallen_key_band_pass_filter6_b(c2, c3, g, r2, r3, rate2),
-                third_order_sallen_key_high_pass_filter_b(c1, c2, c3, g, r1, r2, r3, rate3)
+                calc.b_low_band1(),
+                calc.b_high_band1(),
+                calc.b_low_high(),
+                calc.b_high_high()
             ]),
             [([], [
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_band1(),
+                calc.a_high()
             ])]
         )
     }
     fn make_coeffs<LowPass, (BandPass<1>, HighPass)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter2_b(c2, g, r2, rate),
-                third_order_sallen_key_band_pass_filter6_b(c2, c3, g, r2, r3, rate2)
+                calc.b_low_band1(),
+                calc.b_low_high()
             ]),
             [([], [
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_band1(),
+                calc.a_high()
             ])]
         )
     }
     fn make_coeffs<HighPass, (BandPass<1>, HighPass)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter3_b(c1, c2, g, r1, r2, rate2),
-                third_order_sallen_key_high_pass_filter_b(c1, c2, c3, g, r1, r2, r3, rate3)
+                calc.b_high_band1(),
+                calc.b_high_high()
             ]),
             [([], [
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_band1(),
+                calc.a_band2()
             ])]
         )
     }
     
     fn make_coeffs<All, (BandPass<2>, HighPass)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter4_b(c3, g, r2, r3, rate),
-                third_order_sallen_key_band_pass_filter5_b(c1, c3, g, r1, r2, r3, rate2),
-                third_order_sallen_key_band_pass_filter6_b(c2, c3, g, r2, r3, rate2),
-                third_order_sallen_key_high_pass_filter_b(c1, c2, c3, g, r1, r2, r3, rate3)
+                calc.b_low_band2(),
+                calc.b_high_band2(),
+                calc.b_low_high(),
+                calc.b_high_high()
             ]),
             [([], [
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_band2(),
+                calc.a_high()
             ])]
         )
     }
     fn make_coeffs<LowPass, (BandPass<2>, HighPass)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter4_b(c3, g, r2, r3, rate),
-                third_order_sallen_key_band_pass_filter6_b(c2, c3, g, r2, r3, rate2)
+                calc.b_low_band2(),
+                calc.b_low_high()
             ]),
             [([], [
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_band2(),
+                calc.a_high()
             ])]
         )
     }
     fn make_coeffs<HighPass, (BandPass<2>, HighPass)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter5_b(c1, c3, g, r1, r2, r3, rate2),
-                third_order_sallen_key_high_pass_filter_b(c1, c2, c3, g, r1, r2, r3, rate3)
+                calc.b_high_band2(),
+                calc.b_high_high()
             ]),
             [([], [
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_band2(),
+                calc.a_high()
             ])]
         )
     }
     
     fn make_coeffs<All, (LowPass, BandPass)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_low_pass_filter_b(g, r2),
-                third_order_sallen_key_band_pass_filter1_b(c1, g, r1, r2, rate),
-                third_order_sallen_key_band_pass_filter2_b(c2, g, r2, rate),
-                third_order_sallen_key_band_pass_filter3_b(c1, c2, g, r1, r2, rate2),
-                third_order_sallen_key_band_pass_filter4_b(c3, g, r2, r3, rate),
-                third_order_sallen_key_band_pass_filter5_b(c1, c3, g, r1, r2, r3, rate2)
+                calc.b_low_low(),
+                calc.b_high_low(),
+                calc.b_low_band1(),
+                calc.b_high_band1(),
+                calc.b_low_band2(),
+                calc.b_high_band2()
             ]),
             [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_low(),
+                calc.a_band1(),
+                calc.a_band2()
             ])]
         )
     }
     fn make_coeffs<LowPass, (LowPass, BandPass)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_low_pass_filter_b(g, r2),
-                third_order_sallen_key_band_pass_filter2_b(c2, g, r2, rate),
-                third_order_sallen_key_band_pass_filter4_b(c3, g, r2, r3, rate)
+                calc.b_low_low(),
+                calc.b_low_band1(),
+                calc.b_low_band2()
             ]),
             [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_low(),
+                calc.a_band1(),
+                calc.a_band2()
             ])]
         )
     }
     fn make_coeffs<HighPass, (LowPass, BandPass)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter1_b(c1, g, r1, r2, rate),
-                third_order_sallen_key_band_pass_filter3_b(c1, c2, g, r1, r2, rate2),
-                third_order_sallen_key_band_pass_filter5_b(c1, c3, g, r1, r2, r3, rate2)
+                calc.b_high_low(),
+                calc.b_high_band1(),
+                calc.b_high_band2()
             ]),
             [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_low(),
+                calc.a_band1(),
+                calc.a_band2()
             ])]
         )
     }
     
     fn make_coeffs<All, (LowPass, BandPass<1>, HighPass)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_low_pass_filter_b(g, r2),
-                third_order_sallen_key_band_pass_filter1_b(c1, g, r1, r2, rate),
-                third_order_sallen_key_band_pass_filter2_b(c2, g, r2, rate),
-                third_order_sallen_key_band_pass_filter3_b(c1, c2, g, r1, r2, rate2),
-                third_order_sallen_key_band_pass_filter6_b(c2, c3, g, r2, r3, rate2),
-                third_order_sallen_key_high_pass_filter_b(c1, c2, c3, g, r1, r2, r3, rate3)
+                calc.b_low_low(),
+                calc.b_high_low(),
+                calc.b_low_band1(),
+                calc.b_high_band1(),
+                calc.b_low_high(),
+                calc.b_high_high()
             ]),
             [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_low(),
+                calc.a_band1(),
+                calc.a_high()
             ])]
         )
     }
     fn make_coeffs<LowPass, (LowPass, BandPass<1>, HighPass)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_low_pass_filter_b(g, r2),
-                third_order_sallen_key_band_pass_filter2_b(c2, g, r2, rate),
-                third_order_sallen_key_band_pass_filter6_b(c2, c3, g, r2, r3, rate2)
+                calc.b_low_low(),
+                calc.b_low_band1(),
+                calc.b_low_high()
             ]),
             [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_low(),
+                calc.a_band1(),
+                calc.a_high()
             ])]
         )
     }
     fn make_coeffs<HighPass, (LowPass, BandPass<1>, HighPass)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter1_b(c1, g, r1, r2, rate),
-                third_order_sallen_key_band_pass_filter3_b(c1, c2, g, r1, r2, rate2),
-                third_order_sallen_key_high_pass_filter_b(c1, c2, c3, g, r1, r2, r3, rate3)
+                calc.b_high_low(),
+                calc.b_high_band1(),
+                calc.b_high_high()
             ]),
             [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_low(),
+                calc.a_band1(),
+                calc.a_high()
             ])]
         )
     }
     
     fn make_coeffs<All, (LowPass, BandPass<2>, HighPass)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_low_pass_filter_b(g, r2),
-                third_order_sallen_key_band_pass_filter1_b(c1, g, r1, r2, rate),
-                third_order_sallen_key_band_pass_filter4_b(c3, g, r2, r3, rate),
-                third_order_sallen_key_band_pass_filter5_b(c1, c3, g, r1, r2, r3, rate2),
-                third_order_sallen_key_band_pass_filter6_b(c2, c3, g, r2, r3, rate2),
-                third_order_sallen_key_high_pass_filter_b(c1, c2, c3, g, r1, r2, r3, rate3)
+                calc.b_low_low(),
+                calc.b_high_low(),
+                calc.b_low_band2(),
+                calc.b_high_band2(),
+                calc.b_low_high(),
+                calc.b_high_high()
             ]),
             [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_low(),
+                calc.a_band2(),
+                calc.a_high()
             ])]
         )
     }
     fn make_coeffs<LowPass, (LowPass, BandPass<2>, HighPass)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_low_pass_filter_b(g, r2),
-                third_order_sallen_key_band_pass_filter4_b(c3, g, r2, r3, rate),
-                third_order_sallen_key_band_pass_filter6_b(c2, c3, g, r2, r3, rate2)
+                calc.b_low_low(),
+                calc.b_low_band2(),
+                calc.b_low_high()
             ]),
             [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_low(),
+                calc.a_band2(),
+                calc.a_high()
             ])]
         )
     }
     fn make_coeffs<HighPass, (LowPass, BandPass<2>, HighPass)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter1_b(c1, g, r1, r2, rate),
-                third_order_sallen_key_band_pass_filter5_b(c1, c3, g, r1, r2, r3, rate2),
-                third_order_sallen_key_high_pass_filter_b(c1, c2, c3, g, r1, r2, r3, rate3)
+                calc.b_high_low(),
+                calc.b_high_band2(),
+                calc.b_high_high()
             ]),
             [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_low(),
+                calc.a_band2(),
+                calc.a_high()
             ])]
         )
     }
     
     fn make_coeffs<All, (BandPass, HighPass)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter2_b(c2, g, r2, rate),
-                third_order_sallen_key_band_pass_filter3_b(c1, c2, g, r1, r2, rate2),
-                third_order_sallen_key_band_pass_filter4_b(c3, g, r2, r3, rate),
-                third_order_sallen_key_band_pass_filter5_b(c1, c3, g, r1, r2, r3, rate2),
-                third_order_sallen_key_band_pass_filter6_b(c2, c3, g, r2, r3, rate2),
-                third_order_sallen_key_high_pass_filter_b(c1, c2, c3, g, r1, r2, r3, rate3)
+                calc.b_low_band1(),
+                calc.b_high_band1(),
+                calc.b_low_band2(),
+                calc.b_high_band2(),
+                calc.b_low_high(),
+                calc.b_high_high()
             ]),
             [([], [
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_band1(),
+                calc.a_band2(),
+                calc.a_high()
             ])]
         )
     }
     fn make_coeffs<LowPass, (BandPass, HighPass)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter2_b(c2, g, r2, rate),
-                third_order_sallen_key_band_pass_filter4_b(c3, g, r2, r3, rate),
-                third_order_sallen_key_band_pass_filter6_b(c2, c3, g, r2, r3, rate2)
+                calc.b_low_band1(),
+                calc.b_low_band2(),
+                calc.b_low_high()
             ]),
             [([], [
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_band1(),
+                calc.a_band2(),
+                calc.a_high()
             ])]
         )
     }
     fn make_coeffs<HighPass, (BandPass, HighPass)>(param, rate) -> _
     {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
+        let calc = ThirdOrderSallenKeyCalc::new(param.rc3g(), rate);
         (
             ([], [], [
-                third_order_sallen_key_band_pass_filter3_b(c1, c2, g, r1, r2, rate2),
-                third_order_sallen_key_band_pass_filter5_b(c1, c3, g, r1, r2, r3, rate2),
-                third_order_sallen_key_high_pass_filter_b(c1, c2, c3, g, r1, r2, r3, rate3)
+                calc.b_high_band1(),
+                calc.b_high_band2(),
+                calc.b_high_high()
             ]),
             [([], [
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
+                calc.a_band1(),
+                calc.a_band2(),
+                calc.a_high()
             ])]
         )
     }
 );
 
-/*
-    fn make_coeffs<All, All>(param, rate) -> _
-    {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
-        (
-            ([], [], [
-                third_order_sallen_key_low_pass_filter_b(g, r2),
-                third_order_sallen_key_band_pass_filter1_b(c1, g, r1, r2, rate),
-                third_order_sallen_key_band_pass_filter2_b(c2, g, r2, rate),
-                third_order_sallen_key_band_pass_filter3_b(c1, c2, g, r1, r2, rate2),
-                third_order_sallen_key_band_pass_filter4_b(c3, g, r2, r3, rate),
-                third_order_sallen_key_band_pass_filter5_b(c1, c3, g, r1, r2, r3, rate2),
-                third_order_sallen_key_band_pass_filter6_b(c2, c3, g, r2, r3, rate2),
-                third_order_sallen_key_high_pass_filter_b(c1, c2, c3, g, r1, r2, r3, rate3)
-            ]),
-            [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
-            ])]
-        )
-    }
-    fn make_coeffs<LowPass, All>(param, rate) -> _
-    {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
-        (
-            ([], [], [
-                third_order_sallen_key_low_pass_filter_b(g, r2),
-                third_order_sallen_key_band_pass_filter2_b(c2, g, r2, rate),
-                third_order_sallen_key_band_pass_filter4_b(c3, g, r2, r3, rate),
-                third_order_sallen_key_band_pass_filter6_b(c2, c3, g, r2, r3, rate2)
-            ]),
-            [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
-            ])]
-        )
-    }
-    fn make_coeffs<HighPass, All>(param, rate) -> _
-    {
-        let rate2 = rate*rate;
-        let rate3 = rate2*rate;
-
-        let r1 = param.r1();
-        let c1 = param.c1();
-        let r2 = param.r2();
-        let c2 = param.c2();
-        let r3 = param.r3();
-        let c3 = param.c3();
-        let g = param.g();
-        let one_m_g = F::one() - g;
-
-        (
-            ([], [], [
-                third_order_sallen_key_band_pass_filter1_b(c1, g, r1, r2, rate),
-                third_order_sallen_key_band_pass_filter3_b(c1, c2, g, r1, r2, rate2),
-                third_order_sallen_key_band_pass_filter5_b(c1, c3, g, r1, r2, r3, rate2),
-                third_order_sallen_key_high_pass_filter_b(c1, c2, c3, g, r1, r2, r3, rate3)
-            ]),
-            [([], [
-                third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3),
-                third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a(c1, c2, c3, one_m_g, r1, r2, r3, rate, rate2, rate3)
-            ])]
-        )
-    }
-*/
-
-pub(crate) fn third_order_sallen_key_low_pass_filter_b<F>(g: F, r2: F) -> [F; 4]
-where
-    F: Float
-{
-    crate::billinear4_0(g*r2)
-}
-pub(crate) fn third_order_sallen_key_band_pass_filter1_b<F>(c1: F, g: F, r1: F, r2: F, rate: F) -> [F; 4]
-where
-    F: Float
-{
-    crate::billinear4_1(c1*g*r1*r2, rate)
-}
-pub(crate) fn third_order_sallen_key_band_pass_filter2_b<F>(c2: F, g: F, r2: F, rate: F) -> [F; 4]
-where
-    F: Float
-{
-    crate::billinear4_1(c2*g*r2, rate)
-}
-pub(crate) fn third_order_sallen_key_band_pass_filter3_b<F>(c1: F, c2: F, g: F, r1: F, r2: F, rate2: F) -> [F; 4]
-where
-    F: Float
-{
-    crate::billinear4_2(c1*c2*g*r1*r2, rate2)
-}
-pub(crate) fn third_order_sallen_key_band_pass_filter4_b<F>(c3: F, g: F, r2: F, r3: F, rate: F) -> [F; 4]
-where
-    F: Float
-{
-    crate::billinear4_1(c3*g*r2*r3, rate)
-}
-pub(crate) fn third_order_sallen_key_band_pass_filter5_b<F>(c1: F, c3: F, g: F, r1: F, r2: F, r3: F, rate2: F) -> [F; 4]
-where
-    F: Float
-{
-    crate::billinear4_2(c1*c3*g*r1*r2*r3, rate2)
-}
-pub(crate) fn third_order_sallen_key_band_pass_filter6_b<F>(c2: F, c3: F, g: F, r2: F, r3: F, rate2: F) -> [F; 4]
-where
-    F: Float
-{
-    crate::billinear4_2(c2*c3*g*r2*r3, rate2)
-}
-pub(crate) fn third_order_sallen_key_high_pass_filter_b<F>(c1: F, c2: F, c3: F, g: F, r1: F, r2: F, r3: F, rate3: F) -> [F; 4]
-where
-    F: Float
-{
-    crate::billinear4_3(c1*c2*c3*g*r1*r2*r3, rate3)
-}
-
-pub(crate) fn third_order_sallen_key_low_pass_filter_or_band_pass_filter1_a<F>(c1: F, c2: F, c3: F, one_m_g: F, r1: F, r2: F, r3: F, rate: F, rate2: F, rate3: F) -> [F; 4]
-where
-    F: Float
-{
-    let two_r1 = r1 + r1;
-    crate::billinear4_0_1_2_3(
-        r2 + two_r1,
-        r2*(c1*r1 + c2*one_m_g*(r2 + r1) + c3*(r3 + r2 + r1)) + two_r1*c3*r3,
-        r2*(c1*r1*(c2*r2*one_m_g + c3*(r3 + r2)) + c2*c3*r3*(r2 + r1)),
-        c1*c2*c3*r1*r2*r2*r3,
-        rate,
-        rate2,
-        rate3
-    )
-}
-pub(crate) fn third_order_sallen_key_band_pass_filter2_or_band_pass_filter3_a<F>(c1: F, c2: F, c3: F, one_m_g: F, r1: F, r2: F, r3: F, rate: F, rate2: F, rate3: F) -> [F; 4]
-where
-    F: Float
-{
-    let two_c2 = c2 + c2;
-    crate::billinear4_0_1_2_3(
-        one_m_g,
-        r1*one_m_g*(c1 + c2) + c3*(r2 + r3) + c2*r2,
-        c1*r1*(c3*r2 + c3*r3 + c2*r2) + c2*(c3*(r2*r3 + r1*r2 + r1*r3) + two_c2*r1*r2),
-        c2*c3*r1*r2*r3*(c1 + two_c2),
-        rate,
-        rate2,
-        rate3
-    )
-}
-pub(crate) fn third_order_sallen_key_band_pass_filter4_or_band_pass_filter5_a<F>(c1: F, c2: F, c3: F, one_m_g: F, r1: F, r2: F, r3: F, rate: F, rate2: F, rate3: F) -> [F; 4]
-where
-    F: Float
-{
-    let two_r1 = r1 + r1;
-    crate::billinear4_0_1_2_3(
-        two_r1 + r2,
-        r2*(c1*r1 + c2*(r1 + r2) + c3*(r1 + r3 + r2)) + two_r1*c3*r3,
-        r2*(c1*r1*(c2*r2 + c3*(r3 + r2)) + c2*c3*r3*one_m_g*(r1 + r2)),
-        c1*c2*c3*r1*r2*r2*r3*one_m_g,
-        rate,
-        rate2,
-        rate3
-    )
-}
-pub(crate) fn third_order_sallen_key_band_pass_filter6_or_high_pass_filter_a<F>(c1: F, c2: F, c3: F, one_m_g: F, r1: F, r2: F, r3: F, rate: F, rate2: F, rate3: F) -> [F; 4]
-where
-    F: Float
-{
-    let two_c2 = c2 + c2;
-    crate::billinear4_0_1_2_3(
-        F::one(),
-        c1*r1 + c3*(r2 + r3*one_m_g) + c2*(r2 + r1),
-        c1*r1*(c3*(r2 + r3*one_m_g) + c2*r2) + c2*(c3*(r2*r3 + r1*(r2 + r3*one_m_g)) + two_c2*r1*r2),
-        c2*c3*r1*r2*r3*(c1 + two_c2),
-        rate,
-        rate2,
-        rate3
-    )
-}
-
 #[cfg(test)]
 mod test
 {
-    use crate::{conf::All, params::RC3GSallenKey};
+    use crate::{conf::All, param::RC3GSallenKey};
 
     use super::ThirdOrderSallenKeyFilter;
 
     #[test]
     fn plot()
     {
-        let mut filter = ThirdOrderSallenKeyFilter::new::<All>(RC3GSallenKey::new(470.0, 47.0e-9, 15.0e3, 2.7e-9, 16.0e3, 2.7e-9, 1.3846153846153846));
-        //let mut filter = ThirdOrderSallenKeyFilter::new::<All>(RC2GSallenKey::new(15.0e3, 2.7e-9, 15.0e3, 2.7e-9, 2.0));
-        //let mut filter = ThirdOrderSallenKeyFilter::new::<All>(RC::new(470.0, 47.0e-9));
+        let mut filter = ThirdOrderSallenKeyFilter::new::<All>(RC3GSallenKey {r1: 470.0, c1: 47.0e-9, r2: 15.0e3, c2: 2.7e-9, r3: 16.0e3, c3: 2.7e-9, g: 1.3846153846153846});
+        //let mut filter = ThirdOrderSallenKeyFilter::new::<All>(RC2GSallenKey {r1: 15.0e3, c1: 2.7e-9, r2: 15.0e3, c2: 2.7e-9, g: 2.0});
+        //let mut filter = ThirdOrderSallenKeyFilter::new::<All>(RC {r: 470.0, c: 47.0e-9});
 
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
