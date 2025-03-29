@@ -5,7 +5,7 @@ crate::def_rtf!(
         /// # Configurations
         /// [All](crate::conf::All), [BandPass](crate::conf::BandPass),
         /// [LowPass](crate::conf::LowPass), [BandPass](crate::conf::BandPass)<1>, [BandPass](crate::conf::BandPass)<2>, [HighPass](crate::conf::HighPass)
-        /// ```#md
+        /// ```md
         /// 0) LOW-PASS:
         ///            o------------o
         ///            |            |

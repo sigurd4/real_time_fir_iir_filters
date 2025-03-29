@@ -28,10 +28,10 @@ use real_time_fir_iir_filters::{
     filters::iir::second::SecondOrderEllipticFilter
 };
 
-// Initialize a 2. order elliptic low-pass filter at 10kHz
+// Initialize a 2. order elliptic low-pass filter at 440Hz
 let mut filter = SecondOrderEllipticFilter::new::<LowPass>(
     OmegaEpsilonXi {
-        omega: 10000.0*TAU,
+        omega: 440.0*TAU,
         epsilon: 0.5,
         xi: 1.5
     }

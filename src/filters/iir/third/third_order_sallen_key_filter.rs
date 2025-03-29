@@ -31,7 +31,7 @@ type Internals<F, C1: FirstOrderRCFilterConf, C2: SecondOrderSallenKeyFilterConf
 /// # Configurations
 /// [All](crate::conf::All), [BandPass](crate::conf::BandPass),
 /// [LowPass](crate::conf::LowPass), [BandPass](crate::conf::BandPass)<1>, [BandPass](crate::conf::BandPass)<2>, [BandPass](crate::conf::BandPass)<3>, [BandPass](crate::conf::BandPass)<4>, [BandPass](crate::conf::BandPass)<5>, [BandPass](crate::conf::BandPass)<6>, [HighPass](crate::conf::HighPass)
-/// ```#md
+/// ```md
 /// 0) LOW-PASS:
 ///                   o------------o
 ///                   |            |

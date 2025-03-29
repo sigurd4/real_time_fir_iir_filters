@@ -5,7 +5,7 @@ crate::def_rtf!(
         /// # Configurations
         /// 
         /// [All](crate::conf::All), [AllPass](crate::conf::AllPass)
-        /// ```#md
+        /// ```md
         /// 0) ALL-PASS:
         /// 
         ///        τs - 1

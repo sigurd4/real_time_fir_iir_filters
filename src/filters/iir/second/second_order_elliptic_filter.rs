@@ -5,7 +5,7 @@ crate::def_rtf!(
         /// # Configurations
         /// [All](crate::conf::All),
         /// [LowPass](crate::conf::LowPass), [HighPass](crate::conf::HighPass)
-        /// ```#md
+        /// ```md
         /// 0) LOW-PASS:
         /// 
         ///                     1

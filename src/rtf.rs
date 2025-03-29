@@ -15,8 +15,80 @@ pub trait RtfBase: Sized
 
 pub trait Rtf: RtfBase
 {
+    /// Feeds a single sample through the filter, and returns the results from each output in an array.
+    /// 
+    /// # Example
+    /// 
+    /// In this example, we compute the impulse response of a 1. order filter.
+    /// 
+    /// ```rust
+    /// #![feature(generic_const_exprs)]
+    /// 
+    /// use core::f64::consts::TAU;
+    /// 
+    /// use real_time_fir_iir_filters::{
+    ///     conf::LowPass,
+    ///     param::Omega,
+    ///     rtf::Rtf,
+    ///     filters::iir::first::FirstOrderFilter
+    /// };
+    /// 
+    /// // Initialize a 1. order low-pass filter at 440Hz
+    /// let mut filter = FirstOrderFilter::new::<LowPass>(
+    ///     Omega {
+    ///         omega: 440.0*TAU
+    ///     }
+    /// );
+    /// 
+    /// const N: usize = 10;
+    /// const RATE: f64 = 8000.0;
+    /// 
+    /// // Unit impulse
+    /// let mut imp_resp = [0.0; N];
+    /// imp_resp[0] = 1.0;
+    /// 
+    /// // Apply filter to imp_resp
+    /// for x in &mut imp_resp
+    /// {
+    ///     [*x] = filter.filter(RATE, *x);
+    /// }
+    /// 
+    /// // Prints the impulse response of the filter.
+    /// println!("h[n] = {:?}", imp_resp);
+    /// ```
     fn filter(&mut self, rate: Self::F, x: Self::F) -> [Self::F; Self::OUTPUTS];
 
+    /// Returns the response of the filter for a single frequency point, in radians.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// #![feature(generic_const_exprs)]
+    /// 
+    /// use core::f64::consts::{TAU, FRAC_1_SQRT_2};
+    /// 
+    /// use real_time_fir_iir_filters::{
+    ///     conf::LowPass,
+    ///     param::Omega,
+    ///     rtf::Rtf,
+    ///     filters::iir::first::FirstOrderFilter
+    /// };
+    /// 
+    /// let omega = 440.0*TAU;
+    /// 
+    /// // Initialize a 1. order low-pass filter at 440Hz
+    /// let mut filter = FirstOrderFilter::new::<LowPass>(
+    ///     Omega {
+    ///         omega
+    ///     }
+    /// );
+    /// 
+    /// const RATE: f64 = 8000.0;
+    /// 
+    /// let [h] = filter.frequency_response(RATE, omega/RATE);
+    /// 
+    /// assert!((h.norm() - FRAC_1_SQRT_2).abs() < 1e-2);
+    /// ```
     fn frequency_response(&mut self, rate: Self::F, omega: Self::F) -> [Complex<Self::F>; Self::OUTPUTS]
     {
         self.z_response(rate, Complex::cis(omega))

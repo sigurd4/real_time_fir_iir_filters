@@ -3,7 +3,7 @@ use crate::{calc::iir::first::PICalc, param::{PIFilterParam, PI}, real_time_fir_
 crate::def_rtf!(
     {
         /// # Configuration
-        /// ```#md
+        /// ```md
         ///            I
         /// H(s) = P + -
         ///            s

@@ -3,7 +3,7 @@ use crate::{calc::iir::second::PIDCalc, param::{PIDFilterParam, PID}, real_time_
 crate::def_rtf!(
     {
         /// # Configuration
-        /// ```#md
+        /// ```md
         ///            I
         /// H(s) = P + - + Dspub
         ///            s

@@ -23,6 +23,8 @@
 //! # Example
 //! 
 //! ```rust
+//! #![feature(generic_const_exprs)]
+//! 
 //! use core::f64::consts::TAU;
 //! 
 //! use real_time_fir_iir_filters::{
@@ -32,10 +34,10 @@
 //!     filters::iir::second::SecondOrderEllipticFilter
 //! };
 //! 
-//! // Initialize a 2. order elliptic low-pass filter at 10kHz
+//! // Initialize a 2. order elliptic low-pass filter at 440Hz
 //! let mut filter = SecondOrderEllipticFilter::new::<LowPass>(
 //!     OmegaEpsilonXi {
-//!         omega: 10000.0*TAU,
+//!         omega: 440.0*TAU,
 //!         epsilon: 0.5,
 //!         xi: 1.5
 //!     }
@@ -842,10 +844,12 @@ mod tests
             filters::iir::second::SecondOrderEllipticFilter
         };
         
-        // Initialize a 2. order elliptic low-pass filter at 10kHz
+        let omega = 440.0*TAU;
+
+        // Initialize a 2. order elliptic low-pass filter at 440Hz
         let mut filter = SecondOrderEllipticFilter::new::<LowPass>(
             OmegaEpsilonXi {
-                omega: 10000.0*TAU,
+                omega,
                 epsilon: 0.5,
                 xi: 1.5
             }

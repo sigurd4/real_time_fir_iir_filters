@@ -5,7 +5,7 @@ crate::def_rtf!(
         /// # Configurations
         /// [All](crate::conf::All),
         /// [LowPass](crate::conf::LowPass), [Peak](crate::conf::Peak), [HighPass](crate::conf::HighPass)
-        /// ```#md
+        /// ```md
         /// 0) LOW-PASS:
         /// 
         ///              ω^2
