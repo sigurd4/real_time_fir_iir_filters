@@ -94,13 +94,63 @@ pub trait Rtf: RtfBase
         self.z_response(rate, Complex::cis(omega))
     }
 
+    /// Returns the response of the filter for a single s-plane point.
     fn s_response(&mut self, rate: Self::F, s: Complex<Self::F>) -> [Complex<Self::F>; Self::OUTPUTS]
     {
         self.z_response(rate, (s/rate).exp())
     }
 
+    /// Returns the response of the filter for a single z-plane point.
     fn z_response(&mut self, rate: Self::F, z: Complex<Self::F>) -> [Complex<Self::F>; Self::OUTPUTS];
 
+    /// Resets all internal state of the filter back to zero, but keeps the filter coefficient cache intact.
+    /// 
+    /// # Example
+    /// 
+    /// ```rust
+    /// #![feature(generic_const_exprs)]
+    /// 
+    /// use core::f64::consts::TAU;
+    /// 
+    /// use real_time_fir_iir_filters::{
+    ///     conf::LowPass,
+    ///     param::Omega,
+    ///     rtf::Rtf,
+    ///     filters::iir::first::FirstOrderFilter
+    /// };
+    /// 
+    /// // Initialize a 1. order low-pass filter at 440Hz
+    /// let mut filter = FirstOrderFilter::new::<LowPass>(
+    ///     Omega {
+    ///         omega: 440.0*TAU
+    ///     }
+    /// );
+    /// 
+    /// const N: usize = 10;
+    /// const RATE: f64 = 8000.0;
+    /// 
+    /// let mut imp1 = [0.0; N];
+    /// imp1[0] = 1.0;
+    /// 
+    /// let mut imp2 = imp1;
+    /// 
+    /// // Apply filter to imp1
+    /// for x in &mut imp1
+    /// {
+    ///     [*x] = filter.filter(RATE, *x);
+    /// }
+    /// 
+    /// // Reset the filter's internal state
+    /// filter.reset();
+    /// 
+    /// // Apply filter to imp2
+    /// for x in &mut imp2
+    /// {
+    ///     [*x] = filter.filter(RATE, *x);
+    /// }
+    /// 
+    /// assert_eq!(imp1, imp2);
+    /// ```
     fn reset(&mut self);
 }
 
