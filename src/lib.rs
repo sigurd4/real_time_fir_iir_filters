@@ -1,6 +1,5 @@
 #![allow(incomplete_features)]
 #![allow(internal_features)]
-
 #![feature(generic_arg_infer)]
 #![feature(trait_alias)]
 #![feature(associated_const_equality)]
@@ -18,6 +17,85 @@
 #![feature(core_intrinsics)]
 #![feature(generic_const_exprs)]
 #![feature(specialization)]
+
+//! Ever needed a low pass filter for your VST? This crate has a wide selection of filters for real-time usage. It's designed to have as little runtime overhead as possible.
+//! 
+//! # Example
+//! 
+//! ```rust
+//! use core::f64::consts::TAU;
+//! 
+//! use real_time_fir_iir_filters::{
+//!     conf::LowPass,
+//!     param::OmegaEpsilonXi,
+//!     rtf::Rtf,
+//!     filters::iir::second::SecondOrderEllipticFilter
+//! };
+//! 
+//! // Initialize a 2. order elliptic low-pass filter at 10kHz
+//! let mut filter = SecondOrderEllipticFilter::new::<LowPass>(
+//!     OmegaEpsilonXi {
+//!         omega: 10000.0*TAU,
+//!         epsilon: 0.5,
+//!         xi: 1.5
+//!     }
+//! );
+//! 
+//! const N: usize = 10;
+//! const RATE: f64 = 8000.0;
+//! 
+//! {
+//!     // Unit impulse
+//!     let mut imp_resp = [0.0; N];
+//!     imp_resp[0] = 1.0;
+//! 
+//!     // Apply filter to imp_resp
+//!     for x in &mut imp_resp
+//!     {
+//!         [*x] = filter.filter(RATE, *x);
+//!     }
+//! 
+//!     // Prints the impulse response of the filter.
+//!     println!("h[n] = {:?}", imp_resp);
+//! }
+//! 
+//! // Resets internal state of filter to zero
+//! filter.reset();
+//! 
+//! {
+//!     // Generate frequency response for ω ∈ [0, 2π)
+//!     let freq_resp = core::array::from_fn::<_, N, _>(|i| {
+//!         let omega = i as f64/N as f64*TAU;
+//! 
+//!         filter.frequency_response(RATE, omega)
+//!     });
+//! 
+//!     println!("H = {:?}", freq_resp);
+//! }
+//! ```
+//! 
+//! # Available filters:
+//! 
+//! | Order | Filter                                                                                      | Parameterization                                                                                                                                                                                                 | Configuration                                                                                                                                                                                                                                                                                                                                                                     |
+//! |-------|---------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+//! | 1     | [`FirstOrderAllPassFilter`](crate::filters::iir::first::FirstOrderAllPassFilter)            | [`Tau`](crate::param::Tau)                                                                                                                                                                                       | [`AllPass`](crate::conf::AllPass)                                                                                                                                                                                                                                                                                                                                                 |
+//! | 1     | [`FirstOrderFilter`](crate::filters::iir::first::FirstOrderFilter)                          | [`Omega`](crate::param::Omega) [`RC`](crate::param::RC) [`LR`](crate::param::LR)                                                                                                                                 | [`LowPass`](crate::conf::LowPass) [`HighPass`](crate::conf::HighPass)                                                                                                                                                                                                                                                                                                             |
+//! | 1     | [`FirstOrderLRFilter`](crate::filters::iir::first::FirstOrderLRFilter)                      | [`LR`](crate::param::LR)                                                                                                                                                                                         | [`LowPass`](crate::conf::LowPass) [`HighPass`](crate::conf::HighPass)                                                                                                                                                                                                                                                                                                             |
+//! | 1     | [`FirstOrderRCFilter`](crate::filters::iir::first::FirstOrderRCFilter)                      | [`RC`](crate::param::RC)                                                                                                                                                                                         | [`LowPass`](crate::conf::LowPass) [`HighPass`](crate::conf::HighPass)                                                                                                                                                                                                                                                                                                             |
+//! | 1     | [`PIFilter`](crate::filters::iir::first::PIFilter)                                          | [`PI`](crate::param::PI)                                                                                                                                                                                         | -                                                                                                                                                                                                                                                                                                                                                                                 |
+//! | 2     | [`PIDFilter`](crate::filters::iir::second::PIDFilter)                                       | [`PI`](crate::param::PI) [`PID`](crate::param::PID)                                                                                                                                                              | -                                                                                                                                                                                                                                                                                                                                                                                 |
+//! | 2     | [`SecondOrderButterworthFilter`](crate::filters::iir::second::SecondOrderButterworthFilter) | [`Omega`](crate::param::Omega)                                                                                                                                                                                   | [`LowPass`](crate::conf::LowPass) [`Peak`](crate::conf::Peak) [`HighPass`](crate::conf::HighPass)                                                                                                                                                                                                                                                                                 |
+//! | 2     | [`SecondOrderChebyshev1Filter`](crate::filters::iir::second::SecondOrderChebyshev1Filter)   | [`Omega`](crate::param::Omega) [`OmegaEpsilon`](crate::param::OmegaEpsilon)                                                                                                                                      | [`LowPass`](crate::conf::LowPass) [`HighPass`](crate::conf::HighPass)                                                                                                                                                                                                                                                                                                             |
+//! | 2     | [`SecondOrderChebyshev2Filter`](crate::filters::iir::second::SecondOrderChebyshev2Filter)   | [`Omega`](crate::param::Omega) [`OmegaEpsilon`](crate::param::OmegaEpsilon)                                                                                                                                      | [`LowPass`](crate::conf::LowPass) [`HighPass`](crate::conf::HighPass)                                                                                                                                                                                                                                                                                                             |
+//! | 2     | [`SecondOrderEllipticFilter`](crate::filters::iir::second::SecondOrderEllipticFilter)       | [`Omega`](crate::param::Omega) [`OmegaEpsilon`](crate::param::OmegaEpsilon) [`OmegaEpsilonXi`](crate::param::OmegaEpsilonXi)                                                                                     | [`LowPass`](crate::conf::LowPass) [`HighPass`](crate::conf::HighPass)                                                                                                                                                                                                                                                                                                             |
+//! | 2     | [`SecondOrderFilter`](crate::filters::iir::second::SecondOrderFilter)                       | [`Omega`](crate::param::Omega) [`OmegaZeta`](crate::param::OmegaZeta)                                                                                                                                            | [`LowPass`](crate::conf::LowPass) [`Peak`](crate::conf::Peak) [`HighPass`](crate::conf::HighPass)                                                                                                                                                                                                                                                                                 |
+//! | 2     | [`SecondOrderRCFilter`](crate::filters::iir::second::SecondOrderRCFilter)                   | [`RC`](crate::param::RC) [`RC2`](crate::param::RC2)                                                                                                                                                              | [`LowPass`](crate::conf::LowPass) <code>[BandPass](crate::conf::BandPass)<1><\code> <code>[BandPass](crate::conf::BandPass)<2><\code> [`HighPass`](crate::conf::HighPass)                                                                                                                                                                                                         |
+//! | 2     | [`SecondOrderRLCFilter`](crate::filters::iir::second::SecondOrderRLCFilter)                 | [`RC`](crate::param::RC) [`LR`](crate::param::LR) [`RC`](crate::param::RC) [`RLC`](crate::param::RLC)                                                                                                            | [`LowPass`](crate::conf::LowPass) [`BandStop`](crate::conf::BandStop) [`BandPass`](crate::conf::BandPass) [`HighPass`](crate::conf::HighPass)                                                                                                                                                                                                                                     |
+//! | 2     | [`SecondOrderSallenKeyFilter`](crate::filters::iir::second::SecondOrderSallenKeyFilter)     | [`RC2SallenKey`](crate::param::RC2SallenKey) [`RC2GSallenKey`](crate::param::RC2GSallenKey)                                                                                                                      | [`LowPass`](crate::conf::LowPass) <code>[BandPass](crate::conf::BandPass)<1><\code> <code>[BandPass](crate::conf::BandPass)<2><\code> [`HighPass`](crate::conf::HighPass)                                                                                                                                                                                                         |
+//! | 3     | [`ThirdOrderButterworthFilter`](crate::filters::iir::third::ThirdOrderButterworthFilter)    | [`Omega`](crate::param::Omega)                                                                                                                                                                                   | [`LowPass`](crate::conf::LowPass) <code>[Peak](crate::conf::Peak)<1><\code> <code>[Peak](crate::conf::Peak)<2><\code> [`HighPass`](crate::conf::HighPass)                                                                                                                                                                                                                         |
+//! | 3     | [`ThirdOrderFilter`](crate::filters::iir::third::ThirdOrderFilter)                          | [`Omega`](crate::param::Omega) [`OmegaZeta`](crate::param::OmegaZeta) [`Omega2Zeta`](crate::param::Omega2Zeta)                                                                                                   | [`LowPass`](crate::conf::LowPass) <code>[Peak](crate::conf::Peak)<1><\code> <code>[Peak](crate::conf::Peak)<2><\code> [`HighPass`](crate::conf::HighPass)                                                                                                                                                                                                                         |
+//! | 3     | [`ThirdOrderSallenKeyFilter`](crate::filters::iir::third::ThirdOrderSallenKeyFilter)        | [`RC`](crate::param::RC) [`RC2SallenKey`](crate::param::RC2SallenKey) [`RC2GSallenKey`](crate::param::RC2GSallenKey) [`RC3SallenKey`](crate::param::RC3SallenKey) [`RC3GSallenKey`](crate::param::RC3GSallenKey) | [`LowPass`](crate::conf::LowPass) <code>[BandPass](crate::conf::BandPass)<1><\code> <code>[BandPass](crate::conf::BandPass)<2><\code> <code>[BandPass](crate::conf::BandPass)<3><\code> <code>[BandPass](crate::conf::BandPass)<4><\code> <code>[BandPass](crate::conf::BandPass)<5><\code> <code>[BandPass](crate::conf::BandPass)<6><\code> [`HighPass`](crate::conf::HighPass) |
+//! | 4     | [`ẀahFilter`](crate::filters::iir::fourth::WahFilter)                                       | [`CrybabyGCB95`](crate::param::CrybabyGCB95) [`VoxV847`](crate::param::VoxV847) [`ColorsoundWow`](crate::param::ColorsoundWow)                                                                                   | -                                                                                                                                                                                                                                                                                                                                                                                 |
 
 #[allow(unused)]
 pub(crate) use crate as real_time_fir_iir_filters;
@@ -751,6 +829,60 @@ mod tests
     use std::{fmt::{Debug, Display}, ops::{AddAssign, SubAssign}};
 
     const PLOT_TARGET: &str = "plots";
+
+    #[test]
+    fn it_works()
+    {
+        use core::f64::consts::TAU;
+        
+        use crate::{
+            conf::LowPass,
+            param::OmegaEpsilonXi,
+            rtf::Rtf,
+            filters::iir::second::SecondOrderEllipticFilter
+        };
+        
+        // Initialize a 2. order elliptic low-pass filter at 10kHz
+        let mut filter = SecondOrderEllipticFilter::new::<LowPass>(
+            OmegaEpsilonXi {
+                omega: 10000.0*TAU,
+                epsilon: 0.5,
+                xi: 1.5
+            }
+        );
+
+        const N: usize = 10;
+        const RATE: f64 = 8000.0;
+
+        {
+            // Unit impulse
+            let mut imp_resp = [0.0; N];
+            imp_resp[0] = 1.0;
+
+            // Apply filter to imp_resp
+            for x in &mut imp_resp
+            {
+                [*x] = filter.filter(RATE, *x);
+            }
+
+            // Prints the impulse response of the filter.
+            println!("h[n] = {:?}", imp_resp);
+        }
+
+        // Resets internal state of filter to zero
+        filter.reset();
+
+        {
+            // Generate frequency response for ω ∈ [0, 2π)
+            let freq_resp = core::array::from_fn::<_, N, _>(|i| {
+                let omega = i as f64/N as f64*TAU;
+
+                filter.frequency_response(RATE, omega)
+            });
+
+            println!("H = {:?}", freq_resp);
+        }
+    }
 
     pub fn plot_freq<F, T>(
         filter: &mut T,
