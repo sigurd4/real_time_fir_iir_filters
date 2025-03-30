@@ -3,11 +3,12 @@ use crate::{calc::iir::first::PICalc, param::{PIFilterParam, PI}, real_time_fir_
 crate::def_rtf!(
     {
         /// # Configuration
-        /// ```md
+        /// 
+        /// <pre>
         ///            I
         /// H(s) = P + -
         ///            s
-        /// ```
+        /// </pre>
         /// 
         /// # Frequency response
         /// 

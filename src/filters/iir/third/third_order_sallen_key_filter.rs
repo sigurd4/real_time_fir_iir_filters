@@ -33,7 +33,7 @@ type Internals<F, C1: FirstOrderRCFilterConf, C2: SecondOrderSallenKeyFilterConf
 /// [`All`](crate::conf::All), [`BandPass`](crate::conf::BandPass),
 /// [`LowPass`](crate::conf::LowPass), <code>[BandPass](crate::conf::BandPass)<1></code>, <code>[BandPass](crate::conf::BandPass)<2></code>, <code>[BandPass](crate::conf::BandPass)<3></code>, <code>[BandPass](crate::conf::BandPass)<4></code>, <code>[BandPass](crate::conf::BandPass)<5></code>, <code>[BandPass](crate::conf::BandPass)<6></code>, [`HighPass`](crate::conf::HighPass)
 /// 
-/// ```md
+/// <pre>
 /// 0) LOW-PASS:
 ///                   o------------o
 ///                   |            |
@@ -114,7 +114,7 @@ type Internals<F, C1: FirstOrderRCFilterConf, C2: SecondOrderSallenKeyFilterConf
 ///           [R₁]          [R₃]
 ///            |             |
 ///           GND           GND
-/// ```
+/// </pre>
 /// 
 /// # Frequency response
 /// 

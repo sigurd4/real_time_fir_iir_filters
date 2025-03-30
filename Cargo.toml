@@ -25,7 +25,7 @@ linspace = "0.1.1"
 
 [package.metadata.docs.rs]
 rustdoc-args = ["--html-in-header", "katex-header.html"]
-all-features = false
+all-features = true
 
 [features]
 default = [

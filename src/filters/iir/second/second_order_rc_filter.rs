@@ -3,9 +3,11 @@ use crate::{calc::iir::second::SecondOrderRCCalc, conf::{All, BandPass, HighPass
 crate::def_rtf!(
     {
         /// # Configurations
+        /// 
         /// [`All`](crate::conf::All), [`BandPass`](crate::conf::BandPass),
         /// [`LowPass`](crate::conf::LowPass), <code>[BandPass](crate::conf::BandPass)<1></code>, <code>[BandPass](crate::conf::BandPass)<2></code>, [`HighPass`](crate::conf::HighPass)
-        /// ```md
+        /// 
+        /// <pre>
         /// 0) LOW-PASS:
         ///     X-[R₁]-o-[R₂]-Y
         ///            |      |
@@ -33,7 +35,7 @@ crate::def_rtf!(
         ///           [R₁]   [R₂]
         ///            |      |
         ///           GND    GND
-        /// ```
+        /// </pre>
         /// 
         /// # Frequency response
         /// 

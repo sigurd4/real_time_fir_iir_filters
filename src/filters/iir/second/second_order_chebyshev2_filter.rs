@@ -3,9 +3,11 @@ use crate::{calc::iir::second::SecondOrderChebyshev2Calc, conf::{All, HighPass, 
 crate::def_rtf!(
     {
         /// # Configurations
-        /// [All](crate::conf::All),
-        /// [LowPass](crate::conf::LowPass), [HighPass](crate::conf::HighPass)
-        /// ```md
+        /// 
+        /// [`All`](crate::conf::All),
+        /// [`LowPass`](crate::conf::LowPass), [`HighPass`](crate::conf::HighPass)
+        /// 
+        /// <pre>
         /// 0) LOW-PASS:
         /// 
         ///            √(ε²T₂²(ω/s))
@@ -17,7 +19,7 @@ crate::def_rtf!(
         ///            √(ε²T₂²(s/ω))
         /// |H(s)| = -----------------
         ///          √(1 + ε²T₂²(s/ω))
-        /// ```
+        /// </pre>
         /// 
         /// # Frequency response
         /// 

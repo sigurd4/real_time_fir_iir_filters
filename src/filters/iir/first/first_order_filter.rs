@@ -5,7 +5,8 @@ crate::def_rtf!(
         /// # Configurations
         /// 
         /// [`All`](crate::conf::All), [`LowPass`](crate::conf::LowPass), [`HighPass`](crate::conf::HighPass)
-        /// ```md
+        /// 
+        /// <pre>
         /// 0) LOW-PASS:
         /// 
         ///          ω
@@ -17,8 +18,7 @@ crate::def_rtf!(
         ///          s
         /// H(s) = -----
         ///        s + ω
-        /// 
-        /// ```
+        /// </pre>
         /// 
         /// # Frequency response
         /// 

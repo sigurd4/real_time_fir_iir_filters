@@ -7,7 +7,7 @@ crate::def_rtf!(
         /// [`All`](crate::conf::All), [`BandPass`](crate::conf::BandPass),
         /// [`LowPass`](crate::conf::LowPass), <code>[BandPass](crate::conf::BandPass)<1></code>, <code>[BandPass](crate::conf::BandPass)<2></code>, [`HighPass`](crate::conf::HighPass)
         /// 
-        /// ```md
+        /// <pre>
         /// 0) LOW-PASS:
         ///            o------------o
         ///            |            |
@@ -48,7 +48,7 @@ crate::def_rtf!(
         ///                  [R₂]
         ///                   |
         ///                  GND
-        /// ```
+        /// </pre>
         /// 
         /// # Frequency response
         /// 

@@ -3,9 +3,11 @@ use crate::{calc::iir::second::SecondOrderEllipticCalc, conf::{All, HighPass, Lo
 crate::def_rtf!(
     {
         /// # Configurations
+        /// 
         /// [`All`](crate::conf::All),
         /// [`LowPass`](crate::conf::LowPass), [`HighPass`](crate::conf::HighPass)
-        /// ```md
+        /// 
+        /// <pre>
         /// 0) LOW-PASS:
         /// 
         ///                   1
@@ -17,7 +19,7 @@ crate::def_rtf!(
         ///                   1
         /// |H(s)| = --------------------
         ///          √(1 + ε²R₂²(ξ, ω/s))
-        /// ```
+        /// </pre>
         /// 
         /// # Frequency response
         /// 

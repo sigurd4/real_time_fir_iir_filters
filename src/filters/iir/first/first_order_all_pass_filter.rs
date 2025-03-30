@@ -6,13 +6,13 @@ crate::def_rtf!(
         /// 
         /// [`All`](crate::conf::All), [`AllPass`](crate::conf::AllPass)
         /// 
-        /// ```md
-        /// 0) ALL-PASS:
+        /// ## All-pass
         /// 
+        /// <pre>
         ///        τs - 1
         /// H(s) = ------
         ///        τs + 1
-        /// ```
+        /// </pre>
         /// 
         /// # Frequency response
         /// 
