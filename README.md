@@ -102,3 +102,5 @@ filter.reset();
 | 3     | `ThirdOrderFilter`             | `Omega` `OmegaZeta` `Omega2Zeta`                                   | `LowPass` `Peak<1>` `Peak<2>` `HighPass`                                                                 |
 | 3     | `ThirdOrderSallenKeyFilter`    | `RC` `RC2SallenKey` `RC2GSallenKey` `RC3SallenKey` `RC3GSallenKey` | `LowPass` `BandPass<1>` `BandPass<2>` `BandPass<3>` `BandPass<4>` `BandPass<5>` `BandPass<6>` `HighPass` |
 | 4     | `WahFilter`                    | `CrybabyGCB95` `VoxV847` `ColorsoundWow`                           | -                                                                                                        |
+
+...and more to come!
