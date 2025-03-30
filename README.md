@@ -24,6 +24,8 @@ I use the following algorithm to process the signal with as few steps as possibl
 
 ![2025-03-24-032452_hyprshot](https://github.com/user-attachments/assets/bd22e03f-b69c-4506-bbbd-baccf7a6c81d)
 
+(The figure is from: Alan V. Oppenheimer & Ronald W. Schafer - Discrete-Time Signal Processing)
+
 ## Example
 
 ```rust
