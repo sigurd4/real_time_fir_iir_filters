@@ -155,7 +155,9 @@ pub(crate) mod jacobi_elliptic_functions
         let zero = F::zero();
 
         const N: usize = 16;
+        #[allow(clippy::uninit_assumed_init)]
         let mut mu: [F; N] = unsafe {MaybeUninit::uninit().assume_init()};
+        #[allow(clippy::uninit_assumed_init)]
         let mut nu: [F; N] = unsafe {MaybeUninit::uninit().assume_init()};
         let mut n = 0;
     

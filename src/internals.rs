@@ -84,6 +84,16 @@ where
     }
 }
 
+impl<F, W, B, A> Default for RtfInternals<F, W, B, A>
+where
+    F: FilterFloat
+{
+    fn default() -> Self
+    {
+        Self::new()
+    }
+}
+
 pub(crate) fn update<Rtf>(
     rtf: &mut Rtf,
     rate: Rtf::F,

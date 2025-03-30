@@ -35,13 +35,12 @@ impl InputOrGND
 
     pub const fn eq(self, rhs: InputOrGND) -> bool
     {
-        match (self, rhs)
-        {
-            (Self::Input, Self::Input) => true,
-            (Self::GND, Self::GND) => true,
-            (Self::Either, Self::Either) => true,
-            _ => false
-        }
+        matches!(
+            (self, rhs),
+            (Self::Input, Self::Input)
+            | (Self::GND, Self::GND)
+            | (Self::Either, Self::Either)
+        )
     }
 
     pub const fn all<const N: usize>(all: [Self; N]) -> Self
@@ -84,13 +83,12 @@ impl InputOrFeedback
 
     pub const fn eq(self, rhs: InputOrFeedback) -> bool
     {
-        match (self, rhs)
-        {
-            (Self::Input, Self::Input) => true,
-            (Self::Feedback, Self::Feedback) => true,
-            (Self::Either, Self::Either) => true,
-            _ => false
-        }
+        matches!(
+            (self, rhs),
+            (Self::Input, Self::Input)
+            | (Self::Feedback, Self::Feedback)
+            | (Self::Either, Self::Either)
+        )
     }
 
     pub const fn all<const N: usize>(all: [Self; N]) -> Self

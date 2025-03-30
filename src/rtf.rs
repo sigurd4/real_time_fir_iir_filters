@@ -172,6 +172,7 @@ where
     {
         if Self::OUTPUTS == 0
         {
+            #[allow(clippy::uninit_assumed_init)]
             return unsafe {MaybeUninit::uninit().assume_init()}
         }
 
@@ -404,7 +405,9 @@ where
         
         self.update_internals(rate);
 
+        #[allow(clippy::type_complexity)]
         let (internals, _): (&mut rtfinternals!(Self), &mut Param<T::Param>) = self.get_internals_mut();
+        #[allow(clippy::type_complexity)]
         let (w, b, a): (&mut winternals!(Self), &binternals!(Self), &[ainternals!(Self); Self::IS_IIR as usize])
             = (&mut internals.w, &internals.b, &internals.a);
         let (w_stages, w_output) = w;
@@ -479,6 +482,7 @@ where
     {
         if Self::OUTPUTS == 0
         {
+            #[allow(clippy::uninit_assumed_init)]
             return unsafe {MaybeUninit::uninit().assume_init()}
         }
         
@@ -637,7 +641,7 @@ where
         let (internals, _) = self.get_internals();
         let (b, a) = (&internals.b, &internals.a);
         let (b_stages, b_last_stage, b_output) = b;
-        let a = a.iter().next();
+        let a = a.first();
 
         let z_inv_n_3: Option<&[_; 3]>;
         let z_inv_n_owned: Result<[_; Self::ORDER + 1], [_; max_len(Self::ORDER + 1, 3)]>;

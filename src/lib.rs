@@ -659,15 +659,18 @@ macro_rules! def_rtf {
                     self.param.into_value()
                 }
                 
+                #[allow(clippy::type_complexity)]
                 fn get_internals(&self) -> (&Internals<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, $conf>, &real_time_fir_iir_filters::param::Param<P>)
                 {
                     (&self.internals, &self.param)
                 }
+                #[allow(clippy::type_complexity)]
                 fn get_internals_mut(&mut self) -> (&mut Internals<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, $conf>, &mut real_time_fir_iir_filters::param::Param<P>)
                 {
                     (&mut self.internals, &mut self.param)
                 }
     
+                #[allow(clippy::type_complexity)]
                 fn make_coeffs($arg_param: &real_time_fir_iir_filters::param::Param<P>, $arg_rate: Self::F) -> (
                     BInternals<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, $conf>,
                     [AInternals<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, $conf>; $is_iir as usize]
@@ -790,15 +793,18 @@ macro_rules! def_rtf {
                 self.param.into_value()
             }
             
+            #[allow(clippy::type_complexity)]
             fn get_internals(&self) -> (&Internals<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F>, &real_time_fir_iir_filters::param::Param<P>)
             {
                 (&self.internals, &self.param)
             }
+            #[allow(clippy::type_complexity)]
             fn get_internals_mut(&mut self) -> (&mut Internals<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F>, &mut real_time_fir_iir_filters::param::Param<P>)
             {
                 (&mut self.internals, &mut self.param)
             }
 
+            #[allow(clippy::type_complexity)]
             fn make_coeffs($arg_param: &real_time_fir_iir_filters::param::Param<P>, $arg_rate: Self::F) -> (
                 BInternals<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F>,
                 [AInternals<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F>; $is_iir as usize]
