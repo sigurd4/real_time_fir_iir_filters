@@ -96,7 +96,7 @@ filter.reset();
 | 2     | `SecondOrderEllipticFilter`    | `Omega` `OmegaEpsilon` `OmegaEpsilonXi`                            | `LowPass` `HighPass`                                                                                     |
 | 2     | `SecondOrderFilter`            | `Omega` `OmegaZeta`                                                | `LowPass` `Peak` `HighPass`                                                                              |
 | 2     | `SecondOrderRCFilter`          | `RC` `RC2`                                                         | `LowPass` `BandPass<1>` `BandPass<2>` `HighPass`                                                         |
-| 2     | `SecondOrderRLCFilter`         | `RC` `LR` `RC` `RLC`                                               | `LowPass` `BandStop` `BandPass` `HighPass`                                                               |
+| 2     | `SecondOrderRLCFilter`         | `RC` `LR` `RLC`                                                    | `LowPass` `BandStop` `BandPass` `HighPass`                                                               |
 | 2     | `SecondOrderSallenKeyFilter`   | `RC2SallenKey` `RC2GSallenKey`                                     | `LowPass` `BandPass<1>` `BandPass<2>` `HighPass`                                                         |
 | 3     | `ThirdOrderButterworthFilter`  | `Omega`                                                            | `LowPass` `Peak<1>` `Peak<2>` `HighPass`                                                                 |
 | 3     | `ThirdOrderFilter`             | `Omega` `OmegaZeta` `Omega2Zeta`                                   | `LowPass` `Peak<1>` `Peak<2>` `HighPass`                                                                 |
