@@ -20,6 +20,15 @@
 
 //! Ever needed a low pass filter for your VST? This crate has a wide selection of filters for real-time usage. It's designed to have as little runtime overhead as possible.
 //! 
+//! # How does it work?
+//!
+//! Everything that can be computed at compile-time, will be, and the filter coefficients will be cached as well.
+//!
+//! I then use the following algorithm to process the signal with as few steps as possible given the filter's coefficients:
+//!
+//! ![2025-03-24-032452_hyprshot](https://github.com/user-attachments/assets/bd22e03f-b69c-4506-bbbd-baccf7a6c81d)
+//!
+//! (The figure is from: Alan V. Oppenheimer & Ronald W. Schafer - Discrete-Time Signal Processing)
 //! # Example
 //! 
 //! ```rust
@@ -76,7 +85,7 @@
 //! }
 //! ```
 //! 
-//! # Available filters:
+//! # Available filters
 //! 
 //! | Order | Filter                                                                                      | Parameterization                                                                                                                                                                                                 | Configuration                                                                                                                                                                                                                                                                                                                                                                     |
 //! |-------|---------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -98,6 +107,12 @@
 //! | 3     | [`ThirdOrderFilter`](crate::filters::iir::third::ThirdOrderFilter)                          | [`Omega`](crate::param::Omega) [`OmegaZeta`](crate::param::OmegaZeta) [`Omega2Zeta`](crate::param::Omega2Zeta)                                                                                                   | [`LowPass`](crate::conf::LowPass) <code>[Peak](crate::conf::Peak)<1><\code> <code>[Peak](crate::conf::Peak)<2><\code> [`HighPass`](crate::conf::HighPass)                                                                                                                                                                                                                         |
 //! | 3     | [`ThirdOrderSallenKeyFilter`](crate::filters::iir::third::ThirdOrderSallenKeyFilter)        | [`RC`](crate::param::RC) [`RC2SallenKey`](crate::param::RC2SallenKey) [`RC2GSallenKey`](crate::param::RC2GSallenKey) [`RC3SallenKey`](crate::param::RC3SallenKey) [`RC3GSallenKey`](crate::param::RC3GSallenKey) | [`LowPass`](crate::conf::LowPass) <code>[BandPass](crate::conf::BandPass)<1><\code> <code>[BandPass](crate::conf::BandPass)<2><\code> <code>[BandPass](crate::conf::BandPass)<3><\code> <code>[BandPass](crate::conf::BandPass)<4><\code> <code>[BandPass](crate::conf::BandPass)<5><\code> <code>[BandPass](crate::conf::BandPass)<6><\code> [`HighPass`](crate::conf::HighPass) |
 //! | 4     | [`ẀahFilter`](crate::filters::iir::fourth::WahFilter)                                       | [`CrybabyGCB95`](crate::param::CrybabyGCB95) [`VoxV847`](crate::param::VoxV847) [`ColorsoundWow`](crate::param::ColorsoundWow)                                                                                   | -                                                                                                                                                                                                                                                                                                                                                                                 |
+//!
+//! ...and more to come!
+//!
+//! ## Adding your own filter
+//!
+//! You can also implement your own filter, by using the macro `def_rtf!`. See how i did it with the other filters for an example on how to use the macro.
 
 #[allow(unused)]
 pub(crate) use crate as real_time_fir_iir_filters;
