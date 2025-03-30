@@ -3,37 +3,73 @@ use crate::{calc::iir::second::SecondOrderRCCalc, conf::{All, BandPass, HighPass
 crate::def_rtf!(
     {
         /// # Configurations
-        /// [All](crate::conf::All), [BandPass](crate::conf::BandPass),
-        /// [LowPass](crate::conf::LowPass), [BandPass](crate::conf::BandPass)<1>, [BandPass](crate::conf::BandPass)<2>, [HighPass](crate::conf::HighPass)
+        /// [`All`](crate::conf::All), [`BandPass`](crate::conf::BandPass),
+        /// [`LowPass`](crate::conf::LowPass), <code>[BandPass](crate::conf::BandPass)<1></code>, <code>[BandPass](crate::conf::BandPass)<2></code>, [`HighPass`](crate::conf::HighPass)
         /// ```md
         /// 0) LOW-PASS:
-        ///     X-[R1]-o-[R2]-Y
+        ///     X-[R₁]-o-[R₂]-Y
         ///            |      |
-        ///           [C1]   [C2]
+        ///           [C₁]   [C₂]
         ///            |      |
         ///           GND    GND
         /// 
         /// 1) BAND-PASS 1:
-        ///     X-[C1]-o-[R2]-Y
+        ///     X-[C₁]-o-[R₂]-Y
         ///            |      |
-        ///           [R1]   [C2]
+        ///           [R₁]   [C₂]
         ///            |      |
         ///           GND    GND
         /// 
         /// 2) BAND-PASS 2
-        ///     X-[R1]-o-[C2]-Y
+        ///     X-[R₁]-o-[C₂]-Y
         ///            |      |
-        ///           [C1]   [R2]
+        ///           [C₁]   [R₂]
         ///            |      |
         ///           GND    GND
         /// 
         /// 3) HIGH-PASS
-        ///     X-[C1]-o-[C2]-Y
+        ///     X-[C₁]-o-[C₂]-Y
         ///            |      |
-        ///           [R1]   [R2]
+        ///           [R₁]   [R₂]
         ///            |      |
         ///           GND    GND
         /// ```
+        /// 
+        /// # Frequency response
+        /// 
+        /// ## Parameters
+        /// 
+        /// R₁ = 22 kΩ
+        /// 
+        /// C₁ = 4.7 nF
+        /// 
+        /// R₂ = 5.6 kΩ
+        /// 
+        /// C₂ = 4.7 nF
+        /// 
+        /// ## Low-pass
+        /// 
+        /// <div>
+        /// <img alt="Second order low-pass RC-filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_r_c_filter0.png" height="500">
+        /// </div>
+        /// 
+        /// ## Band-pass 1
+        /// 
+        /// <div>
+        /// <img alt="Second order band-pass RC-filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_r_c_filter1.png" height="500">
+        /// </div>
+        /// 
+        /// ## Band-pass 2
+        /// 
+        /// <div>
+        /// <img alt="Second order band-pass RC-filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_r_c_filter2.png" height="500">
+        /// </div>
+        /// 
+        /// ## High-pass
+        /// 
+        /// <div>
+        /// <img alt="Second order high-pass RC-filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_r_c_filter3.png" height="500">
+        /// </div>
     }
     SecondOrderRCFilter
     {
@@ -258,7 +294,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = SecondOrderRCFilter::new::<All>(RC2 {r1: 390e3, c1: 100e-9, r2: 4.7e3, c2: 47e-12});
+        let mut filter = SecondOrderRCFilter::new::<All>(RC2 {r1: 22e3, c1: 4.7e-9, r2: 5.6e3, c2: 4.7e-9});
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

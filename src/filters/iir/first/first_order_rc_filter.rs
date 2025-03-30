@@ -4,7 +4,7 @@ crate::def_rtf!(
     {
         /// # Configurations
         /// 
-        /// [All](crate::conf::All), [LowPass](crate::conf::LowPass), [HighPass](crate::conf::HighPass)
+        /// [`All`](crate::conf::All), [`LowPass`](crate::conf::LowPass), [`HighPass`](crate::conf::HighPass)
         /// ```md
         /// 0) LOW-PASS:
         ///     X-[R]-Y
@@ -28,6 +28,26 @@ crate::def_rtf!(
         /// H(s) = -------
         ///        RCs + 1
         /// ```
+        /// 
+        /// # Frequency response
+        /// 
+        /// ## Parameters
+        /// 
+        /// R = 10 kΩ
+        /// 
+        /// C = 33 nF
+        /// 
+        /// ## Low-pass
+        /// 
+        /// <div>
+        /// <img alt="First order low-pass RC-filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/first_order_r_c_filter0.png" height="500">
+        /// </div>
+        /// 
+        /// ## High-pass
+        /// 
+        /// <div>
+        /// <img alt="First order high-pass RC-filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/first_order_r_c_filter1.png" height="500">
+        /// </div>
     }
     FirstOrderRCFilter
     {
@@ -92,7 +112,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = FirstOrderRCFilter::new::<All>(RC {r: 10000.0, c: 0.000000033});
+        let mut filter = FirstOrderRCFilter::new::<All>(RC {r: 10e3, c: 33e-9});
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

@@ -9,28 +9,62 @@ crate::def_rtf!(
         /// ```md
         /// 0) LOW-PASS:
         /// 
-        ///                   ω₁ω₂^2
-        /// H(s) = ----------------------------
-        ///        (s + ω₁)(s^2 + 2ζω₂s + ω₂^2)
+        ///                   ω₁ω₂²
+        /// H(s) = --------------------------
+        ///        (s + ω₁)(s² + 2ζω₂s + ω₂²)
         /// 
         /// 1) PEAK 1:
         /// 
-        ///              (ω₁ω₂^2)^(2/3)s
-        /// H(s) = ----------------------------
-        ///        (s + ω₁)(s^2 + 2ζω₂s + ω₂^2)
+        ///               (ω₁ω₂²)²ᐟ³s
+        /// H(s) = --------------------------
+        ///        (s + ω₁)(s² + 2ζω₂s + ω₂²)
         /// 
         /// 2) PEAK 2:
         /// 
-        ///              (ω₁ω₂^2)^(1/3)s^2
-        /// H(s) = ----------------------------
-        ///        (s + ω₁)(s^2 + 2ζω₂s + ω₂^2)
+        ///               (ω₁ω₂²)¹ᐟ³s²
+        /// H(s) = --------------------------
+        ///        (s + ω₁)(s² + 2ζω₂s + ω₂²)
         /// 
         /// 3) HIGH-PASS:
         /// 
-        ///                    s^3
-        /// H(s) = ----------------------------
-        ///        (s + ω₁)(s^2 + 2ζω₂s + ω₂^2)
+        ///                    s³
+        /// H(s) = --------------------------
+        ///        (s + ω₁)(s² + 2ζω₂s + ω₂²)
         /// ```
+        /// 
+        /// # Frequency response
+        /// 
+        /// ## Parameters
+        /// 
+        /// ω₁ = 1 kHz 2π
+        /// 
+        /// ω₂ = 10 kHz 2π
+        /// 
+        /// ζ = 0.05
+        /// 
+        /// ## Low-pass
+        /// 
+        /// <div>
+        /// <img alt="Third order low-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_filter0.png" height="500">
+        /// </div>
+        /// 
+        /// ## Peak 1
+        /// 
+        /// <div>
+        /// <img alt="Third order peak filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_filter1.png" height="500">
+        /// </div>
+        /// 
+        /// ## Peak 2
+        /// 
+        /// <div>
+        /// <img alt="Third order peak filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_filter2.png" height="500">
+        /// </div>
+        /// 
+        /// ## High-pass
+        /// 
+        /// <div>
+        /// <img alt="Third order high-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_filter3.png" height="500">
+        /// </div>
     }
     ThirdOrderFilter
     {
@@ -257,7 +291,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = ThirdOrderFilter::new::<All>(Omega2Zeta {omega1: 1000.0*TAU, omega2: 10000.0*TAU, zeta: 0.1});
+        let mut filter = ThirdOrderFilter::new::<All>(Omega2Zeta {omega1: 1e3*TAU, omega2: 10e3*TAU, zeta: 0.05});
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

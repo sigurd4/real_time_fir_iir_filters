@@ -4,33 +4,65 @@ use crate::{calc::iir::third::ThirdOrderButterworthCalc, conf::{All, HighPass, L
 crate::def_rtf!(
     {
         /// # Configurations
-        /// [All](crate::conf::All), [Peak](crate::conf::Peak),
-        /// [LowPass](crate::conf::LowPass), [Peak](crate::conf::Peak)<1>, [Peak](crate::conf::Peak)<2>, [HighPass](crate::conf::HighPass)
+        /// 
+        /// [`All`](crate::conf::All), [`Peak`](crate::conf::Peak),
+        /// [`LowPass`](crate::conf::LowPass), <code>[Peak](crate::conf::Peak)<1></code>, <code>[Peak](crate::conf::Peak)<2></code>, [`HighPass`](crate::conf::HighPass)
+        /// 
         /// ```md
         /// 0) LOW-PASS:
         /// 
-        ///                  ω^3
-        /// H(s) = -----------------------
-        ///        (s + ω)(s^2 + ωs + ω^2)
+        ///                  ω³
+        /// H(s) = ---------------------
+        ///        (s + ω)(s² + ωs + ω²)
         /// 
         /// 1) PEAK 1:
         /// 
-        ///                  ω^2s
-        /// H(s) = -----------------------
-        ///        (s + ω)(s^2 + ωs + ω^2)
+        ///                 ω²s
+        /// H(s) = ---------------------
+        ///        (s + ω)(s² + ωs + ω²)
         /// 
         /// 2) PEAK 2:
         /// 
-        ///                  ωs^2
-        /// H(s) = -----------------------
-        ///        (s + ω)(s^2 + ωs + ω^2)
+        ///                 ωs²
+        /// H(s) = ---------------------
+        ///        (s + ω)(s² + ωs + ω²)
         /// 
         /// 3) HIGH-PASS:
         /// 
-        ///                  s^3
-        /// H(s) = -----------------------
-        ///        (s + ω)(s^2 + ωs + ω^2)
+        ///                  s³
+        /// H(s) = ---------------------
+        ///        (s + ω)(s² + ωs + ω²)
         /// ```
+        /// 
+        /// # Frequency response
+        /// 
+        /// ## Parameters
+        /// 
+        /// ω = 10 kHz 2π
+        /// 
+        /// ## Low-pass
+        /// 
+        /// <div>
+        /// <img alt="Third order butterworth low-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_butterworth_filter0.png" height="500">
+        /// </div>
+        /// 
+        /// ## Peak 1
+        /// 
+        /// <div>
+        /// <img alt="Third order butterworth peak filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_butterworth_filter1.png" height="500">
+        /// </div>
+        /// 
+        /// ## Peak 2
+        /// 
+        /// <div>
+        /// <img alt="Third order butterworth peak filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_butterworth_filter2.png" height="500">
+        /// </div>
+        /// 
+        /// ## High-pass
+        /// 
+        /// <div>
+        /// <img alt="Third order butterworth high-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_butterworth_filter3.png" height="500">
+        /// </div>
     }
     ThirdOrderButterworthFilter
     {
@@ -257,7 +289,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = ThirdOrderButterworthFilter::new::<All>(Omega {omega: 10000.0*TAU});
+        let mut filter = ThirdOrderButterworthFilter::new::<All>(Omega {omega: 10e3*TAU});
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

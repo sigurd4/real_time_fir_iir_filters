@@ -3,21 +3,43 @@ use crate::{calc::iir::second::SecondOrderEllipticCalc, conf::{All, HighPass, Lo
 crate::def_rtf!(
     {
         /// # Configurations
-        /// [All](crate::conf::All),
-        /// [LowPass](crate::conf::LowPass), [HighPass](crate::conf::HighPass)
+        /// [`All`](crate::conf::All),
+        /// [`LowPass`](crate::conf::LowPass), [`HighPass`](crate::conf::HighPass)
         /// ```md
         /// 0) LOW-PASS:
         /// 
-        ///                     1
-        /// |H(s)| = -----------------------
-        ///          √(1 + ε^2R_2^2(ξ, s/ω))
+        ///                   1
+        /// |H(s)| = --------------------
+        ///          √(1 + ε²R₂²(ξ, s/ω))
         /// 
         /// 1) HIGH-PASS:
         /// 
-        ///                     1
-        /// |H(s)| = -----------------------
-        ///          √(1 + ε^2R_2^2(ξ, ω/s))
+        ///                   1
+        /// |H(s)| = --------------------
+        ///          √(1 + ε²R₂²(ξ, ω/s))
         /// ```
+        /// 
+        /// # Frequency response
+        /// 
+        /// ## Parameters
+        /// 
+        /// ω = 10 kHz 2π
+        /// 
+        /// ε = 0.5
+        /// 
+        /// ξ = 1.5
+        /// 
+        /// ## Low-pass
+        /// 
+        /// <div>
+        /// <img alt="Second order elliptic low-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_elliptic_filter0.png" height="500">
+        /// </div>
+        /// 
+        /// ## High-pass
+        /// 
+        /// <div>
+        /// <img alt="Second order elliptic high-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_elliptic_filter1.png" height="500">
+        /// </div>
     }
     SecondOrderEllipticFilter
     {
@@ -85,7 +107,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = SecondOrderEllipticFilter::new::<All>(OmegaEpsilonXi {omega: 10000.0*TAU, epsilon: 0.5, xi: 1.5});
+        let mut filter = SecondOrderEllipticFilter::new::<All>(OmegaEpsilonXi {omega: 10e3*TAU, epsilon: 0.5, xi: 1.5});
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

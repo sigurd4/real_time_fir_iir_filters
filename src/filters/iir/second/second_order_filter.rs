@@ -3,27 +3,55 @@ use crate::{calc::iir::second::SecondOrderCalc, conf::{All, HighPass, LowPass, P
 crate::def_rtf!(
     {
         /// # Configurations
-        /// [All](crate::conf::All),
-        /// [LowPass](crate::conf::LowPass), [Peak](crate::conf::Peak), [HighPass](crate::conf::HighPass)
+        /// 
+        /// [`All`](crate::conf::All),
+        /// [`LowPass`](crate::conf::LowPass), [`Peak`](crate::conf::Peak), [`HighPass`](crate::conf::HighPass)
+        /// 
         /// ```md
         /// 0) LOW-PASS:
         /// 
-        ///              ω^2
-        /// H(s) = ----------------
-        ///        s^2 + 2ζωs + ω^2 
+        ///              ω²
+        /// H(s) = --------------
+        ///        s² + 2ζωs + ω² 
         /// 
         /// 1) PEAK:
         /// 
-        ///               ωs
-        /// H(s) = ----------------
-        ///        s^2 + 2ζωs + ω^2 
+        ///              ωs
+        /// H(s) = --------------
+        ///        s² + 2ζωs + ω² 
         /// 
         /// 2) HIGH-PASS:
         /// 
-        ///              s^2
-        /// H(s) = ----------------
-        ///        s^2 + 2ζωs + ω^2 
+        ///              s²
+        /// H(s) = --------------
+        ///        s² + 2ζωs + ω² 
         /// ```
+        /// 
+        /// # Frequency response
+        /// 
+        /// ## Parameters
+        /// 
+        /// ω = 10 kHz 2π
+        /// 
+        /// ζ = 0.05
+        /// 
+        /// ## Low-pass
+        /// 
+        /// <div>
+        /// <img alt="Second order low-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_filter0.png" height="500">
+        /// </div>
+        /// 
+        /// ## Peak
+        /// 
+        /// <div>
+        /// <img alt="Second order peak filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_filter1.png" height="500">
+        /// </div>
+        /// 
+        /// ## High-pass
+        /// 
+        /// <div>
+        /// <img alt="Second order high-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_filter2.png" height="500">
+        /// </div>
     }
     SecondOrderFilter
     {
@@ -142,7 +170,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = SecondOrderFilter::new::<All>(OmegaZeta {omega: 10000.0*TAU, zeta: 0.05});
+        let mut filter = SecondOrderFilter::new::<All>(OmegaZeta {omega: 10e3*TAU, zeta: 0.05});
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

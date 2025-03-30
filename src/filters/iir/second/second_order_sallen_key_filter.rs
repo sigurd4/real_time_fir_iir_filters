@@ -3,50 +3,90 @@ use crate::{calc::iir::second::SecondOrderSallenKeyCalc, conf::{All, BandPass, H
 crate::def_rtf!(
     {
         /// # Configurations
-        /// [All](crate::conf::All), [BandPass](crate::conf::BandPass),
-        /// [LowPass](crate::conf::LowPass), [BandPass](crate::conf::BandPass)<1>, [BandPass](crate::conf::BandPass)<2>, [HighPass](crate::conf::HighPass)
+        /// 
+        /// [`All`](crate::conf::All), [`BandPass`](crate::conf::BandPass),
+        /// [`LowPass`](crate::conf::LowPass), <code>[BandPass](crate::conf::BandPass)<1></code>, <code>[BandPass](crate::conf::BandPass)<2></code>, [`HighPass`](crate::conf::HighPass)
+        /// 
         /// ```md
         /// 0) LOW-PASS:
         ///            o------------o
         ///            |            |
-        ///           [C1]          |
+        ///           [C₁]          |
         ///            |            |
-        ///     X-[R1]-o-[R2]-o-[G>-Y
+        ///     X-[R₁]-o-[R₂]-o-[G>-Y
         ///                   |
-        ///                  [C2]
+        ///                  [C₂]
         ///                   |
         ///                  GND
         /// 1) BAND-PASS 1:
         ///            o------------o
         ///            |            |
-        ///           [R1]          |
+        ///           [R₁]          |
         ///            |            |
-        ///     X-[C1]-o-[R2]-o-[G>-Y
+        ///     X-[C₁]-o-[R₂]-o-[G>-Y
         ///                   |
-        ///                  [C2]
+        ///                  [C₂]
         ///                   |
         ///                  GND
         /// 2) BAND-PASS 2:
         ///            o------------o
         ///            |            |
-        ///           [C1]          |
+        ///           [C₁]          |
         ///            |            |
-        ///     X-[R1]-o-[C2]-o-[G>-Y
+        ///     X-[R₁]-o-[C₂]-o-[G>-Y
         ///                   |
-        ///                  [R2]
+        ///                  [R₂]
         ///                   |
         ///                  GND
         /// 3) HIGH-PASS:
         ///            o------------o
         ///            |            |
-        ///           [R1]          |
+        ///           [R₁]          |
         ///            |            |
-        ///     X-[C1]-o-[C2]-o-[G>-Y
+        ///     X-[C₁]-o-[C₂]-o-[G>-Y
         ///                   |
-        ///                  [R2]
+        ///                  [R₂]
         ///                   |
         ///                  GND
         /// ```
+        /// 
+        /// # Frequency response
+        /// 
+        /// ## Parameters
+        /// 
+        /// R₁ = 15 kΩ
+        /// 
+        /// C₁ = 2.7 nF
+        /// 
+        /// R₂ = 15 kΩ
+        /// 
+        /// C₂ = 2.7 nF
+        /// 
+        /// G = 2
+        /// 
+        /// ## Low-pass
+        /// 
+        /// <div>
+        /// <img alt="Second order low-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_sallen_key_filter0.png" height="500">
+        /// </div>
+        /// 
+        /// ## Band-pass 1
+        /// 
+        /// <div>
+        /// <img alt="Second order band-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_sallen_key_filter1.png" height="500">
+        /// </div>
+        /// 
+        /// ## Band-pass 2
+        /// 
+        /// <div>
+        /// <img alt="Second order band-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_sallen_key_filter2.png" height="500">
+        /// </div>
+        /// 
+        /// ## High-pass
+        /// 
+        /// <div>
+        /// <img alt="Second order high-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_sallen_key_filter3.png" height="500">
+        /// </div>
     }
     SecondOrderSallenKeyFilter
     {

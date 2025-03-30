@@ -8,16 +8,36 @@ crate::def_rtf!(
         /// ```md
         /// 0) LOW-PASS:
         /// 
-        ///                   1
-        /// |H(s)| = --------------------
-        ///          √(1 + ε^2T_2^2(s/ω))
+        ///                  1
+        /// |H(s)| = -----------------
+        ///          √(1 + ε²T₂²(s/ω))
         /// 
         /// 1) HIGH-PASS:
         /// 
-        ///                   1
-        /// |H(s)| = --------------------
-        ///          √(1 + ε^2T_2^2(ω/s))
+        ///                  1
+        /// |H(s)| = -----------------
+        ///          √(1 + ε²T₂²(ω/s))
         /// ```
+        /// 
+        /// # Frequency response
+        /// 
+        /// ## Parameters
+        /// 
+        /// ω = 10 kHz 2π
+        /// 
+        /// ε = 0.5
+        /// 
+        /// ## Low-pass
+        /// 
+        /// <div>
+        /// <img alt="Second order chebyshev1 low-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_chebyshev1_filter0.png" height="500">
+        /// </div>
+        /// 
+        /// ## High-pass
+        /// 
+        /// <div>
+        /// <img alt="Second order chebyshev1 high-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_chebyshev1_filter1.png" height="500">
+        /// </div>
     }
     SecondOrderChebyshev1Filter
     {
@@ -85,7 +105,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = SecondOrderChebyshev1Filter::new::<All>(OmegaEpsilon {omega: 10000.0*TAU, epsilon: 1.0});
+        let mut filter = SecondOrderChebyshev1Filter::new::<All>(OmegaEpsilon {omega: 10e3*TAU, epsilon: 0.5});
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

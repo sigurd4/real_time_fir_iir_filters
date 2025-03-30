@@ -3,27 +3,53 @@ use crate::{calc::iir::second::SecondOrderCalc, conf::{All, HighPass, LowPass, P
 crate::def_rtf!(
     {
         /// # Configurations
-        /// [All](crate::conf::All),
-        /// [LowPass](crate::conf::LowPass), [Peak](crate::conf::Peak), [HighPass](crate::conf::HighPass)
+        /// 
+        /// [`All`](crate::conf::All),
+        /// [`LowPass`](crate::conf::LowPass), [`Peak`](crate::conf::Peak), [`HighPass`](crate::conf::HighPass)
+        /// 
         /// ```md
         /// 0) LOW-PASS:
         /// 
-        ///                ω^2
-        /// H(s) = ------------------
-        ///        s^2 + √(2)ωs + ω^2 
+        ///               ω²
+        /// H(s) = ----------------
+        ///        s² + √(2)ωs + ω² 
         /// 
         /// 1) PEAK:
         /// 
-        ///                ωs
-        /// H(s) = ------------------
-        ///        s^2 + √(2)ωs + ω^2 
+        ///               ωs
+        /// H(s) = ----------------
+        ///        s² + √(2)ωs + ω² 
         /// 
         /// 2) HIGH-PASS:
         /// 
-        ///                s^2
-        /// H(s) = ------------------
-        ///        s^2 + √(2)ωs + ω^2 
+        ///               s²
+        /// H(s) = ----------------
+        ///        s² + √(2)ωs + ω² 
         /// ```
+        /// 
+        /// # Frequency response
+        /// 
+        /// ## Parameters
+        /// 
+        /// ω = 10 kHz 2π
+        /// 
+        /// ## Low-pass
+        /// 
+        /// <div>
+        /// <img alt="Second order butterworth low-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_butterworth_filter0.png" height="500">
+        /// </div>
+        /// 
+        /// ## Peak
+        /// 
+        /// <div>
+        /// <img alt="Second order butterworth peak filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_butterworth_filter1.png" height="500">
+        /// </div>
+        /// 
+        /// ## High-pass
+        /// 
+        /// <div>
+        /// <img alt="Second order butterworth high-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_butterworth_filter2.png" height="500">
+        /// </div>
     }
     SecondOrderButterworthFilter
     {
@@ -142,7 +168,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = SecondOrderButterworthFilter::new::<All>(Omega {omega: 10000.0*TAU});
+        let mut filter = SecondOrderButterworthFilter::new::<All>(Omega {omega: 10e3*TAU});
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

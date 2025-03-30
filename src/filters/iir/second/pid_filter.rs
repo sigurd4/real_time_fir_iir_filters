@@ -5,9 +5,25 @@ crate::def_rtf!(
         /// # Configuration
         /// ```md
         ///            I
-        /// H(s) = P + - + Dspub
+        /// H(s) = P + - + Ds
         ///            s
         /// ```
+        /// 
+        /// # Frequency response
+        /// 
+        /// ## Parameters
+        /// 
+        /// P = 1
+        /// 
+        /// I = 1 mHz
+        /// 
+        /// D = 10 μs
+        /// 
+        /// ## Output
+        /// 
+        /// <div>
+        /// <img alt="PID-filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/p_i_d_filter0.png" height="500">
+        /// </div>
     }
     PIDFilter
     {

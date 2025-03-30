@@ -3,8 +3,10 @@ use crate::{calc::iir::second::SecondOrderRLCCalc, conf::{All, BandPass, BandSto
 crate::def_rtf!(
     {
         /// # Configurations
-        /// [All](crate::conf::All),
-        /// [LowPass](crate::conf::LowPass), [BandStop](crate::conf::BandStop), [BandPass](crate::conf::BandPass), [HighPass](crate::conf::HighPass)
+        /// 
+        /// [`All`](crate::conf::All),
+        /// [`LowPass`](crate::conf::LowPass), [`BandStop`](crate::conf::BandStop), [`BandPass`](crate::conf::BandPass), [`HighPass`](crate::conf::HighPass)
+        /// 
         /// ```md
         /// 0) LOW-PASS:
         ///     X-[R]-[L]-Y
@@ -38,6 +40,40 @@ crate::def_rtf!(
         ///           |
         ///          GND
         /// ```
+        /// 
+        /// # Frequency response
+        /// 
+        /// ## Parameters
+        /// 
+        /// R = 1 kΩ
+        /// 
+        /// L = 10 mH
+        /// 
+        /// C = 33 nF
+        /// 
+        /// ## Low-pass
+        /// 
+        /// <div>
+        /// <img alt="Second order low-pass RLC-filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_r_l_c_filter0.png" height="500">
+        /// </div>
+        /// 
+        /// ## Band-stop
+        /// 
+        /// <div>
+        /// <img alt="Second order band-stop RLC-filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_r_l_c_filter1.png" height="500">
+        /// </div>
+        /// 
+        /// ## Band-pass
+        /// 
+        /// <div>
+        /// <img alt="Second order band-pass RLC-filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_r_l_c_filter2.png" height="500">
+        /// </div>
+        /// 
+        /// ## High-pass
+        /// 
+        /// <div>
+        /// <img alt="Second order high-pass RLC-filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_r_l_c_filter3.png" height="500">
+        /// </div>
     }
     SecondOrderRLCFilter
     {

@@ -1,10 +1,14 @@
 [package]
 name = "real_time_fir_iir_filters"
 version = "1.1.1"
+authors = ["Sigurd Sætherø Spangelo"]
 edition = "2021"
 license = "MIT"
 description = "Real-time FIR and IIR filters designed for use with vst's"
 repository = "https://github.com/sigurd4/real_time_fir_iir_filters"
+keywords = ["signal-processing", "vst", "real-time", "dsp", "dtsp"]
+categories = ["algorithms", "mathematics", "multimedia::audio", "no-std::no-alloc", "science::robotics"]
+exclude = ["plots/"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -18,6 +22,10 @@ tupleops = "0.1.1"
 [dev-dependencies]
 plotters = "0.3.7"
 linspace = "0.1.1"
+
+[package.metadata.docs.rs]
+rustdoc-args = ["--html-in-header", "katex-header.html"]
+all-features = false
 
 [features]
 default = [

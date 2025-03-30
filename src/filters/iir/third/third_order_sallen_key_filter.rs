@@ -29,90 +29,158 @@ type Internals<F, C1: FirstOrderRCFilterConf, C2: SecondOrderSallenKeyFilterConf
 );
 
 /// # Configurations
-/// [All](crate::conf::All), [BandPass](crate::conf::BandPass),
-/// [LowPass](crate::conf::LowPass), [BandPass](crate::conf::BandPass)<1>, [BandPass](crate::conf::BandPass)<2>, [BandPass](crate::conf::BandPass)<3>, [BandPass](crate::conf::BandPass)<4>, [BandPass](crate::conf::BandPass)<5>, [BandPass](crate::conf::BandPass)<6>, [HighPass](crate::conf::HighPass)
+/// 
+/// [`All`](crate::conf::All), [`BandPass`](crate::conf::BandPass),
+/// [`LowPass`](crate::conf::LowPass), <code>[BandPass](crate::conf::BandPass)<1></code>, <code>[BandPass](crate::conf::BandPass)<2></code>, <code>[BandPass](crate::conf::BandPass)<3></code>, <code>[BandPass](crate::conf::BandPass)<4></code>, <code>[BandPass](crate::conf::BandPass)<5></code>, <code>[BandPass](crate::conf::BandPass)<6></code>, [`HighPass`](crate::conf::HighPass)
+/// 
 /// ```md
 /// 0) LOW-PASS:
 ///                   o------------o
 ///                   |            |
-///                  [C2]          |
+///                  [C₂]          |
 ///                   |            |
-///     X-[R1]-o-[R2]-o-[R3]-o-[G>-Y
+///     X-[R₁]-o-[R₂]-o-[R₃]-o-[G>-Y
 ///            |             |
-///           [C1]          [C3]
+///           [C₁]          [C₃]
 ///            |             |
 ///           GND           GND
 /// 1) BAND-PASS 1:
 ///                   o------------o
 ///                   |            |
-///                  [C2]          |
+///                  [C₂]          |
 ///                   |            |
-///     X-[C1]-o-[R2]-o-[R3]-o-[G>-Y
+///     X-[C₁]-o-[R₂]-o-[R₃]-o-[G>-Y
 ///            |             |
-///           [R1]          [C3]
+///           [R₁]          [C₃]
 ///            |             |
 ///           GND           GND
 /// 2) BAND-PASS 2:
 ///                   o------------o
 ///                   |            |
-///                  [R2]          |
+///                  [R₂]          |
 ///                   |            |
-///     X-[R1]-o-[C2]-o-[R3]-o-[G>-Y
+///     X-[R₁]-o-[C₂]-o-[R₃]-o-[G>-Y
 ///            |             |
-///           [C1]          [C3]
+///           [C₁]          [C₃]
 ///            |             |
 ///           GND           GND
 /// 3) BAND-PASS 3:
 ///                   o------------o
 ///                   |            |
-///                  [R2]          |
+///                  [R₂]          |
 ///                   |            |
-///     X-[C1]-o-[C2]-o-[R3]-o-[G>-Y
+///     X-[C₁]-o-[C₂]-o-[R₃]-o-[G>-Y
 ///            |             |
-///           [R1]          [C3]
+///           [R₁]          [C₃]
 ///            |             |
 ///           GND           GND
 /// 4) BAND-PASS 4:
 ///                   o------------o
 ///                   |            |
-///                  [C2]          |
+///                  [C₂]          |
 ///                   |            |
-///     X-[R1]-o-[R2]-o-[C3]-o-[G>-Y
+///     X-[R₁]-o-[R₂]-o-[C₃]-o-[G>-Y
 ///            |             |
-///           [C1]          [R3]
+///           [C₁]          [R₃]
 ///            |             |
 ///           GND           GND
 /// 5) BAND-PASS 5:
 ///                   o------------o
 ///                   |            |
-///                  [C2]          |
+///                  [C₂]          |
 ///                   |            |
-///     X-[C1]-o-[R2]-o-[C3]-o-[G>-Y
+///     X-[C₁]-o-[R₂]-o-[C₃]-o-[G>-Y
 ///            |             |
-///           [R1]          [R3]
+///           [R₁]          [R₃]
 ///            |             |
 ///           GND           GND
 /// 6) BAND-PASS 6:
 ///                   o------------o
 ///                   |            |
-///                  [R2]          |
+///                  [R₂]          |
 ///                   |            |
-///     X-[R1]-o-[C2]-o-[C3]-o-[G>-Y
+///     X-[R₁]-o-[C₂]-o-[C₃]-o-[G>-Y
 ///            |             |
-///           [C1]          [R3]
+///           [C₁]          [R₃]
 ///            |             |
 ///           GND           GND
 /// 7) HIGH-PASS:
 ///                   o------------o
 ///                   |            |
-///                  [R2]          |
+///                  [R₂]          |
 ///                   |            |
-///     X-[C1]-o-[C2]-o-[C3]-o-[G>-Y
+///     X-[C₁]-o-[C₂]-o-[C₃]-o-[G>-Y
 ///            |             |
-///           [R1]          [R3]
+///           [R₁]          [R₃]
 ///            |             |
 ///           GND           GND
 /// ```
+/// 
+/// # Frequency response
+/// 
+/// ## Parameters
+/// 
+/// R₁ = 470 Ω
+/// 
+/// C₁ = 47 nF
+/// 
+/// R₂ = 15 kΩ
+/// 
+/// C₂ = 2.7 nF
+/// 
+/// R₃ = 16 kΩ
+/// 
+/// C₃ = 2.7 nF
+/// 
+/// G = 1.38
+/// 
+/// ## Low-pass
+/// 
+/// <div>
+/// <img alt="Third order low-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_sallen_key_filter0.png" height="500">
+/// </div>
+/// 
+/// ## Band-pass 1
+/// 
+/// <div>
+/// <img alt="Third order band-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_sallen_key_filter1.png" height="500">
+/// </div>
+/// 
+/// ## Band-pass 2
+/// 
+/// <div>
+/// <img alt="Third order band-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_sallen_key_filter2.png" height="500">
+/// </div>
+/// 
+/// ## Band-pass 3
+/// 
+/// <div>
+/// <img alt="Third order band-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_sallen_key_filter3.png" height="500">
+/// </div>
+/// 
+/// ## Band-pass 4
+/// 
+/// <div>
+/// <img alt="Third order band-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_sallen_key_filter4.png" height="500">
+/// </div>
+/// 
+/// ## Band-pass 5
+/// 
+/// <div>
+/// <img alt="Third order band-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_sallen_key_filter5.png" height="500">
+/// </div>
+/// 
+/// ## Band-pass 6
+/// 
+/// <div>
+/// <img alt="Third order band-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_sallen_key_filter6.png" height="500">
+/// </div>
+/// 
+/// ## High-pass
+/// 
+/// <div>
+/// <img alt="Third order high-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_sallen_key_filter7.png" height="500">
+/// </div>
 pub struct ThirdOrderSallenKeyFilter<
     C,
     F,

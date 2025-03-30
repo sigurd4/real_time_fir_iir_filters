@@ -4,15 +4,27 @@ crate::def_rtf!(
     {
         /// # Configurations
         /// 
-        /// [All](crate::conf::All), [AllPass](crate::conf::AllPass)
+        /// [`All`](crate::conf::All), [`AllPass`](crate::conf::AllPass)
+        /// 
         /// ```md
         /// 0) ALL-PASS:
         /// 
         ///        τs - 1
         /// H(s) = ------
         ///        τs + 1
-        /// 
         /// ```
+        /// 
+        /// # Frequency response
+        /// 
+        /// ## Parameters
+        /// 
+        /// τ = 1 ms
+        /// 
+        /// ## All-pass
+        /// 
+        /// <div>
+        /// <img alt="First order all-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/first_order_all_pass_filter0.png" height="500">
+        /// </div>
     }
     FirstOrderAllPassFilter
     {

@@ -8,16 +8,36 @@ crate::def_rtf!(
         /// ```md
         /// 0) LOW-PASS:
         /// 
-        ///            √(ε^2T_2^2(ω/s))
-        /// |H(s)| = --------------------
-        ///          √(1 + ε^2T_2^2(ω/s))
+        ///            √(ε²T₂²(ω/s))
+        /// |H(s)| = -----------------
+        ///          √(1 + ε²T₂²(ω/s))
         /// 
         /// 1) HIGH-PASS:
         /// 
-        ///            √(ε^2T_2^2(s/ω))
-        /// |H(s)| = --------------------
-        ///          √(1 + ε^2T_2^2(s/ω))
+        ///            √(ε²T₂²(s/ω))
+        /// |H(s)| = -----------------
+        ///          √(1 + ε²T₂²(s/ω))
         /// ```
+        /// 
+        /// # Frequency response
+        /// 
+        /// ## Parameters
+        /// 
+        /// ω = 10 kHz 2π
+        /// 
+        /// ε = 0.5
+        /// 
+        /// ## Low-pass
+        /// 
+        /// <div>
+        /// <img alt="Second order chebyshev2 low-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_chebyshev2_filter0.png" height="500">
+        /// </div>
+        /// 
+        /// ## High-pass
+        /// 
+        /// <div>
+        /// <img alt="Second order chebyshev2 high-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_chebyshev2_filter1.png" height="500">
+        /// </div>
     }
     SecondOrderChebyshev2Filter
     {
@@ -85,7 +105,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = SecondOrderChebyshev2Filter::new::<All>(OmegaEpsilon {omega: 10000.0*TAU, epsilon: 1.0});
+        let mut filter = SecondOrderChebyshev2Filter::new::<All>(OmegaEpsilon {omega: 10e3*TAU, epsilon: 0.5});
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }
