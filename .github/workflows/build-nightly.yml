@@ -23,8 +23,6 @@ jobs:
     steps:
     - uses: "actions/checkout@v3"
       name: "Checkout"
-    - name: Install Fontconfig
-      run: sudo apt-get install fontconfig
     - uses: "actions-rs/toolchain@v1"
       with:
         profile: "minimal"
