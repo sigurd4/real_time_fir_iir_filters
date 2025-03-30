@@ -134,10 +134,6 @@ where
         let a3 = a3a + a3b*g_q2;
         let a2 = a2a + a2b*g_q2;
 
-        let b2 = b2;
-        let b3 = b3;
-        let b1 = b1;
-
         let eight_b3_rate3_mg_q1_p_two_b1_rate_mg_q1 = (b3*four_rate2 + b1)*two_rate*mg_q1;
         let four_b2_rate2_mg_q1 = b2*four_rate2*mg_q1;
         let sixteen_b3_rate3_mg_q1_m_four_b2_rate_mg_q1 = (b3*four_rate2 - b2)*four_rate*mg_q1;
