@@ -20,7 +20,7 @@ Ever needed a low pass filter for your VST? This crate has a wide selection of f
 
 Everything that can be computed at compile-time, will be, and the filter coefficients will be cached as well.
 
-I use the following algorithm to process the signal with as few steps as possible given the filter's coefficients:
+I then use the following algorithm to process the signal with as few steps as possible given the filter's coefficients:
 
 ![2025-03-24-032452_hyprshot](https://github.com/user-attachments/assets/bd22e03f-b69c-4506-bbbd-baccf7a6c81d)
 
