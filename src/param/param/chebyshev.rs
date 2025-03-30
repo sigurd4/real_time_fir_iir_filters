@@ -1,8 +1,8 @@
 use num::One;
 
-use super::{ButterworthFilterParam, EllipticFilterConf};
+use super::ButterworthFilterParam;
 
-use crate::{conf::{All, Conf}, param::{ChebyshevFilterParamBase, EllipticFilterParamBase, FilterFloat, FilterParam, Omega, OmegaDyn, OmegaEpsilon, OmegaEpsilonCheb1, Param}, util::same::Same};
+use crate::{conf::{All, Conf}, param::{ChebyshevFilterParamBase, EllipticFilterConf, EllipticFilterParamBase, FilterFloat, FilterParam, Omega, OmegaDyn, OmegaEpsilon, OmegaEpsilonCheb1, Param}, util::same::Same};
 
 pub trait ChebyshevFilterParam<
     C,

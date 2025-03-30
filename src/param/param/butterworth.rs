@@ -1,6 +1,6 @@
-use crate::{conf::Conf, param::{ChebyshevFilterParamBase, EllipticFilterParamBase, FilterParam, Omega, OmegaDyn, OmegaEpsilonCheb1Dyn, Param}, util::same::Same};
+use crate::{conf::Conf, param::{ButterworthFilterConf, ChebyshevFilterParamBase, EllipticFilterParamBase, FilterFloat, FilterParam, FirstOrderFilterConf, FirstOrderFilterParamBase, Omega, OmegaDyn, OmegaEpsilonCheb1Dyn, OmegaFirstOrder, Param}, util::same::Same};
 
-use super::{EllipticFilterConf, FirstOrderFilterConf, FirstOrderFilterParam, SecondOrderFilterConf, SecondOrderFilterParam, ThirdOrderFilterConf, ThirdOrderFilterParam};
+use super::{FirstOrderFilterParam, SecondOrderFilterParam, ThirdOrderFilterParam};
 
 pub trait ButterworthFilterParam<
     C
@@ -12,13 +12,49 @@ where
     type Conf: ButterworthFilterConf<{Self::ORDER}>
     where
         [(); Self::ORDER]:;
-    type Omega: Same<Omega<Self::F, {Self::ORDER}>>
+    type Omega//: Same<Omega<Self::F, {Self::ORDER}>>
     where
         [(); Self::ORDER]:;
 
     fn omega(&self) -> Self::Omega
     where
         [(); Self::ORDER]:;
+}
+
+impl<F, C, const ORDER: usize> ButterworthFilterParam<C> for Param<Omega<F, ORDER>>
+where
+    F: FilterFloat,
+    C: ButterworthFilterConf<{Self::ORDER}> + ButterworthFilterConf<ORDER>,
+    Omega<F, ORDER>: Same<Omega<F, {Self::ORDER}>>
+{
+    type Conf = C
+    where
+        [(); Self::ORDER]:;
+    type Omega = Omega<F, ORDER>
+    where
+        [(); Self::ORDER]:;
+
+    fn omega(&self) -> Self::Omega
+    where
+        [(); Self::ORDER]:
+    {
+        **self
+    }
+}
+
+impl<P, C> FirstOrderFilterParam<C, Param<OmegaFirstOrder<P::F>>> for P
+where
+    P: ButterworthFilterParam<C, ORDER = 1, Conf: FirstOrderFilterConf, Omega = OmegaFirstOrder<<P as FilterParam>::F>> + FirstOrderFilterParamBase<C, ImplBase = Param<OmegaFirstOrder<<P as FilterParam>::F>>>,
+    C: Conf,
+    [(); P::ORDER]:
+{
+    type Conf = P::Conf;
+
+    #[doc(hidden)]
+    fn omega(&self) -> OmegaFirstOrder<Self::F>
+    {
+        ButterworthFilterParam::omega(self)
+    }
 }
 
 macro_rules! special {
@@ -51,127 +87,3 @@ special!(DynOrderButterworthFilterParam = 0);
 special!(FirstOrderButterworthFilterParam: FirstOrderFilterParam = 1);
 special!(SecondOrderButterworthFilterParam: SecondOrderFilterParam = 2);
 special!(ThirdOrderButterworthFilterParam: ThirdOrderFilterParam = 3);
-
-pub trait FirstOrderButterworthFilterConf = ButterworthFilterConf<1>;
-pub trait SecondOrderButterworthFilterConf = ButterworthFilterConf<2>;
-pub trait ThirdOrderButterworthFilterConf = ButterworthFilterConf<3>;
-
-pub trait ButterworthFilterConf<const ORDER: usize>: Conf
-{
-    type Conf: private::ButterworthFilterConfFinal<ORDER, Self>;
-
-    const OUTPUTS: usize;
-}
-
-impl<C, const OUTPUTS: usize> ButterworthFilterConf<0> for C
-where
-    C: EllipticFilterConf<OUTPUTS = {OUTPUTS}>
-{
-    type Conf = <Self as EllipticFilterConf>::Conf;
-
-    const OUTPUTS: usize = OUTPUTS;
-}
-impl<C, const OUTPUTS: usize> ButterworthFilterConf<1> for C
-where
-    C: FirstOrderFilterConf<OUTPUTS = {OUTPUTS}>
-{
-    type Conf = <Self as FirstOrderFilterConf>::Conf;
-
-    const OUTPUTS: usize = OUTPUTS;
-}
-impl<C, const OUTPUTS: usize> ButterworthFilterConf<2> for C
-where
-    C: SecondOrderFilterConf<OUTPUTS = {OUTPUTS}>
-{
-    type Conf = <Self as SecondOrderFilterConf>::Conf;
-    
-    const OUTPUTS: usize = OUTPUTS;
-}
-impl<C, const OUTPUTS: usize> ButterworthFilterConf<3> for C
-where
-    C: ThirdOrderFilterConf<OUTPUTS = {OUTPUTS}>
-{
-    type Conf = <Self as ThirdOrderFilterConf>::Conf;
-    
-    const OUTPUTS: usize = OUTPUTS;
-}
-
-mod private
-{
-    use crate::param::{EllipticFilterConf, FirstOrderFilterConf, SecondOrderFilterConf, ThirdOrderFilterConf};
-
-    use super::ButterworthFilterConf;
-
-    pub trait ButterworthFilterConfFinal<const ORDER: usize, C>: ButterworthFilterConf<
-        ORDER,
-        Conf = Self
-    >
-    where
-        C: ButterworthFilterConf<
-            ORDER,
-            Conf = Self
-        >
-    {
-
-    }
-
-    impl<
-        CC,
-        C
-    > ButterworthFilterConfFinal<0, C> for CC
-    where
-        CC: EllipticFilterConf<
-            Conf = CC
-        >,
-        C: EllipticFilterConf<
-            Conf = CC
-        >,
-    {
-
-    }
-
-    impl<
-        CC,
-        C
-    > ButterworthFilterConfFinal<1, C> for CC
-    where
-        CC: FirstOrderFilterConf<
-            Conf = CC
-        >,
-        C: FirstOrderFilterConf<
-            Conf = CC
-        >,
-    {
-
-    }
-
-    impl<
-        CC,
-        C
-    > ButterworthFilterConfFinal<2, C> for CC
-    where
-        CC: SecondOrderFilterConf<
-            Conf = CC
-        >,
-        C: SecondOrderFilterConf<
-            Conf = CC
-        >,
-    {
-
-    }
-
-    impl<
-        CC,
-        C
-    > ButterworthFilterConfFinal<3, C> for CC
-    where
-        CC: ThirdOrderFilterConf<
-            Conf = CC
-        >,
-        C: ThirdOrderFilterConf<
-            Conf = CC
-        >,
-    {
-
-    }
-}

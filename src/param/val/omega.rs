@@ -1,4 +1,4 @@
-use crate::{param::{ButterworthFilterConf, ButterworthFilterParam, ChebyshevFilterParamBase, EllipticFilterParamBase, FilterFloat, FilterParam, FirstOrderFilterParamBase, Param, SecondOrderFilterParamBase, ThirdOrderFilterParamBase}, util::same::Same};
+use crate::param::{ButterworthFilterConf, ButterworthFilterParam, ChebyshevFilterParamBase, EllipticFilterParamBase, FilterFloat, FilterParam, FirstOrderFilterParamBase, Param, SecondOrderFilterParamBase, ThirdOrderFilterParamBase};
 
 use super::OmegaEpsilonCheb1Dyn;
 
@@ -64,8 +64,7 @@ where
 impl<F, C, const ORDER: usize> ButterworthFilterParam<C> for Param<Omega<F, ORDER>>
 where
     F: FilterFloat,
-    C: ButterworthFilterConf<{Self::ORDER}> + ButterworthFilterConf<ORDER>,
-    Omega<F, ORDER>: Same<Omega<F, {Self::ORDER}>>
+    C: ButterworthFilterConf<{Self::ORDER}> + ButterworthFilterConf<ORDER>
 {
     type Conf = C
     where

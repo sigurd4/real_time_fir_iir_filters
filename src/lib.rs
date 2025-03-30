@@ -832,6 +832,7 @@ mod tests
 
     const PLOT_TARGET: &str = "plots";
 
+    #[cfg(feature = "second_order_elliptic")]
     #[test]
     fn it_works()
     {

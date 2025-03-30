@@ -6,6 +6,7 @@ use num::{traits::FloatConst, Float};
 moddef::moddef!(
     flat(pub) mod {
         base,
+        conf,
         param,
         val
     }

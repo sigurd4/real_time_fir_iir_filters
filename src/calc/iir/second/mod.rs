@@ -7,6 +7,9 @@ moddef::moddef!(
         second_order_rc for cfg(feature = "second_order_rc"),
         second_order_rlc for cfg(feature = "second_order_rlc"),
         second_order_sallen_key for cfg(feature = "second_order_sallen_key"),
-        second_order for cfg(feature = "second_order")
+        second_order for cfg(any(
+            feature = "second_order",
+            feature = "second_order_butterworth"
+        ))
     }
 );

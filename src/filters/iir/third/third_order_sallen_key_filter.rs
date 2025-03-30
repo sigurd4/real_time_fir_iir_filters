@@ -244,6 +244,7 @@ macro_rules! c {
     };
 }
 
+// Now... how could i make this shorter?
 c!(
     fn make_coeffs<All, All>(param, rate) -> _
     {
