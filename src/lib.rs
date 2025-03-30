@@ -110,7 +110,7 @@
 //!
 //! ...and more to come!
 //!
-//! ## Adding your own filter
+//! # Adding your own filter
 //!
 //! You can also implement your own filter, by using the macro `def_rtf!`. See how i did it with the other filters for an example on how to use the macro.
 
