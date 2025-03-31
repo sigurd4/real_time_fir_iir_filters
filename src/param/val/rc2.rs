@@ -1,7 +1,9 @@
+use serde::{Serialize, Deserialize};
+
 use crate::param::{FilterFloat, FilterParam, Param, SecondOrderRCFilterConf, SecondOrderRCFilterParam, SecondOrderRCFilterParamBase};
 
-
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)] 
 pub struct RC2<F>
 where
     F: FilterFloat

@@ -1,4 +1,6 @@
-use crate::{param::{FilterFloat, Parameterization}, static_rtf::{StaticRtf, StaticRtfBase}};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+use crate::{param::{FilterFloat, Parameterization}, static_rtf::{StaticRtf, StaticRtfBase}, serde::{MaybeSerialize, DeserializeOrZeroed}};
 
 pub macro winternals {
     ($f:ty, $o_buffers:expr, $sos_buffers:expr, $sos:expr, $order:expr) => {
@@ -58,7 +60,7 @@ pub type AInternalsFor<Rtf: StaticRtfBase> = ainternals!(Rtf);
 #[allow(type_alias_bounds)]
 pub type RtfInternalsFor<Rtf: StaticRtfBase> = RtfInternals<Rtf::F, WInternalsFor<Rtf>, BInternalsFor<Rtf>, [AInternalsFor<Rtf>; Rtf::IS_IIR as usize]>;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct RtfInternals<F, W, B, A>
 where
     F: FilterFloat
@@ -67,6 +69,32 @@ where
     pub b: B,
     pub a: A,
     pub(crate) rate: Option<F>
+}
+
+impl<F, W, B, A> Serialize for RtfInternals<F, W, B, A>
+where
+    F: FilterFloat
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer
+    {
+        self.w.maybe_serialize(serializer)
+    }
+}
+impl<'de, F, W, B, A> Deserialize<'de> for RtfInternals<F, W, B, A>
+where
+    F: FilterFloat
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>
+    {
+        Ok(Self {
+            w: W::deserialize_or_zeroed(deserializer)?,
+            ..Default::default()
+        })
+    }
 }
 
 impl<F, W, B, A> RtfInternals<F, W, B, A>

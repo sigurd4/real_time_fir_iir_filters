@@ -2,6 +2,7 @@ use core::{borrow::{Borrow, BorrowMut}, fmt::Debug, ops::{Deref, DerefMut}};
 
 use bytemuck::Pod;
 use num::{traits::FloatConst, Float};
+use serde::{Serialize, Deserialize};
 
 moddef::moddef!(
     flat(pub) mod {
@@ -55,10 +56,16 @@ pub trait FilterParam: Parameterization
     type F: FilterFloat;
 }
 
-#[derive(Clone, Copy, Debug)]
+fn tru() -> bool
+{
+    true
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct Param<T>
 {
     value: T,
+    #[serde(default = "tru")]
     has_maybe_changed: bool
 }
 impl<T> Param<T>
@@ -131,5 +138,14 @@ impl<T> BorrowMut<T> for Param<T>
     fn borrow_mut(&mut self) -> &mut T
     {
         self.get_mut()
+    }
+}
+impl<T> Default for Param<T>
+where
+    T: Default
+{
+    fn default() -> Self
+    {
+        T::default().into()
     }
 }

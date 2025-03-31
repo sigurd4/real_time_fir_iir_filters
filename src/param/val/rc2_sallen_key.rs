@@ -1,10 +1,12 @@
 use num::{Float, One};
+use serde::{Serialize, Deserialize};
 
 use crate::param::{FilterFloat, FilterParam, Param, SecondOrderSallenKeyFilterConf, SecondOrderSallenKeyFilterParam, ThirdOrderSallenKeyFilterParamBase};
 
 use super::RC2GSallenKey;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)] 
 pub struct RC2SallenKey<F>
 where
     F: Float

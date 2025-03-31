@@ -113,7 +113,7 @@
 //!
 //! # Adding your own filter
 //!
-//! You can also implement your own filter, by using the macro `def_rtf!`. See how i did it with the other filters for an example on how to use the macro.
+//! You can also implement your own filter, by using the macro [`def_rtf!`](crate::def_rtf). See how i did it with the other filters for an example on how to use the macro.
 
 #[allow(unused)]
 pub(crate) use crate as real_time_fir_iir_filters;
@@ -129,6 +129,7 @@ moddef::moddef!(
     },
     mod {
         plot for cfg(test),
+        serde,
         util,
         calc
     }
@@ -591,7 +592,8 @@ macro_rules! def_rtf {
         }
 
         $($($docs)*)?
-        #[derive(Clone, Copy, Debug)]
+        #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+        #[serde(deny_unknown_fields)] 
         pub struct $name<C = real_time_fir_iir_filters::conf::All, F = f64, P = $param_default<F>>
         where
             F: real_time_fir_iir_filters::param::FilterFloat,
@@ -601,6 +603,7 @@ macro_rules! def_rtf {
         {
             pub param: real_time_fir_iir_filters::param::Param<P>,
             pub internals: Internals<F, C>,
+            #[serde(skip)]
             phantom: core::marker::PhantomData<C>
         }
 

@@ -1,8 +1,10 @@
 use num::Float;
+use serde::{Serialize, Deserialize};
 
 use crate::param::{FilterFloat, FilterParam, FirstOrderAllPassFilterConf, FirstOrderAllPassFilterParam, FirstOrderAllPassFilterParamBase, Param};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)] 
 pub struct Tau<F>
 where
     F: Float

@@ -1,8 +1,10 @@
 use num::Float;
+use serde::{Serialize, Deserialize};
 
 use crate::param::{FilterFloat, FilterParam, Param, ThirdOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParam, ThirdOrderSallenKeyFilterParamBase};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)] 
 pub struct RC3GSallenKey<F>
 where
     F: Float

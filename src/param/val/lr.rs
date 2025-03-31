@@ -1,11 +1,12 @@
-use num::Float;
+use serde::{Deserialize, Serialize};
 
 use crate::param::{FilterFloat, FilterParam, FirstOrderFilterParamBase, FirstOrderLRFilterConf, FirstOrderLRFilterParam, Param};
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)] 
 pub struct LR<F>
 where
-    F: Float
+    F: FilterFloat
 {
     pub l: F,
     pub r: F
