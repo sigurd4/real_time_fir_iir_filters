@@ -593,7 +593,7 @@ macro_rules! def_rtf {
         }
 
         $($($docs)*)?
-        #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+        #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
         #[serde(deny_unknown_fields)]
         pub struct $name<C = real_time_fir_iir_filters::conf::All, F = f64, P = $param_default<F>>
         where

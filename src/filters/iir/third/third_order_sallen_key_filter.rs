@@ -181,7 +181,7 @@ type Internals<F, C1: FirstOrderRCFilterConf, C2: SecondOrderSallenKeyFilterConf
 /// <div>
 /// <img alt="Third order high-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_sallen_key_filter7.png" height="500">
 /// </div>
-#[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ThirdOrderSallenKeyFilter<
     C,
