@@ -1,7 +1,7 @@
 use num::Float;
 use serde::{Serialize, Deserialize};
 
-use crate::param::{FilterFloat, FilterParam, FirstOrderAllPassFilterConf, FirstOrderAllPassFilterParam, FirstOrderAllPassFilterParamBase, Param};
+use crate::{change::Change, param::{FilterFloat, FilterParam, FirstOrderAllPassFilterConf, FirstOrderAllPassFilterParam, FirstOrderAllPassFilterParamBase, Param}};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)] 
@@ -10,6 +10,17 @@ where
     F: Float
 {
     pub tau: F
+}
+impl<F> Change for Tau<F>
+where
+    F: FilterFloat
+{
+    type F = F;
+
+    fn change(&mut self, to: Self, change: Self::F)
+    {
+        self.tau.change(to.tau, change);
+    }
 }
 impl<F> FilterParam for Param<Tau<F>>
 where

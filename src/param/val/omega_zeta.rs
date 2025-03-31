@@ -1,16 +1,27 @@
-use num::Float;
 use serde::{Serialize, Deserialize};
 
-use crate::param::{FilterFloat, FilterParam, Param, SecondOrderFilterConf, SecondOrderFilterParam, SecondOrderFilterParamBase};
+use crate::{change::Change, param::{FilterFloat, FilterParam, Param, SecondOrderFilterConf, SecondOrderFilterParam, SecondOrderFilterParamBase}};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)] 
 pub struct OmegaZeta<F>
 where
-    F: Float
+    F: FilterFloat
 {
     pub omega: F,
     pub zeta: F
+}
+impl<F> Change for OmegaZeta<F>
+where
+    F: FilterFloat
+{
+    type F = F;
+
+    fn change(&mut self, to: Self, change: Self::F)
+    {
+        self.omega.change(to.omega, change);
+        self.zeta.change(to.zeta, change);
+    }
 }
 impl<F> FilterParam for Param<OmegaZeta<F>>
 where

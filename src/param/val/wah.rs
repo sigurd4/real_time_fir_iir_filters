@@ -1,6 +1,6 @@
 use serde::{Serialize, Deserialize};
 
-use crate::param::{FilterFloat, FilterParam, Param, WahFilterParam};
+use crate::{change::Change, param::{FilterFloat, FilterParam, Param, WahFilterParam}};
 
 use super::X;
 
@@ -23,6 +23,17 @@ where
     F: FilterFloat
 {
     pub x: F
+}
+impl<F> Change<X<F>> for CrybabyGCB95<F>
+where
+    F: FilterFloat
+{
+    type F = F;
+
+    fn change(&mut self, to: X<F>, change: Self::F)
+    {
+        self.x.change(to.x, change);
+    }
 }
 impl<F> FilterParam for Param<CrybabyGCB95<F>>
 where
@@ -76,6 +87,17 @@ where
 {
     pub x: F
 }
+impl<F> Change<X<F>> for VoxV847<F>
+where
+    F: FilterFloat
+{
+    type F = F;
+
+    fn change(&mut self, to: X<F>, change: Self::F)
+    {
+        self.x.change(to.x, change);
+    }
+}
 impl<F> FilterParam for Param<VoxV847<F>>
 where
     F: FilterFloat
@@ -127,6 +149,17 @@ where
     F: FilterFloat
 {
     pub x: F
+}
+impl<F> Change<X<F>> for ColorsoundWow<F>
+where
+    F: FilterFloat
+{
+    type F = F;
+
+    fn change(&mut self, to: X<F>, change: Self::F)
+    {
+        self.x.change(to.x, change);
+    }
 }
 impl<F> FilterParam for Param<ColorsoundWow<F>>
 where

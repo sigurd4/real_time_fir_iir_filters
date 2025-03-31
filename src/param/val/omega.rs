@@ -1,6 +1,6 @@
 use serde::{Serialize, Deserialize};
 
-use crate::param::{ButterworthFilterConf, ButterworthFilterParam, ChebyshevFilterParamBase, EllipticFilterParamBase, FilterFloat, FilterParam, FirstOrderFilterParamBase, Param, SecondOrderFilterParamBase, ThirdOrderFilterParamBase};
+use crate::{change::Change, param::{ButterworthFilterConf, ButterworthFilterParam, ChebyshevFilterParamBase, EllipticFilterParamBase, FilterFloat, FilterParam, FirstOrderFilterParamBase, Param, SecondOrderFilterParamBase, ThirdOrderFilterParamBase}};
 
 use super::OmegaEpsilonCheb1Dyn;
 
@@ -17,7 +17,17 @@ where
 {
     pub omega: F
 }
+impl<F, const ORDER: usize> Change for Omega<F, ORDER>
+where
+    F: FilterFloat
+{
+    type F = F;
 
+    fn change(&mut self, to: Self, change: Self::F)
+    {
+        self.omega.change(to.omega, change);
+    }
+}
 impl<F, const ORDER: usize> FilterParam for Param<Omega<F, ORDER>>
 where
     F: FilterFloat

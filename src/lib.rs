@@ -121,6 +121,7 @@ pub(crate) use crate as real_time_fir_iir_filters;
 
 moddef::moddef!(
     pub mod {
+        change,
         filters,
         internals,
         param,

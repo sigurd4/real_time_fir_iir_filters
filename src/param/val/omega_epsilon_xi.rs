@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::param::{EllipticFilterConf, EllipticFilterParam, EllipticFilterParamBase, FilterFloat, FilterParam, Param};
+use crate::{change::Change, param::{EllipticFilterConf, EllipticFilterParam, EllipticFilterParamBase, FilterFloat, FilterParam, Param}};
 
 pub type OmegaEpsilonXiDyn<F> = OmegaEpsilonXi<F>;
 pub type OmegaEpsilonXiFirstOrder<F> = OmegaEpsilonXi<F, 1>;
@@ -16,6 +16,19 @@ where
     pub omega: F,
     pub epsilon: F,
     pub xi: F
+}
+impl<F, const ORDER: usize> Change for OmegaEpsilonXi<F, ORDER>
+where
+    F: FilterFloat
+{
+    type F = F;
+
+    fn change(&mut self, to: Self, change: Self::F)
+    {
+        self.omega.change(to.omega, change);
+        self.epsilon.change(to.epsilon, change);
+        self.xi.change(to.xi, change);
+    }
 }
 impl<F, const ORDER: usize> FilterParam for Param<OmegaEpsilonXi<F, ORDER>>
 where

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::param::{FilterFloat, FilterParam, FirstOrderFilterParamBase, FirstOrderLRFilterConf, FirstOrderLRFilterParam, Param};
+use crate::{change::Change, param::{FilterFloat, FilterParam, FirstOrderFilterParamBase, FirstOrderLRFilterConf, FirstOrderLRFilterParam, Param}};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)] 
@@ -11,7 +11,18 @@ where
     pub l: F,
     pub r: F
 }
+impl<F> Change for LR<F>
+where
+    F: FilterFloat
+{
+    type F = F;
 
+    fn change(&mut self, to: Self, change: Self::F)
+    {
+        self.l.change(to.l, change);
+        self.r.change(to.r, change);
+    }
+}
 impl<F> FilterParam for Param<LR<F>>
 where
     F: FilterFloat

@@ -1,7 +1,7 @@
 use num::Float;
 use serde::{Serialize, Deserialize};
 
-use crate::param::{FilterFloat, FilterParam, Param, SecondOrderRLCFilterConf, SecondOrderRLCFilterParam, SecondOrderRLCFilterParamBase};
+use crate::{change::Change, param::{FilterFloat, FilterParam, Param, SecondOrderRLCFilterConf, SecondOrderRLCFilterParam, SecondOrderRLCFilterParamBase}};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)] 
@@ -12,6 +12,19 @@ where
     pub r: F,
     pub l: F,
     pub c: F
+}
+impl<F> Change for RLC<F>
+where
+    F: FilterFloat
+{
+    type F = F;
+
+    fn change(&mut self, to: Self, change: Self::F)
+    {
+        self.r.change(to.r, change);
+        self.l.change(to.l, change);
+        self.c.change(to.c, change);
+    }
 }
 impl<F> FilterParam for Param<RLC<F>>
 where

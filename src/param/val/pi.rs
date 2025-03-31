@@ -1,7 +1,7 @@
 use num::Float;
 use serde::{Serialize, Deserialize};
 
-use crate::param::{FilterFloat, FilterParam, PIFilterParam, Param};
+use crate::{change::Change, param::{FilterFloat, FilterParam, PIFilterParam, Param}};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)] 
@@ -11,6 +11,18 @@ where
 {
     pub p: F,
     pub i: F
+}
+impl<F> Change for PI<F>
+where
+    F: FilterFloat
+{
+    type F = F;
+
+    fn change(&mut self, to: Self, change: Self::F)
+    {
+        self.p.change(to.p, change);
+        self.i.change(to.i, change);
+    }
 }
 impl<F> FilterParam for Param<PI<F>>
 where

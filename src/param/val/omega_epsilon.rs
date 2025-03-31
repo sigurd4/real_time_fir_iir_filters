@@ -1,6 +1,6 @@
 use serde::{Serialize, Deserialize};
 
-use crate::param::{ChebyshevFilterParam, ChebyshevFilterParamBase, EllipticFilterConf, EllipticFilterParamBase, FilterFloat, FilterParam, Param};
+use crate::{change::Change, param::{ChebyshevFilterParam, ChebyshevFilterParamBase, EllipticFilterConf, EllipticFilterParamBase, FilterFloat, FilterParam, Param}};
 
 pub type OmegaEpsilonDyn<F, const TYPE: bool> = OmegaEpsilon<F, TYPE>;
 pub type OmegaEpsilonFirstOrder<F, const TYPE: bool> = OmegaEpsilon<F, TYPE, 1>;
@@ -27,6 +27,18 @@ where
 {
     pub omega: F,
     pub epsilon: F
+}
+impl<F, const TYPE: bool, const ORDER: usize> Change for OmegaEpsilon<F, TYPE, ORDER>
+where
+    F: FilterFloat
+{
+    type F = F;
+
+    fn change(&mut self, to: Self, change: Self::F)
+    {
+        self.omega.change(to.omega, change);
+        self.epsilon.change(to.epsilon, change);
+    }
 }
 impl<F, const TYPE: bool, const ORDER: usize> FilterParam for Param<OmegaEpsilon<F, TYPE, ORDER>>
 where
