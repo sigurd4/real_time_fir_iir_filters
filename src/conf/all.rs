@@ -1,6 +1,6 @@
 use super::{BandPass, BandStop, Conf, ConfType, HighPass, LowPass, Peak};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, serde::Serialize, serde::Deserialize)]
 pub enum All {}
 
 impl Conf for All

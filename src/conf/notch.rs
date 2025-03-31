@@ -1,6 +1,6 @@
 use super::{wildcard_if_zero, Conf, ConfType};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, serde::Serialize, serde::Deserialize)]
 pub enum Notch<const N: usize = 0> {}
 
 impl<const N: usize> Conf for Notch<N>
