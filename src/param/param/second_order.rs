@@ -1,6 +1,6 @@
 use num::traits::FloatConst;
 
-use crate::{conf::Conf, param::{FilterParam, Omega, OmegaSecondOrder, OmegaZeta, Param, SecondOrderFilterConf, SecondOrderFilterParamBase}, util::same::Same};
+use crate::{conf::Conf, param::{FilterParam, Omega, OmegaSecondOrder, OmegaZeta, SecondOrderFilterConf, SecondOrderFilterParamBase}, util::same::Same};
 
 use super::ButterworthFilterParam;
 
@@ -16,9 +16,9 @@ where
     fn omega_zeta(&self) -> OmegaZeta<Self::F>;
 }
 
-impl<P, C> SecondOrderFilterParam<C, Param<OmegaSecondOrder<P::F>>> for P
+impl<P, C> SecondOrderFilterParam<C, OmegaSecondOrder<P::F>> for P
 where
-    P: ButterworthFilterParam<C, Conf: SecondOrderFilterConf, Omega = OmegaSecondOrder<<P as FilterParam>::F>> + SecondOrderFilterParamBase<C, ImplBase = Param<OmegaSecondOrder<<P as FilterParam>::F>>>,
+    P: ButterworthFilterParam<C, Conf: SecondOrderFilterConf, Omega = OmegaSecondOrder<<P as FilterParam>::F>> + SecondOrderFilterParamBase<C, ImplBase = OmegaSecondOrder<<P as FilterParam>::F>>,
     C: Conf,
     [(); P::ORDER]:
 {

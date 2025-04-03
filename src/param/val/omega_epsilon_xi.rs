@@ -1,4 +1,4 @@
-use crate::{change::Change, param::{EllipticFilterConf, EllipticFilterParam, EllipticFilterParamBase, FilterFloat, FilterParam, Param}};
+use crate::{change::Change, param::{EllipticFilterConf, EllipticFilterParam, EllipticFilterParamBase, FilterFloat, FilterParam}};
 
 pub type OmegaEpsilonXiDyn<F> = OmegaEpsilonXi<F>;
 pub type OmegaEpsilonXiFirstOrder<F> = OmegaEpsilonXi<F, 1>;
@@ -28,7 +28,7 @@ where
         self.xi.change(to.xi, change);
     }
 }
-impl<F, const ORDER: usize> FilterParam for Param<OmegaEpsilonXi<F, ORDER>>
+impl<F, const ORDER: usize> FilterParam for OmegaEpsilonXi<F, ORDER>
 where
     F: FilterFloat
 {
@@ -36,14 +36,14 @@ where
 
     type F = F;
 }
-impl<F, const ORDER: usize, C> EllipticFilterParamBase<C> for Param<OmegaEpsilonXi<F, ORDER>>
+impl<F, const ORDER: usize, C> EllipticFilterParamBase<C> for OmegaEpsilonXi<F, ORDER>
 where
     F: FilterFloat,
     C: EllipticFilterConf
 {
     type ImplBase = Self;
 }
-impl<F, const ORDER: usize, C> EllipticFilterParam<C, Self> for Param<OmegaEpsilonXi<F, ORDER>>
+impl<F, const ORDER: usize, C> EllipticFilterParam<C, Self> for OmegaEpsilonXi<F, ORDER>
 where
     F: FilterFloat,
     C: EllipticFilterConf,
@@ -58,7 +58,7 @@ where
     where
         [(); Self::ORDER]:
     {
-        **self
+        *self
     }
 }
 /*impl<P, const ORDER: usize> From<P> for OmegaEpsilonXi<P::F, ORDER>

@@ -1,4 +1,4 @@
-use crate::{change::Change, param::{FilterFloat, FilterParam, Param, WahFilterParam}};
+use crate::{change::Change, param::{FilterFloat, FilterParam, WahFilterParam}};
 
 use super::X;
 
@@ -33,7 +33,7 @@ where
         self.x.change(to.x, change);
     }
 }
-impl<F> FilterParam for Param<CrybabyGCB95<F>>
+impl<F> FilterParam for CrybabyGCB95<F>
 where
     F: FilterFloat
 {
@@ -41,7 +41,7 @@ where
 
     type F = F;
 }
-impl<F> WahFilterParam for Param<CrybabyGCB95<F>>
+impl<F> WahFilterParam for CrybabyGCB95<F>
 where
     F: FilterFloat
 {
@@ -70,7 +70,7 @@ where
 
     fn x(&self) -> X<Self::F>
     {
-        let CrybabyGCB95 {x} = **self;
+        let CrybabyGCB95 {x} = *self;
         X {
             x
         }
@@ -96,7 +96,7 @@ where
         self.x.change(to.x, change);
     }
 }
-impl<F> FilterParam for Param<VoxV847<F>>
+impl<F> FilterParam for VoxV847<F>
 where
     F: FilterFloat
 {
@@ -104,7 +104,7 @@ where
 
     type F = F;
 }
-impl<F> WahFilterParam for Param<VoxV847<F>>
+impl<F> WahFilterParam for VoxV847<F>
 where
     F: FilterFloat
 {
@@ -133,7 +133,7 @@ where
 
     fn x(&self) -> X<Self::F>
     {
-        let VoxV847 {x} = **self;
+        let VoxV847 {x} = *self;
         X {
             x
         }
@@ -159,7 +159,7 @@ where
         self.x.change(to.x, change);
     }
 }
-impl<F> FilterParam for Param<ColorsoundWow<F>>
+impl<F> FilterParam for ColorsoundWow<F>
 where
     F: FilterFloat
 {
@@ -167,7 +167,7 @@ where
 
     type F = F;
 }
-impl<F> WahFilterParam for Param<ColorsoundWow<F>>
+impl<F> WahFilterParam for ColorsoundWow<F>
 where
     F: FilterFloat
 {
@@ -196,7 +196,7 @@ where
 
     fn x(&self) -> X<Self::F>
     {
-        let ColorsoundWow {x} = **self;
+        let ColorsoundWow {x} = *self;
         X {
             x
         }

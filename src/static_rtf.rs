@@ -1,6 +1,6 @@
 use crate::{internals::{ainternals, binternals, rtfinternals}, param::Param, rtf::RtfBase};
 
-pub trait StaticRtfBase: RtfBase + Sized + 'static
+pub trait StaticRtfBase: RtfBase + Sized
 {
     type Param;
 
@@ -20,7 +20,7 @@ pub trait StaticRtfBase: RtfBase + Sized + 'static
     fn get_internals_mut(&mut self) -> (&mut rtfinternals!(Self::F, Self::OUTPUTS, Self::O_BUFFERS, Self::SOS_BUFFERS, Self::SOS_STAGES, Self::ORDER, Self::IS_IIR), &mut Param<Self::Param>);
     
     #[allow(clippy::type_complexity)]
-    fn make_coeffs(param: &Param<Self::Param>, rate: Self::F) -> (
+    fn make_coeffs(param: &Self::Param, rate: Self::F) -> (
         binternals!(Self::F, Self::OUTPUTS, Self::O_BUFFERS, Self::SOS_BUFFERS, Self::SOS_STAGES, Self::ORDER),
         [ainternals!(Self::F, Self::O_BUFFERS, Self::SOS_BUFFERS, Self::SOS_STAGES, Self::ORDER); Self::IS_IIR as usize]
     );

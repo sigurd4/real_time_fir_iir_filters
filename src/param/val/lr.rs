@@ -1,4 +1,4 @@
-use crate::{change::Change, param::{FilterFloat, FilterParam, FirstOrderFilterParamBase, FirstOrderLRFilterConf, FirstOrderLRFilterParam, Param}};
+use crate::{change::Change, param::{FilterFloat, FilterParam, FirstOrderFilterParamBase, FirstOrderLRFilterConf, FirstOrderLRFilterParam}};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)] 
@@ -21,7 +21,7 @@ where
         self.r.change(to.r, change);
     }
 }
-impl<F> FilterParam for Param<LR<F>>
+impl<F> FilterParam for LR<F>
 where
     F: FilterFloat
 {
@@ -29,14 +29,14 @@ where
 
     type F = F;
 }
-impl<F, C> FirstOrderFilterParamBase<C> for Param<LR<F>>
+impl<F, C> FirstOrderFilterParamBase<C> for LR<F>
 where
     F: FilterFloat,
     C: FirstOrderLRFilterConf
 {
     type ImplBase = Self;
 }
-impl<F, C> FirstOrderLRFilterParam<C> for Param<LR<F>>
+impl<F, C> FirstOrderLRFilterParam<C> for LR<F>
 where
     F: FilterFloat,
     C: FirstOrderLRFilterConf
@@ -45,6 +45,6 @@ where
 
     fn lr(&self) -> LR<Self::F>
     {
-        **self
+        *self
     }
 }

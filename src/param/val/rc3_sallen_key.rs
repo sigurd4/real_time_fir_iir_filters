@@ -1,6 +1,6 @@
 use num::One;
 
-use crate::{change::Change, param::{FilterFloat, FilterParam, Param, ThirdOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParam, ThirdOrderSallenKeyFilterParamBase}};
+use crate::{change::Change, param::{FilterFloat, FilterParam, ThirdOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParam, ThirdOrderSallenKeyFilterParamBase}};
 
 use super::RC3GSallenKey;
 
@@ -33,7 +33,7 @@ where
         self.c3.change(to.c3, change);
     }
 }
-impl<F> FilterParam for Param<RC3SallenKey<F>>
+impl<F> FilterParam for RC3SallenKey<F>
 where
     F: FilterFloat
 {
@@ -41,14 +41,14 @@ where
 
     type F = F;
 }
-impl<F, C> ThirdOrderSallenKeyFilterParamBase<C> for Param<RC3SallenKey<F>>
+impl<F, C> ThirdOrderSallenKeyFilterParamBase<C> for RC3SallenKey<F>
 where
     F: FilterFloat,
     C: ThirdOrderSallenKeyFilterConf
 {
-    type ImplBase = Param<RC3GSallenKey<F>>;
+    type ImplBase = RC3GSallenKey<F>;
 }
-impl<F, C> ThirdOrderSallenKeyFilterParam<C, Param<RC3GSallenKey<F>>> for Param<RC3SallenKey<F>>
+impl<F, C> ThirdOrderSallenKeyFilterParam<C, RC3GSallenKey<F>> for RC3SallenKey<F>
 where
     F: FilterFloat,
     C: ThirdOrderSallenKeyFilterConf
@@ -57,7 +57,7 @@ where
 
     fn rc3g(&self) -> RC3GSallenKey<Self::F>
     {
-        let RC3SallenKey {r1, c1, r2, c2, r3, c3} = **self;
+        let RC3SallenKey {r1, c1, r2, c2, r3, c3} = *self;
         RC3GSallenKey {
             r1,
             c1,

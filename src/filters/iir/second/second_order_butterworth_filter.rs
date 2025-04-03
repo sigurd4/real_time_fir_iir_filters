@@ -1,4 +1,4 @@
-use crate::{calc::iir::second::SecondOrderCalc, conf::{All, HighPass, LowPass, Peak}, param::{ButterworthFilterConf, OmegaSecondOrder, Param, SecondOrderButterworthFilterConf, SecondOrderButterworthFilterParam}, real_time_fir_iir_filters};
+use crate::{calc::iir::second::SecondOrderCalc, conf::{All, HighPass, LowPass, Peak}, param::{ButterworthFilterConf, OmegaSecondOrder, SecondOrderButterworthFilterConf, SecondOrderButterworthFilterParam}, real_time_fir_iir_filters};
 
 crate::def_rtf!(
     {
@@ -153,7 +153,7 @@ crate::def_rtf!(
         }
     }
     where
-        [(); <<<Param<P> as SecondOrderButterworthFilterParam<C>>::Conf as ButterworthFilterConf<2>>::Conf as ButterworthFilterConf<2>>::OUTPUTS]:
+        [(); <C as ButterworthFilterConf<2>>::OUTPUTS]:
 );
 
 #[cfg(test)]

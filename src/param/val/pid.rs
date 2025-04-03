@@ -1,6 +1,6 @@
 use num::Float;
 
-use crate::{change::Change, param::{FilterFloat, FilterParam, PIDFilterParam, Param}};
+use crate::{change::Change, param::{FilterFloat, FilterParam, PIDFilterParam}};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)] 
@@ -25,7 +25,7 @@ where
         self.d.change(to.d, change);
     }
 }
-impl<F> FilterParam for Param<PID<F>>
+impl<F> FilterParam for PID<F>
 where
     F: FilterFloat
 {
@@ -33,12 +33,12 @@ where
 
     type F = F;
 }
-impl<F> PIDFilterParam for Param<PID<F>>
+impl<F> PIDFilterParam for PID<F>
 where
     F: FilterFloat
 {
     fn pid(&self) -> PID<Self::F>
     {
-        **self
+        *self
     }
 }

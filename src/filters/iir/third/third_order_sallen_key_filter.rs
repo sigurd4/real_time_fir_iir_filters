@@ -192,7 +192,7 @@ pub struct ThirdOrderSallenKeyFilter<
 >
 where
     F: FilterFloat,
-    Param<P>: ThirdOrderSallenKeyFilterParam<C, Conf = C, F = F>,
+    P: ThirdOrderSallenKeyFilterParam<C, Conf = C, F = F>,
     C: ThirdOrderSallenKeyFilterConf<Conf = C, S1Conf = C1, S2Conf = C2>,
     C1: FirstOrderRCFilterConf<Conf = C1>,
     C2: SecondOrderSallenKeyFilterConf<Conf = C2>,
@@ -205,9 +205,9 @@ where
     phantom: core::marker::PhantomData<C>
 }
 
-impl<P, C, C1, C2> ThirdOrderSallenKeyFilter<C, <Param<P> as FilterParam>::F, P, C1, C2>
+impl<P, C, C1, C2> ThirdOrderSallenKeyFilter<C, <P as FilterParam>::F, P, C1, C2>
 where
-    Param<P>: ThirdOrderSallenKeyFilterParam<C, Conf = C>,
+    P: ThirdOrderSallenKeyFilterParam<C, Conf = C>,
     C: ThirdOrderSallenKeyFilterConf<Conf = C, S1Conf = C1, S2Conf = C2>,
     C1: FirstOrderRCFilterConf<Conf = C1>,
     C2: SecondOrderSallenKeyFilterConf<Conf = C2>,
@@ -216,7 +216,7 @@ where
 {
     pub const fn new<Conf>(param: P) -> Self
     where
-        Param<P>: ThirdOrderSallenKeyFilterParam<Conf, Conf: ThirdOrderSallenKeyFilterConf<Conf = C, S1Conf = C1, S2Conf = C2>>,
+        P: ThirdOrderSallenKeyFilterParam<Conf, Conf: ThirdOrderSallenKeyFilterConf<Conf = C, S1Conf = C1, S2Conf = C2>>,
         Conf: conf::Conf
     {
         Self {
@@ -237,21 +237,21 @@ macro_rules! c {
         )*
     ) => {
         $(
-            impl<P, C> RtfBase for ThirdOrderSallenKeyFilter<C, <Param<P> as FilterParam>::F, P, $conf1, $conf2>
+            impl<P, C> RtfBase for ThirdOrderSallenKeyFilter<C, <P as FilterParam>::F, P, $conf1, $conf2>
             where
-                Param<P>: ThirdOrderSallenKeyFilterParam<C, Conf = C>,
+                P: ThirdOrderSallenKeyFilterParam<C, Conf = C>,
                 C: ThirdOrderSallenKeyFilterConf<Conf = C, S1Conf = $conf1, S2Conf = $conf2>,
                 $($($where_c)+)?
             {
                 type Conf = C;
-                type F = <Param<P> as FilterParam>::F;
+                type F = <P as FilterParam>::F;
             
                 const IS_IIR: bool = true;
                 const OUTPUTS: usize = <$conf2 as SecondOrderSallenKeyFilterConf>::OUTPUTS*<$conf1 as FirstOrderRCFilterConf>::OUTPUTS;
             }
-            impl<P, C> StaticRtfBase for ThirdOrderSallenKeyFilter<C, <Param<P> as FilterParam>::F, P, $conf1, $conf2>
+            impl<P, C> StaticRtfBase for ThirdOrderSallenKeyFilter<C, <P as FilterParam>::F, P, $conf1, $conf2>
             where
-                Param<P>: ThirdOrderSallenKeyFilterParam<C, Conf = C>,
+                P: ThirdOrderSallenKeyFilterParam<C, Conf = C>,
                 C: ThirdOrderSallenKeyFilterConf<Conf = C, S1Conf = $conf1, S2Conf = $conf2>,
                 $($($where_c)+)?
             {
@@ -283,27 +283,27 @@ macro_rules! c {
                     self.param.into_value()
                 }
                 
-                fn get_internals(&self) -> (&Internals<<Param<P> as FilterParam>::F, $conf1, $conf2>, &Param<Self::Param>)
+                fn get_internals(&self) -> (&Internals<<P as FilterParam>::F, $conf1, $conf2>, &Param<Self::Param>)
                 {
                     (&self.internals, &self.param)
                 }
-                fn get_internals_mut(&mut self) -> (&mut Internals<<Param<P> as FilterParam>::F, $conf1, $conf2>, &mut Param<Self::Param>)
+                fn get_internals_mut(&mut self) -> (&mut Internals<<P as FilterParam>::F, $conf1, $conf2>, &mut Param<Self::Param>)
                 {
                     (&mut self.internals, &mut self.param)
                 }
 
-                fn make_coeffs($arg_param: &Param<Self::Param>, $arg_rate: Self::F) -> (
-                    BInternals<<Param<P> as FilterParam>::F, $conf1, $conf2>,
-                    [AInternals<<Param<P> as FilterParam>::F, $conf1, $conf2>; true as usize]
+                fn make_coeffs($arg_param: &Self::Param, $arg_rate: Self::F) -> (
+                    BInternals<<P as FilterParam>::F, $conf1, $conf2>,
+                    [AInternals<<P as FilterParam>::F, $conf1, $conf2>; true as usize]
                 )
                 {
-                    fn make_coeffs<F, P, C>($arg_param: &Param<P>, $arg_rate: F) -> (
+                    fn make_coeffs<F, P, C>($arg_param: &P, $arg_rate: F) -> (
                         BInternals<F, $conf1, $conf2>,
                         [AInternals<F, $conf1, $conf2>; true as usize]
                     )
                     where
                         F: FilterFloat,
-                        Param<P>: ThirdOrderSallenKeyFilterParam<C, Conf = C, F = F>,
+                        P: ThirdOrderSallenKeyFilterParam<C, Conf = C, F = F>,
                         C: ThirdOrderSallenKeyFilterConf<Conf = C, S1Conf = $conf1, S2Conf = $conf2>,
                         $($($where_c)+)?
                     $make_coeffs

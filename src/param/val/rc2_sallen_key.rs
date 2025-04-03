@@ -1,6 +1,6 @@
 use num::{Float, One};
 
-use crate::{change::Change, param::{FilterFloat, FilterParam, Param, SecondOrderSallenKeyFilterConf, SecondOrderSallenKeyFilterParam, ThirdOrderSallenKeyFilterParamBase}};
+use crate::{change::Change, param::{FilterFloat, FilterParam, SecondOrderSallenKeyFilterConf, SecondOrderSallenKeyFilterParam, ThirdOrderSallenKeyFilterParamBase}};
 
 use super::RC2GSallenKey;
 
@@ -29,7 +29,7 @@ where
         self.c2.change(to.c2, change);
     }
 }
-impl<F> FilterParam for Param<RC2SallenKey<F>>
+impl<F> FilterParam for RC2SallenKey<F>
 where
     F: FilterFloat
 {
@@ -37,14 +37,14 @@ where
 
     type F = F;
 }
-impl<F, C> ThirdOrderSallenKeyFilterParamBase<C> for Param<RC2SallenKey<F>>
+impl<F, C> ThirdOrderSallenKeyFilterParamBase<C> for RC2SallenKey<F>
 where
     F: FilterFloat,
     C: SecondOrderSallenKeyFilterConf
 {
-    type ImplBase = Param<RC2GSallenKey<F>>;
+    type ImplBase = RC2GSallenKey<F>;
 }
-impl<F, C> SecondOrderSallenKeyFilterParam<C> for Param<RC2SallenKey<F>>
+impl<F, C> SecondOrderSallenKeyFilterParam<C> for RC2SallenKey<F>
 where
     F: FilterFloat,
     C: SecondOrderSallenKeyFilterConf
@@ -53,7 +53,7 @@ where
 
     fn rc2g(&self) -> RC2GSallenKey<Self::F>
     {
-        let RC2SallenKey {r1, c1, r2, c2} = **self;
+        let RC2SallenKey {r1, c1, r2, c2} = *self;
         RC2GSallenKey {
             r1,
             c1,

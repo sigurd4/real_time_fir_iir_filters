@@ -1,4 +1,4 @@
-use crate::{change::Change, param::{FilterFloat, FilterParam, Param, SecondOrderFilterConf, SecondOrderFilterParam, SecondOrderFilterParamBase}};
+use crate::{change::Change, param::{FilterFloat, FilterParam, SecondOrderFilterConf, SecondOrderFilterParam, SecondOrderFilterParamBase}};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)] 
@@ -21,7 +21,7 @@ where
         self.zeta.change(to.zeta, change);
     }
 }
-impl<F> FilterParam for Param<OmegaZeta<F>>
+impl<F> FilterParam for OmegaZeta<F>
 where
     F: FilterFloat
 {
@@ -29,14 +29,14 @@ where
 
     type F = F;
 }
-impl<F, C> SecondOrderFilterParamBase<C> for Param<OmegaZeta<F>>
+impl<F, C> SecondOrderFilterParamBase<C> for OmegaZeta<F>
 where
     F: FilterFloat,
     C: SecondOrderFilterConf
 {
     type ImplBase = Self;
 }
-impl<F, C> SecondOrderFilterParam<C, Self> for Param<OmegaZeta<F>>
+impl<F, C> SecondOrderFilterParam<C, Self> for OmegaZeta<F>
 where
     F: FilterFloat,
     C: SecondOrderFilterConf
@@ -44,6 +44,7 @@ where
     type Conf = C;
 
     fn omega_zeta(&self) -> OmegaZeta<Self::F>
-    {**self
+    {
+        *self
     }
 }

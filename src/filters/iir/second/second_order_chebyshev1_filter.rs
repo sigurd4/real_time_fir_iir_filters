@@ -1,4 +1,4 @@
-use crate::{calc::iir::second::SecondOrderChebyshev1Calc, conf::{All, HighPass, LowPass}, param::{EllipticFilterConf, OmegaEpsilonCheb1SecondOrder, Param, SecondOrderChebyshev1FilterParam}, real_time_fir_iir_filters};
+use crate::{calc::iir::second::SecondOrderChebyshev1Calc, conf::{All, HighPass, LowPass}, param::{EllipticFilterConf, OmegaEpsilonCheb1SecondOrder, SecondOrderChebyshev1FilterParam}, real_time_fir_iir_filters};
 
 crate::def_rtf!(
     {
@@ -92,7 +92,7 @@ crate::def_rtf!(
         }
     }
     where
-        [(); <<<Param<P> as SecondOrderChebyshev1FilterParam<C>>::Conf as EllipticFilterConf>::Conf as EllipticFilterConf>::OUTPUTS]:
+        [(); <C as EllipticFilterConf>::OUTPUTS]:
 );
 
 #[cfg(test)]

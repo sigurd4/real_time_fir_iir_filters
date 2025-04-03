@@ -1,6 +1,6 @@
 use num::Zero;
 
-use crate::{conf::Conf, param::{FirstOrderRCFilterConf, Param, SecondOrderRLCFilterConf, SecondOrderRLCFilterParamBase, RC, RLC}, util::same::Same};
+use crate::{conf::Conf, param::{FirstOrderRCFilterConf, SecondOrderRLCFilterConf, SecondOrderRLCFilterParamBase, RC, RLC}, util::same::Same};
 
 use super::FirstOrderRCFilterParam;
 
@@ -16,7 +16,7 @@ where
     fn rlc(&self) -> RLC<Self::F>;
 }
 
-impl<P, C> SecondOrderRLCFilterParam<C, Param<RC<P::F>>> for P
+impl<P, C> SecondOrderRLCFilterParam<C, RC<P::F>> for P
 where 
     P: FirstOrderRCFilterParam<C>,
     C: Conf

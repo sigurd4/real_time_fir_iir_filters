@@ -1,11 +1,11 @@
-use crate::{conf::Conf, param::{ButterworthFilterConf, ChebyshevFilterParamBase, EllipticFilterParamBase, FilterFloat, FilterParam, FirstOrderFilterConf, FirstOrderFilterParamBase, Omega, OmegaDyn, OmegaEpsilonCheb1Dyn, OmegaFirstOrder, Param}, util::same::Same};
+use crate::{conf::Conf, param::{ButterworthFilterConf, ChebyshevFilterParamBase, EllipticFilterParamBase, FilterFloat, FilterParam, FirstOrderFilterConf, FirstOrderFilterParamBase, Omega, OmegaDyn, OmegaEpsilonCheb1Dyn, OmegaFirstOrder}, util::same::Same};
 
 use super::{FirstOrderFilterParam, SecondOrderFilterParam, ThirdOrderFilterParam};
 
 pub trait ButterworthFilterParam<
     C
->: ChebyshevFilterParamBase<C, ImplBase = Param<OmegaDyn<<Self as FilterParam>::F>>, TYPE = false>
-    + EllipticFilterParamBase<C, ImplBase = Param<OmegaEpsilonCheb1Dyn<<Self as FilterParam>::F>>>
+>: ChebyshevFilterParamBase<C, ImplBase = OmegaDyn<<Self as FilterParam>::F>, TYPE = false>
+    + EllipticFilterParamBase<C, ImplBase = OmegaEpsilonCheb1Dyn<<Self as FilterParam>::F>>
 where
     C: Conf
 {
@@ -21,7 +21,7 @@ where
         [(); Self::ORDER]:;
 }
 
-impl<F, C, const ORDER: usize> ButterworthFilterParam<C> for Param<Omega<F, ORDER>>
+impl<F, C, const ORDER: usize> ButterworthFilterParam<C> for Omega<F, ORDER>
 where
     F: FilterFloat,
     C: ButterworthFilterConf<{Self::ORDER}> + ButterworthFilterConf<ORDER>,
@@ -38,13 +38,13 @@ where
     where
         [(); Self::ORDER]:
     {
-        **self
+        *self
     }
 }
 
-impl<P, C> FirstOrderFilterParam<C, Param<OmegaFirstOrder<P::F>>> for P
+impl<P, C> FirstOrderFilterParam<C, OmegaFirstOrder<P::F>> for P
 where
-    P: ButterworthFilterParam<C, ORDER = 1, Conf: FirstOrderFilterConf, Omega = OmegaFirstOrder<<P as FilterParam>::F>> + FirstOrderFilterParamBase<C, ImplBase = Param<OmegaFirstOrder<<P as FilterParam>::F>>>,
+    P: ButterworthFilterParam<C, ORDER = 1, Conf: FirstOrderFilterConf, Omega = OmegaFirstOrder<<P as FilterParam>::F>> + FirstOrderFilterParamBase<C, ImplBase = OmegaFirstOrder<<P as FilterParam>::F>>,
     C: Conf,
     [(); P::ORDER]:
 {

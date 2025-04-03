@@ -2,7 +2,7 @@
 name = "real_time_fir_iir_filters"
 version = "1.2.4"
 authors = ["Sigurd Sætherø Spangelo"]
-edition = "2021"
+edition = "2024"
 license = "MIT"
 description = "Real-time FIR and IIR filters designed for use with vst's"
 repository = "https://github.com/sigurd4/real_time_fir_iir_filters"

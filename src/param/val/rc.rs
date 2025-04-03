@@ -1,6 +1,6 @@
 use num::Float;
 
-use crate::{change::Change, param::{FilterFloat, FilterParam, FirstOrderAllPassFilterConf, FirstOrderAllPassFilterParamBase, FirstOrderFilterParamBase, FirstOrderRCFilterConf, FirstOrderRCFilterParam, Param, SecondOrderRCFilterParamBase, SecondOrderRLCFilterParamBase, ThirdOrderSallenKeyFilterParamBase}};
+use crate::{change::Change, param::{FilterFloat, FilterParam, FirstOrderAllPassFilterConf, FirstOrderAllPassFilterParamBase, FirstOrderFilterParamBase, FirstOrderRCFilterConf, FirstOrderRCFilterParam, SecondOrderRCFilterParamBase, SecondOrderRLCFilterParamBase, ThirdOrderSallenKeyFilterParamBase}};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)] 
@@ -23,7 +23,7 @@ where
         self.c.change(to.c, change);
     }
 }
-impl<F> FilterParam for Param<RC<F>>
+impl<F> FilterParam for RC<F>
 where
     F: FilterFloat
 {
@@ -31,42 +31,42 @@ where
 
     type F = F;
 }
-impl<F, C> FirstOrderAllPassFilterParamBase<C> for Param<RC<F>>
+impl<F, C> FirstOrderAllPassFilterParamBase<C> for RC<F>
 where
     F: FilterFloat,
     C: FirstOrderAllPassFilterConf
 {
     type ImplBase = Self;
 }
-impl<F, C> FirstOrderFilterParamBase<C> for Param<RC<F>>
+impl<F, C> FirstOrderFilterParamBase<C> for RC<F>
 where
     F: FilterFloat,
     C: FirstOrderRCFilterConf
 {
     type ImplBase = Self;
 }
-impl<F, C> SecondOrderRLCFilterParamBase<C> for Param<RC<F>>
+impl<F, C> SecondOrderRLCFilterParamBase<C> for RC<F>
 where
     F: FilterFloat,
     C: FirstOrderRCFilterConf
 {
     type ImplBase = Self;
 }
-impl<F, C> SecondOrderRCFilterParamBase<C> for Param<RC<F>>
+impl<F, C> SecondOrderRCFilterParamBase<C> for RC<F>
 where
     F: FilterFloat,
     C: FirstOrderRCFilterConf
 {
     type ImplBase = Self;
 }
-impl<F, C> ThirdOrderSallenKeyFilterParamBase<C> for Param<RC<F>>
+impl<F, C> ThirdOrderSallenKeyFilterParamBase<C> for RC<F>
 where
     F: FilterFloat,
     C: FirstOrderRCFilterConf
 {
     type ImplBase = Self;
 }
-impl<F, C> FirstOrderRCFilterParam<C> for Param<RC<F>>
+impl<F, C> FirstOrderRCFilterParam<C> for RC<F>
 where
     F: FilterFloat,
     C: FirstOrderRCFilterConf
@@ -75,6 +75,6 @@ where
 
     fn rc(&self) -> RC<Self::F>
     {
-        **self
+        *self
     }
 }

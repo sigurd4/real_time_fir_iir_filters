@@ -1,4 +1,4 @@
-use crate::{calc::iir::first::FirstOrderRCCalc, conf::{All, HighPass, LowPass}, param::{FirstOrderRCFilterConf, FirstOrderRCFilterParam, Param, RC}, real_time_fir_iir_filters};
+use crate::{calc::iir::first::FirstOrderRCCalc, conf::{All, HighPass, LowPass}, param::{FirstOrderRCFilterConf, FirstOrderRCFilterParam, RC}, real_time_fir_iir_filters};
 
 crate::def_rtf!(
     {
@@ -100,7 +100,7 @@ crate::def_rtf!(
         }
     }
     where
-        [(); <<<Param<P> as FirstOrderRCFilterParam<C>>::Conf as FirstOrderRCFilterConf>::Conf as FirstOrderRCFilterConf>::OUTPUTS]:
+        [(); <C as FirstOrderRCFilterConf>::OUTPUTS]:
 );
 
 #[cfg(test)]

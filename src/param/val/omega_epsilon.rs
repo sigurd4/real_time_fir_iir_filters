@@ -1,4 +1,4 @@
-use crate::{change::Change, param::{ChebyshevFilterParam, ChebyshevFilterParamBase, EllipticFilterConf, EllipticFilterParamBase, FilterFloat, FilterParam, Param}};
+use crate::{change::Change, param::{ChebyshevFilterParam, ChebyshevFilterParamBase, EllipticFilterConf, EllipticFilterParamBase, FilterFloat, FilterParam}};
 
 pub type OmegaEpsilonDyn<F, const TYPE: bool> = OmegaEpsilon<F, TYPE>;
 pub type OmegaEpsilonFirstOrder<F, const TYPE: bool> = OmegaEpsilon<F, TYPE, 1>;
@@ -38,7 +38,7 @@ where
         self.epsilon.change(to.epsilon, change);
     }
 }
-impl<F, const TYPE: bool, const ORDER: usize> FilterParam for Param<OmegaEpsilon<F, TYPE, ORDER>>
+impl<F, const TYPE: bool, const ORDER: usize> FilterParam for OmegaEpsilon<F, TYPE, ORDER>
 where
     F: FilterFloat
 {
@@ -46,14 +46,14 @@ where
 
     type F = F;
 }
-impl<F, const TYPE: bool, const ORDER: usize, C> EllipticFilterParamBase<C> for Param<OmegaEpsilon<F, TYPE, ORDER>>
+impl<F, const TYPE: bool, const ORDER: usize, C> EllipticFilterParamBase<C> for OmegaEpsilon<F, TYPE, ORDER>
 where
     F: FilterFloat,
     C: EllipticFilterConf
 {
-    type ImplBase = Param<OmegaEpsilonDyn<F, TYPE>>;
+    type ImplBase = OmegaEpsilonDyn<F, TYPE>;
 }
-impl<F, const TYPE: bool, const ORDER: usize, C> ChebyshevFilterParamBase<C> for Param<OmegaEpsilon<F, TYPE, ORDER>>
+impl<F, const TYPE: bool, const ORDER: usize, C> ChebyshevFilterParamBase<C> for OmegaEpsilon<F, TYPE, ORDER>
 where
     F: FilterFloat,
     C: EllipticFilterConf
@@ -62,7 +62,7 @@ where
 
     type ImplBase = Self;
 }
-impl<F, const TYPE: bool, const ORDER: usize, C> ChebyshevFilterParam<C, Self> for Param<OmegaEpsilon<F, TYPE, ORDER>>
+impl<F, const TYPE: bool, const ORDER: usize, C> ChebyshevFilterParam<C, Self> for OmegaEpsilon<F, TYPE, ORDER>
 where
     F: FilterFloat,
     C: EllipticFilterConf,
@@ -80,6 +80,6 @@ where
         [(); Self::ORDER]:,
         [(); {<Self as ChebyshevFilterParamBase<C>>::TYPE} as usize]:
     {
-        **self
+        *self
     }
 }

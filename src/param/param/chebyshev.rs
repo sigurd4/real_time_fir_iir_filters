@@ -2,7 +2,7 @@ use num::One;
 
 use super::ButterworthFilterParam;
 
-use crate::{conf::{All, Conf}, param::{ChebyshevFilterParamBase, EllipticFilterConf, EllipticFilterParamBase, FilterFloat, FilterParam, Omega, OmegaDyn, OmegaEpsilon, OmegaEpsilonCheb1, Param}, util::same::Same};
+use crate::{conf::{All, Conf}, param::{ChebyshevFilterParamBase, EllipticFilterConf, EllipticFilterParamBase, FilterFloat, FilterParam, Omega, OmegaDyn, OmegaEpsilon, OmegaEpsilonCheb1}, util::same::Same};
 
 pub trait ChebyshevFilterParam<
     C,
@@ -61,7 +61,7 @@ special!(SecondOrderChebyshev2FilterParam = true, 2);
 special!(ThirdOrderChebyshev1FilterParam = false, 3);
 special!(ThirdOrderChebyshev2FilterParam = true, 3);
 
-impl<F, P, C, const ORDER: usize> ChebyshevFilterParam<C, Param<OmegaDyn<F>>> for P
+impl<F, P, C, const ORDER: usize> ChebyshevFilterParam<C, OmegaDyn<F>> for P
 where
     P: ButterworthFilterParam<C, F = F, ORDER = {ORDER}, Omega = Omega<F, ORDER>, Conf: EllipticFilterConf>, // TODO generalize for different orders
     C: Conf,

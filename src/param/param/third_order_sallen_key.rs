@@ -1,6 +1,6 @@
 use num::{One, Zero};
 
-use crate::{conf::Conf, f, param::{FirstOrderRCFilterConf, Param, RC2GSallenKey, RC3GSallenKey, SecondOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParamBase, RC}, util::same::Same};
+use crate::{conf::Conf, f, param::{FirstOrderRCFilterConf, RC2GSallenKey, RC3GSallenKey, SecondOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParamBase, RC}, util::same::Same};
 
 use super::{FirstOrderRCFilterParam, SecondOrderSallenKeyFilterParam};
 
@@ -16,7 +16,7 @@ where
     fn rc3g(&self) -> RC3GSallenKey<Self::F>;
 }
 
-impl<P, C> ThirdOrderSallenKeyFilterParam<C, Param<RC2GSallenKey<P::F>>> for P
+impl<P, C> ThirdOrderSallenKeyFilterParam<C, RC2GSallenKey<P::F>> for P
 where
     P: SecondOrderSallenKeyFilterParam<C>,
     C: Conf
@@ -38,7 +38,7 @@ where
     }
 }
 
-impl<P, C> ThirdOrderSallenKeyFilterParam<C, Param<RC<P::F>>> for P
+impl<P, C> ThirdOrderSallenKeyFilterParam<C, RC<P::F>> for P
 where
     P: FirstOrderRCFilterParam<C>,
     C: Conf

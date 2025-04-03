@@ -45,7 +45,7 @@ impl_composite_conf!(All: AllPass);
 
 mod private
 {
-    use crate::param::{FirstOrderAllPassFilterParam, Param, Tau};
+    use crate::param::{FirstOrderAllPassFilterParam, Tau};
 
     use super::FirstOrderAllPassFilterConf;
 
@@ -68,8 +68,8 @@ mod private
         C: FirstOrderAllPassFilterConf<
             Conf = CC::Conf
         >,
-        Param<Tau<f64>>: FirstOrderAllPassFilterParam<CC, Conf = CC>,
-        Param<Tau<f32>>: FirstOrderAllPassFilterParam<CC, Conf = CC>
+        Tau<f64>: FirstOrderAllPassFilterParam<CC, Conf = CC>,
+        Tau<f32>: FirstOrderAllPassFilterParam<CC, Conf = CC>
     {
 
     }

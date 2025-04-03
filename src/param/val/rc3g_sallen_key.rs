@@ -1,6 +1,6 @@
 use num::Float;
 
-use crate::{change::Change, param::{FilterFloat, FilterParam, Param, ThirdOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParam, ThirdOrderSallenKeyFilterParamBase}};
+use crate::{change::Change, param::{FilterFloat, FilterParam, ThirdOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParam, ThirdOrderSallenKeyFilterParamBase}};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)] 
@@ -33,7 +33,7 @@ where
         self.g.change(to.g, change);
     }
 }
-impl<F> FilterParam for Param<RC3GSallenKey<F>>
+impl<F> FilterParam for RC3GSallenKey<F>
 where
     F: FilterFloat
 {
@@ -41,14 +41,14 @@ where
 
     type F = F;
 }
-impl<F, C> ThirdOrderSallenKeyFilterParamBase<C> for Param<RC3GSallenKey<F>>
+impl<F, C> ThirdOrderSallenKeyFilterParamBase<C> for RC3GSallenKey<F>
 where
     F: FilterFloat,
     C: ThirdOrderSallenKeyFilterConf
 {
     type ImplBase = Self;
 }
-impl<F, C> ThirdOrderSallenKeyFilterParam<C, Param<RC3GSallenKey<F>>> for Param<RC3GSallenKey<F>>
+impl<F, C> ThirdOrderSallenKeyFilterParam<C, RC3GSallenKey<F>> for RC3GSallenKey<F>
 where
     F: FilterFloat,
     C: ThirdOrderSallenKeyFilterConf
@@ -57,6 +57,6 @@ where
 
     fn rc3g(&self) -> RC3GSallenKey<Self::F>
     {
-        **self
+        *self
     }
 }

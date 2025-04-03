@@ -153,25 +153,11 @@ moddef::moddef!(
 
 pub const fn max_len(a: usize, b: usize) -> usize
 {
-    if b > a
-    {
-        b
-    }
-    else
-    {
-        a
-    }
+    if b > a { b } else { a }
 }
 pub const fn min_len(a: usize, b: usize) -> usize
 {
-    if b < a
-    {
-        b
-    }
-    else
-    {
-        a
-    }
+    if b < a { b } else { a }
 }
 pub const fn sort_len<const N: usize>(mut a: [usize; N]) -> [usize; N]
 {
@@ -600,7 +586,7 @@ macro_rules! def_rtf {
         where
             F: real_time_fir_iir_filters::param::FilterFloat,
             C: $conf_trait_alias<Conf = C>,
-            real_time_fir_iir_filters::param::Param<P>: $param_trait_alias<C, Conf = C> + real_time_fir_iir_filters::param::FilterParam<F = F>,
+            P: $param_trait_alias<C, Conf = C> + real_time_fir_iir_filters::param::FilterParam<F = F>,
             $($($where)+)?
         {
             pub param: real_time_fir_iir_filters::param::Param<P>,
@@ -613,12 +599,12 @@ macro_rules! def_rtf {
         where
             F: real_time_fir_iir_filters::param::FilterFloat,
             C: $conf_trait_alias<Conf = C>,
-            real_time_fir_iir_filters::param::Param<P>: $param_trait_alias<C, Conf = C> + real_time_fir_iir_filters::param::FilterParam<F = F>,
+            P: $param_trait_alias<C, Conf = C> + real_time_fir_iir_filters::param::FilterParam<F = F>,
             $($($where)+)?
         {
             pub const fn new<Conf>(param: P) -> Self
             where
-                real_time_fir_iir_filters::param::Param<P>: $param_trait_alias<Conf, Conf: $conf_trait_alias<Conf = C>>,
+                P: $param_trait_alias<Conf, Conf: $conf_trait_alias<Conf = C>>,
                 Conf: real_time_fir_iir_filters::conf::Conf
             {
                 Self {
@@ -631,31 +617,31 @@ macro_rules! def_rtf {
 
         $(
             #[allow(unused_braces)]
-            impl<P> real_time_fir_iir_filters::rtf::RtfBase for $name<$conf, <real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, P>
+            impl<P> real_time_fir_iir_filters::rtf::RtfBase for $name<$conf, <P as real_time_fir_iir_filters::param::FilterParam>::F, P>
             where
                 $conf: $conf_trait_alias<Conf = $conf>,
-                real_time_fir_iir_filters::param::Param<P>: $param_trait_alias<$conf, Conf = $conf> + real_time_fir_iir_filters::param::FilterParam,
+                P: $param_trait_alias<$conf, Conf = $conf> + real_time_fir_iir_filters::param::FilterParam,
                 $($($where_c)+)?
             {
                 type Conf = $conf;
-                type F = <real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F;
+                type F = <P as real_time_fir_iir_filters::param::FilterParam>::F;
 
                 const IS_IIR: bool = $is_iir;
-                const OUTPUTS: usize = __Helper::<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, $conf>::OUTPUTS;
+                const OUTPUTS: usize = __Helper::<<P as real_time_fir_iir_filters::param::FilterParam>::F, $conf>::OUTPUTS;
             }
             #[allow(unused_braces)]
-            impl<P> real_time_fir_iir_filters::static_rtf::StaticRtfBase for $name<$conf, <real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, P>
+            impl<P> real_time_fir_iir_filters::static_rtf::StaticRtfBase for $name<$conf, <P as real_time_fir_iir_filters::param::FilterParam>::F, P>
             where
                 $conf: $conf_trait_alias<Conf = $conf>,
-                real_time_fir_iir_filters::param::Param<P>: $param_trait_alias<$conf, Conf = $conf> + real_time_fir_iir_filters::param::FilterParam,
+                P: $param_trait_alias<$conf, Conf = $conf> + real_time_fir_iir_filters::param::FilterParam,
                 $($($where_c)+)?
             {
                 type Param = P;
 
-                const O_BUFFERS: usize = __Helper::<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, $conf>::O_BUFFERS;
-                const SOS_BUFFERS: usize = __Helper::<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, $conf>::SOS_BUFFERS;
-                const SOS_STAGES: usize = __Helper::<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, $conf>::SOS_STAGES;
-                const ORDER: usize = __Helper::<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, $conf>::ORDER;
+                const O_BUFFERS: usize = __Helper::<<P as real_time_fir_iir_filters::param::FilterParam>::F, $conf>::O_BUFFERS;
+                const SOS_BUFFERS: usize = __Helper::<<P as real_time_fir_iir_filters::param::FilterParam>::F, $conf>::SOS_BUFFERS;
+                const SOS_STAGES: usize = __Helper::<<P as real_time_fir_iir_filters::param::FilterParam>::F, $conf>::SOS_STAGES;
+                const ORDER: usize = __Helper::<<P as real_time_fir_iir_filters::param::FilterParam>::F, $conf>::ORDER;
 
                 fn from_param(param: Self::Param) -> Self
                 {
@@ -679,30 +665,30 @@ macro_rules! def_rtf {
                 }
 
                 #[allow(clippy::type_complexity)]
-                fn get_internals(&self) -> (&Internals<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, $conf>, &real_time_fir_iir_filters::param::Param<P>)
+                fn get_internals(&self) -> (&Internals<<P as real_time_fir_iir_filters::param::FilterParam>::F, $conf>, &real_time_fir_iir_filters::param::Param<P>)
                 {
                     (&self.internals, &self.param)
                 }
                 #[allow(clippy::type_complexity)]
-                fn get_internals_mut(&mut self) -> (&mut Internals<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, $conf>, &mut real_time_fir_iir_filters::param::Param<P>)
+                fn get_internals_mut(&mut self) -> (&mut Internals<<P as real_time_fir_iir_filters::param::FilterParam>::F, $conf>, &mut real_time_fir_iir_filters::param::Param<P>)
                 {
                     (&mut self.internals, &mut self.param)
                 }
 
                 #[allow(clippy::type_complexity)]
-                fn make_coeffs($arg_param: &real_time_fir_iir_filters::param::Param<P>, $arg_rate: Self::F) -> (
-                    BInternals<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, $conf>,
-                    [AInternals<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, $conf>; $is_iir as usize]
+                fn make_coeffs($arg_param: &P, $arg_rate: Self::F) -> (
+                    BInternals<<P as real_time_fir_iir_filters::param::FilterParam>::F, $conf>,
+                    [AInternals<<P as real_time_fir_iir_filters::param::FilterParam>::F, $conf>; $is_iir as usize]
                 )
                 {
-                    fn make_coeffs<F, P>($arg_param: &real_time_fir_iir_filters::param::Param<P>, $arg_rate: F) -> (
+                    fn make_coeffs<F, P>($arg_param: &P, $arg_rate: F) -> (
                         BInternals<F, $conf>,
                         [AInternals<F, $conf>; $is_iir as usize]
                     )
                     where
                         F: real_time_fir_iir_filters::param::FilterFloat,
                         $conf: $conf_trait_alias<Conf = $conf>,
-                        real_time_fir_iir_filters::param::Param<P>: $param_trait_alias<$conf, Conf = $conf> + real_time_fir_iir_filters::param::FilterParam<F = F>,
+                        P: $param_trait_alias<$conf, Conf = $conf> + real_time_fir_iir_filters::param::FilterParam<F = F>,
                         $($($where_c)+)?
                     $make_coeffs
 
@@ -743,7 +729,7 @@ macro_rules! def_rtf {
         pub struct $name<F = f64, P = $param_default<F>>
         where
             F: real_time_fir_iir_filters::param::FilterFloat,
-            real_time_fir_iir_filters::param::Param<P>: $param_trait + real_time_fir_iir_filters::param::FilterParam<F = F>,
+            P: $param_trait + real_time_fir_iir_filters::param::FilterParam<F = F>,
             $($($where)+)?
         {
             pub param: real_time_fir_iir_filters::param::Param<P>,
@@ -751,37 +737,37 @@ macro_rules! def_rtf {
             phantom: core::marker::PhantomData<()>
         }
 
-        impl<P> $name<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, P>
+        impl<P> $name<<P as real_time_fir_iir_filters::param::FilterParam>::F, P>
         where
-            real_time_fir_iir_filters::param::Param<P>: $param_trait,
+            P: $param_trait,
             $($($where)+)?
         {
             pub const fn new(param: P) -> Self
             {
                 Self {
                     param: real_time_fir_iir_filters::param::Param::new(param),
-                    internals: Internals::<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F>::new(),
+                    internals: Internals::new(),
                     phantom: core::marker::PhantomData
                 }
             }
         }
 
         #[allow(unused_braces)]
-        impl<P> real_time_fir_iir_filters::rtf::RtfBase for $name<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, P>
+        impl<P> real_time_fir_iir_filters::rtf::RtfBase for $name<<P as real_time_fir_iir_filters::param::FilterParam>::F, P>
         where
-            real_time_fir_iir_filters::param::Param<P>: $param_trait,
+            P: $param_trait,
             $($($where)+)?
         {
             type Conf = real_time_fir_iir_filters::conf::All;
-            type F = <real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F;
+            type F = <P as real_time_fir_iir_filters::param::FilterParam>::F;
 
             const IS_IIR: bool = $is_iir;
             const OUTPUTS: usize = $outputs;
         }
         #[allow(unused_braces)]
-        impl<P> real_time_fir_iir_filters::static_rtf::StaticRtfBase for $name<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F, P>
+        impl<P> real_time_fir_iir_filters::static_rtf::StaticRtfBase for $name<<P as real_time_fir_iir_filters::param::FilterParam>::F, P>
         where
-            real_time_fir_iir_filters::param::Param<P>: $param_trait,
+            P: $param_trait,
             $($($where)+)?
         {
             type Param = P;
@@ -795,7 +781,7 @@ macro_rules! def_rtf {
             {
                 Self {
                     param: real_time_fir_iir_filters::param::Param::new(param),
-                    internals: Internals::<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F>::new(),
+                    internals: Internals::new(),
                     phantom: core::marker::PhantomData
                 }
             }
@@ -813,29 +799,29 @@ macro_rules! def_rtf {
             }
 
             #[allow(clippy::type_complexity)]
-            fn get_internals(&self) -> (&Internals<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F>, &real_time_fir_iir_filters::param::Param<P>)
+            fn get_internals(&self) -> (&Internals<<P as real_time_fir_iir_filters::param::FilterParam>::F>, &real_time_fir_iir_filters::param::Param<P>)
             {
                 (&self.internals, &self.param)
             }
             #[allow(clippy::type_complexity)]
-            fn get_internals_mut(&mut self) -> (&mut Internals<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F>, &mut real_time_fir_iir_filters::param::Param<P>)
+            fn get_internals_mut(&mut self) -> (&mut Internals<<P as real_time_fir_iir_filters::param::FilterParam>::F>, &mut real_time_fir_iir_filters::param::Param<P>)
             {
                 (&mut self.internals, &mut self.param)
             }
 
             #[allow(clippy::type_complexity)]
-            fn make_coeffs($arg_param: &real_time_fir_iir_filters::param::Param<P>, $arg_rate: Self::F) -> (
-                BInternals<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F>,
-                [AInternals<<real_time_fir_iir_filters::param::Param<P> as real_time_fir_iir_filters::param::FilterParam>::F>; $is_iir as usize]
+            fn make_coeffs($arg_param: &P, $arg_rate: Self::F) -> (
+                BInternals<<P as real_time_fir_iir_filters::param::FilterParam>::F>,
+                [AInternals<<P as real_time_fir_iir_filters::param::FilterParam>::F>; $is_iir as usize]
             )
             {
-                fn make_coeffs<F, P>($arg_param: &real_time_fir_iir_filters::param::Param<P>, $arg_rate: F) -> (
+                fn make_coeffs<F, P>($arg_param: &P, $arg_rate: F) -> (
                     BInternals<F>,
                     [AInternals<F>; $is_iir as usize]
                 )
                 where
                     F: real_time_fir_iir_filters::param::FilterFloat,
-                    real_time_fir_iir_filters::param::Param<P>: $param_trait + real_time_fir_iir_filters::param::FilterParam<F = F>,
+                    P: $param_trait + real_time_fir_iir_filters::param::FilterParam<F = F>,
                     $($($where)+)?
                 $make_coeffs
 
@@ -915,7 +901,6 @@ mod tests
         F: Display + Debug,
         T: Rtf<F = F>,
         [(); T::OUTPUTS - 1]:,
-
         F: Float + AddAssign + SubAssign + 'static,
         Range<F>: AsRangedCoord<CoordDescType: ValueFormatter<<Range<F> as AsRangedCoord>::Value>, Value: Debug + Clone>,
         for<'b, 'a> &'b DynElement<'static, BitMapBackend<'a>, (F, F)>: PointCollection<'b, (<Range<F> as AsRangedCoord>::Value, <Range<F> as AsRangedCoord>::Value)>

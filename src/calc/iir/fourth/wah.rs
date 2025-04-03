@@ -1,4 +1,4 @@
-use crate::{f, param::{FilterFloat, Param, WahFilterParam, X}};
+use crate::{f, param::{FilterFloat, WahFilterParam, X}};
 
 struct WahConstCalc<F>
 where
@@ -19,23 +19,23 @@ impl WahConstCalc<f64>
 {
     const fn new64<P>() -> WahConstCalc<f64>
     where
-        Param<P>: WahFilterParam
+        P: WahFilterParam
     {
-        let r_s = Param::<P>::R_S;
-        let beta = Param::<P>::BETA;
-        let r_e1 = Param::<P>::R_E1;
-        let r_g = Param::<P>::R_G;
-        let r_j = Param::<P>::R_J;
-        let r_c1 = Param::<P>::R_C1;
-        let r_e2 = Param::<P>::R_E2;
-        let v_cc = Param::<P>::V_CC;
-        let v_f = Param::<P>::V_F;
-        let v_t = Param::<P>::V_T;
-        let c_i = Param::<P>::C_I;
-        let l = Param::<P>::L;
-        let r_i = Param::<P>::R_I;
-        let r_p = Param::<P>::R_P;
-        let c_f = Param::<P>::C_F;
+        let r_s = P::R_S;
+        let beta = P::BETA;
+        let r_e1 = P::R_E1;
+        let r_g = P::R_G;
+        let r_j = P::R_J;
+        let r_c1 = P::R_C1;
+        let r_e2 = P::R_E2;
+        let v_cc = P::V_CC;
+        let v_f = P::V_F;
+        let v_t = P::V_T;
+        let c_i = P::C_I;
+        let l = P::L;
+        let r_i = P::R_I;
+        let r_p = P::R_P;
+        let c_f = P::C_F;
 
         let s_g = 1.0/(r_s + beta*r_e1) + 1.0/r_g + 1.0/r_j;
         let s_c1 = 1.0/r_c1 + 2.0/r_j + beta/(r_s + beta*r_e1)/r_j/s_g - 1.0/r_j/r_j/s_g;
@@ -79,9 +79,9 @@ where
 {
     pub fn new<P>() -> Self
     where
-        Param<P>: WahFilterParam<F = F>
+        P: WahFilterParam<F = F>
     {
-        let WahConstCalc {a0, a1, b1, b2, b3, a2a, a2b, a3a, a3b, mg_q1} = WahConstCalc::new64();
+        let WahConstCalc {a0, a1, b1, b2, b3, a2a, a2b, a3a, a3b, mg_q1} = WahConstCalc::new64::<P>();
         Self {
             a0: f!(a0),
             a1: f!(a1),
@@ -115,9 +115,9 @@ impl<F> WahCalc<F>
 where
     F: FilterFloat
 {
-    pub fn new<P>(param: &Param<P>, rate: F) -> Self
+    pub fn new<P>(param: &P, rate: F) -> Self
     where
-        Param<P>: WahFilterParam<F = F>
+        P: WahFilterParam<F = F>
     {
         let WahConstCalc {a0, a1, b1, b2, b3, a2a, a2b, a3a, a3b, mg_q1} = WahConstCalc::new::<P>();
         let X {x} = param.x();
@@ -127,7 +127,7 @@ where
         let four_rate2 = two_rate*two_rate;
         let eight_rate3 = four_rate2*two_rate;
         
-        let one_m_k_recip_plus_r_pot_per_r_j = (F::one() - x).recip() + f!(Param::<P>::R_POT/Param::<P>::R_J);
+        let one_m_k_recip_plus_r_pot_per_r_j = (F::one() - x).recip() + f!(P::R_POT/P::R_J);
 
         let g_q2 = one_m_k_recip_plus_r_pot_per_r_j/(x.recip() + one_m_k_recip_plus_r_pot_per_r_j);
 

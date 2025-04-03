@@ -71,7 +71,7 @@ impl_composite_conf!(LowPass, HighPass => All);
 
 mod private
 {
-    use crate::{conf::InputOrGND, param::{FirstOrderLRFilterParam, Param, LR}};
+    use crate::{conf::InputOrGND, param::{FirstOrderLRFilterParam, LR}};
 
     use super::FirstOrderLRFilterConf;
 
@@ -102,8 +102,8 @@ mod private
             R_CONF = {R_CONF},
             L_CONF = {L_CONF}
         >,
-        Param<LR<f64>>: FirstOrderLRFilterParam<CC, Conf = CC>,
-        Param<LR<f32>>: FirstOrderLRFilterParam<CC, Conf = CC>
+        LR<f64>: FirstOrderLRFilterParam<CC, Conf = CC>,
+        LR<f32>: FirstOrderLRFilterParam<CC, Conf = CC>
     {
 
     }

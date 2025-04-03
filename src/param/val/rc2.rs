@@ -1,4 +1,4 @@
-use crate::{change::Change, param::{FilterFloat, FilterParam, Param, SecondOrderRCFilterConf, SecondOrderRCFilterParam, SecondOrderRCFilterParamBase}};
+use crate::{change::Change, param::{FilterFloat, FilterParam, SecondOrderRCFilterConf, SecondOrderRCFilterParam, SecondOrderRCFilterParamBase}};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)] 
@@ -25,7 +25,7 @@ where
         self.c2.change(to.c2, change);
     }
 }
-impl<F> FilterParam for Param<RC2<F>>
+impl<F> FilterParam for RC2<F>
 where
     F: FilterFloat
 {
@@ -33,14 +33,14 @@ where
 
     type F = F;
 }
-impl<F, C> SecondOrderRCFilterParamBase<C> for Param<RC2<F>>
+impl<F, C> SecondOrderRCFilterParamBase<C> for RC2<F>
 where
     F: FilterFloat,
     C: SecondOrderRCFilterConf
 {
     type ImplBase = Self;
 }
-impl<F, C> SecondOrderRCFilterParam<C, Param<RC2<F>>> for Param<RC2<F>>
+impl<F, C> SecondOrderRCFilterParam<C, RC2<F>> for RC2<F>
 where
     F: FilterFloat,
     C: SecondOrderRCFilterConf
@@ -49,6 +49,6 @@ where
 
     fn rc2(&self) -> RC2<Self::F>
     {
-        **self
+        *self
     }
 }

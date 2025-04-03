@@ -1,6 +1,6 @@
 use num::NumCast;
 
-use crate::{conf::Conf, param::{FilterParam, Omega, Omega2Zeta, OmegaThirdOrder, Param, ThirdOrderFilterConf, ThirdOrderFilterParamBase}, util::same::Same};
+use crate::{conf::Conf, param::{FilterParam, Omega, Omega2Zeta, OmegaThirdOrder, ThirdOrderFilterConf, ThirdOrderFilterParamBase}, util::same::Same};
 
 use super::ButterworthFilterParam;
 
@@ -16,9 +16,9 @@ where
     fn omega2_zeta(&self) -> Omega2Zeta<Self::F>;
 }
 
-impl<P, C> ThirdOrderFilterParam<C, Param<OmegaThirdOrder<P::F>>> for P
+impl<P, C> ThirdOrderFilterParam<C, OmegaThirdOrder<P::F>> for P
 where
-    P: ButterworthFilterParam<C, Conf: ThirdOrderFilterConf, Omega = OmegaThirdOrder<<P as FilterParam>::F>> + ThirdOrderFilterParamBase<C, ImplBase = Param<OmegaThirdOrder<<P as FilterParam>::F>>>,
+    P: ButterworthFilterParam<C, Conf: ThirdOrderFilterConf, Omega = OmegaThirdOrder<<P as FilterParam>::F>> + ThirdOrderFilterParamBase<C, ImplBase = OmegaThirdOrder<<P as FilterParam>::F>>,
     C: Conf,
     [(); P::ORDER]:
 {

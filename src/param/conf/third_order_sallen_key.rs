@@ -378,7 +378,7 @@ impl_composite_conf!(LowPass, BandPass<1>, BandPass<2>, BandPass<3>, BandPass<4>
 
 mod private
 {
-    use crate::{conf::{InputOrFeedback, InputOrGND}, param::{FirstOrderRCFilterConf, Param, RC3GSallenKey, RC3SallenKey, SecondOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParam}};
+    use crate::{conf::{InputOrFeedback, InputOrGND}, param::{FirstOrderRCFilterConf, RC3GSallenKey, RC3SallenKey, SecondOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParam}};
 
     use super::ThirdOrderSallenKeyFilterConf;
 
@@ -422,10 +422,10 @@ mod private
             R3_CONF = {R3_CONF},
             C3_CONF = {C3_CONF},
         >,
-        Param<RC3SallenKey<f32>>: ThirdOrderSallenKeyFilterParam<CC, Conf = CC>,
-        Param<RC3SallenKey<f64>>: ThirdOrderSallenKeyFilterParam<CC, Conf = CC>,
-        Param<RC3GSallenKey<f32>>: ThirdOrderSallenKeyFilterParam<CC, Conf = CC>,
-        Param<RC3GSallenKey<f64>>: ThirdOrderSallenKeyFilterParam<CC, Conf = CC>
+        RC3SallenKey<f32>: ThirdOrderSallenKeyFilterParam<CC, Conf = CC>,
+        RC3SallenKey<f64>: ThirdOrderSallenKeyFilterParam<CC, Conf = CC>,
+        RC3GSallenKey<f32>: ThirdOrderSallenKeyFilterParam<CC, Conf = CC>,
+        RC3GSallenKey<f64>: ThirdOrderSallenKeyFilterParam<CC, Conf = CC>
     {
 
     }

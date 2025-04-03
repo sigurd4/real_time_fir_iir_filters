@@ -122,7 +122,7 @@ impl_composite_conf!(LowPass, BandPass<1>, BandPass<2>, HighPass => All);
 
 mod private
 {
-    use crate::{conf::InputOrGND, param::{FirstOrderRCFilterConf, Param, SecondOrderRCFilterParam, RC2}};
+    use crate::{conf::InputOrGND, param::{FirstOrderRCFilterConf, SecondOrderRCFilterParam, RC2}};
 
     use super::SecondOrderRCFilterConf;
 
@@ -160,8 +160,8 @@ mod private
             R2_CONF = {R2_CONF},
             C2_CONF = {C2_CONF}
         >,
-        Param<RC2<f64>>: SecondOrderRCFilterParam<CC, Conf = CC>,
-        Param<RC2<f32>>: SecondOrderRCFilterParam<CC, Conf = CC>
+        RC2<f64>: SecondOrderRCFilterParam<CC, Conf = CC>,
+        RC2<f32>: SecondOrderRCFilterParam<CC, Conf = CC>
     {
 
     }

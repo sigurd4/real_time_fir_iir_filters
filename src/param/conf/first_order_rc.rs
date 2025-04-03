@@ -110,7 +110,7 @@ impl_composite_conf!(LowPass, HighPass => All);
 
 mod private
 {
-    use crate::{conf::{InputOrFeedback, InputOrGND, LowPass}, param::{FirstOrderRCFilterParam, Param, SecondOrderRCFilterConf, SecondOrderRLCFilterConf, ThirdOrderSallenKeyFilterConf, RC}};
+    use crate::{conf::{InputOrFeedback, InputOrGND, LowPass}, param::{FirstOrderRCFilterParam, SecondOrderRCFilterConf, SecondOrderRLCFilterConf, ThirdOrderSallenKeyFilterConf, RC}};
 
     use super::FirstOrderRCFilterConf;
 
@@ -147,8 +147,8 @@ mod private
             R_CONF = {R_CONF},
             C_CONF = {C_CONF}
         >,
-        Param<RC<f64>>: FirstOrderRCFilterParam<CC, Conf = CC>,
-        Param<RC<f32>>: FirstOrderRCFilterParam<CC, Conf = CC>
+        RC<f64>: FirstOrderRCFilterParam<CC, Conf = CC>,
+        RC<f32>: FirstOrderRCFilterParam<CC, Conf = CC>
     {
 
     }

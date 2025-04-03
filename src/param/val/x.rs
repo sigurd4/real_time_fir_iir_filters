@@ -1,4 +1,4 @@
-use crate::{change::Change, param::FilterFloat};
+use crate::{change::Change, param::{FilterFloat, FilterParam}};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)] 
@@ -18,4 +18,12 @@ where
     {
         self.x.change(to.x, change);
     }
+}
+impl<F> FilterParam for X<F>
+where
+    F: FilterFloat
+{
+    const ORDER: usize = 0;
+
+    type F = F;
 }

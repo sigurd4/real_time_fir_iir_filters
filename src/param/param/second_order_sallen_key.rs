@@ -1,6 +1,6 @@
-use crate::{conf::Conf, param::{FilterParam, Param, RC2GSallenKey, SecondOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParamBase}};
+use crate::{conf::Conf, param::{FilterParam, RC2GSallenKey, SecondOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParamBase}};
 
-pub trait SecondOrderSallenKeyFilterParam<C>: ThirdOrderSallenKeyFilterParamBase<C, ImplBase = Param<RC2GSallenKey<<Self as FilterParam>::F>>>
+pub trait SecondOrderSallenKeyFilterParam<C>: ThirdOrderSallenKeyFilterParamBase<C, ImplBase = RC2GSallenKey<<Self as FilterParam>::F>>
 where
     C: Conf
 {

@@ -1,4 +1,4 @@
-use crate::{change::Change, param::{ButterworthFilterConf, ButterworthFilterParam, ChebyshevFilterParamBase, EllipticFilterParamBase, FilterFloat, FilterParam, FirstOrderFilterParamBase, Param, SecondOrderFilterParamBase, ThirdOrderFilterParamBase}};
+use crate::{change::Change, param::{ButterworthFilterConf, ButterworthFilterParam, ChebyshevFilterParamBase, EllipticFilterParamBase, FilterFloat, FilterParam, FirstOrderFilterParamBase, SecondOrderFilterParamBase, ThirdOrderFilterParamBase}};
 
 use super::OmegaEpsilonCheb1Dyn;
 
@@ -26,7 +26,7 @@ where
         self.omega.change(to.omega, change);
     }
 }
-impl<F, const ORDER: usize> FilterParam for Param<Omega<F, ORDER>>
+impl<F, const ORDER: usize> FilterParam for Omega<F, ORDER>
 where
     F: FilterFloat
 {
@@ -35,44 +35,44 @@ where
     type F = F;
 }
 
-impl<F, C> FirstOrderFilterParamBase<C> for Param<OmegaFirstOrder<F>>
+impl<F, C> FirstOrderFilterParamBase<C> for OmegaFirstOrder<F>
 where
     F: FilterFloat,
     C: ButterworthFilterConf<1>
 {
     type ImplBase = Self;
 }
-impl<F, C> SecondOrderFilterParamBase<C> for Param<OmegaSecondOrder<F>>
+impl<F, C> SecondOrderFilterParamBase<C> for OmegaSecondOrder<F>
 where
     F: FilterFloat,
     C: ButterworthFilterConf<2>
 {
     type ImplBase = Self;
 }
-impl<F, C> ThirdOrderFilterParamBase<C> for Param<OmegaThirdOrder<F>>
+impl<F, C> ThirdOrderFilterParamBase<C> for OmegaThirdOrder<F>
 where
     F: FilterFloat,
     C: ButterworthFilterConf<3>
 {
     type ImplBase = Self;
 }
-impl<F, C, const ORDER: usize> EllipticFilterParamBase<C> for Param<Omega<F, ORDER>>
+impl<F, C, const ORDER: usize> EllipticFilterParamBase<C> for Omega<F, ORDER>
 where
     F: FilterFloat,
     C: ButterworthFilterConf<ORDER>
 {
-    type ImplBase = Param<OmegaEpsilonCheb1Dyn<F>>;
+    type ImplBase = OmegaEpsilonCheb1Dyn<F>;
 }
-impl<F, C, const ORDER: usize> ChebyshevFilterParamBase<C> for Param<Omega<F, ORDER>>
+impl<F, C, const ORDER: usize> ChebyshevFilterParamBase<C> for Omega<F, ORDER>
 where
     F: FilterFloat,
     C: ButterworthFilterConf<ORDER>
 {
     const TYPE: bool = false;
 
-    type ImplBase = Param<OmegaDyn<F>>;
+    type ImplBase = OmegaDyn<F>;
 }
-impl<F, C, const ORDER: usize> ButterworthFilterParam<C> for Param<Omega<F, ORDER>>
+impl<F, C, const ORDER: usize> ButterworthFilterParam<C> for Omega<F, ORDER>
 where
     F: FilterFloat,
     C: ButterworthFilterConf<{Self::ORDER}> + ButterworthFilterConf<ORDER>
@@ -88,6 +88,6 @@ where
     where
         [(); Self::ORDER]:
     {
-        **self
+        *self
     }
 }

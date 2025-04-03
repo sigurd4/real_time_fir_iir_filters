@@ -1,6 +1,6 @@
 use num::Float;
 
-use crate::{change::Change, param::{FilterFloat, FilterParam, FirstOrderAllPassFilterConf, FirstOrderAllPassFilterParam, FirstOrderAllPassFilterParamBase, Param}};
+use crate::{change::Change, param::{FilterFloat, FilterParam, FirstOrderAllPassFilterConf, FirstOrderAllPassFilterParam, FirstOrderAllPassFilterParamBase}};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)] 
@@ -21,7 +21,7 @@ where
         self.tau.change(to.tau, change);
     }
 }
-impl<F> FilterParam for Param<Tau<F>>
+impl<F> FilterParam for Tau<F>
 where
     F: FilterFloat
 {
@@ -29,14 +29,14 @@ where
 
     type F = F;
 }
-impl<F, C> FirstOrderAllPassFilterParamBase<C> for Param<Tau<F>>
+impl<F, C> FirstOrderAllPassFilterParamBase<C> for Tau<F>
 where
     F: FilterFloat,
     C: FirstOrderAllPassFilterConf
 {
     type ImplBase = Self;
 }
-impl<F, C> FirstOrderAllPassFilterParam<C> for Param<Tau<F>>
+impl<F, C> FirstOrderAllPassFilterParam<C> for Tau<F>
 where
     F: FilterFloat,
     C: FirstOrderAllPassFilterConf
@@ -45,6 +45,6 @@ where
 
     fn tau(&self) -> Tau<F>
     {
-        **self
+        *self
     }
 }

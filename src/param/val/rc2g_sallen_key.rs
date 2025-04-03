@@ -1,4 +1,4 @@
-use crate::{change::Change, param::{FilterFloat, FilterParam, Param, SecondOrderSallenKeyFilterConf, SecondOrderSallenKeyFilterParam, ThirdOrderSallenKeyFilterParamBase}};
+use crate::{change::Change, param::{FilterFloat, FilterParam, SecondOrderSallenKeyFilterConf, SecondOrderSallenKeyFilterParam, ThirdOrderSallenKeyFilterParamBase}};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)] 
@@ -27,7 +27,7 @@ where
         self.g.change(to.g, change);
     }
 }
-impl<F> FilterParam for Param<RC2GSallenKey<F>>
+impl<F> FilterParam for RC2GSallenKey<F>
 where
     F: FilterFloat
 {
@@ -35,14 +35,14 @@ where
 
     type F = F;
 }
-impl<F, C> ThirdOrderSallenKeyFilterParamBase<C> for Param<RC2GSallenKey<F>>
+impl<F, C> ThirdOrderSallenKeyFilterParamBase<C> for RC2GSallenKey<F>
 where
     F: FilterFloat,
     C: SecondOrderSallenKeyFilterConf
 {
     type ImplBase = Self;
 }
-impl<F, C> SecondOrderSallenKeyFilterParam<C> for Param<RC2GSallenKey<F>>
+impl<F, C> SecondOrderSallenKeyFilterParam<C> for RC2GSallenKey<F>
 where
     F: FilterFloat,
     C: SecondOrderSallenKeyFilterConf
@@ -51,6 +51,6 @@ where
 
     fn rc2g(&self) -> RC2GSallenKey<Self::F>
     {
-        **self
+        *self
     }
 }

@@ -1,6 +1,6 @@
 use num::{Float, One};
 
-use crate::{conf::Conf, param::{EllipticFilterParamBase, FilterParam, OmegaEpsilon, OmegaEpsilonXi, Param, EllipticFilterConf}, util::same::Same};
+use crate::{conf::Conf, param::{EllipticFilterParamBase, FilterParam, OmegaEpsilon, OmegaEpsilonXi, EllipticFilterConf}, util::same::Same};
 
 use super::ChebyshevFilterParam;
 
@@ -89,9 +89,9 @@ const fn can_ln_be_calculated_through_recursion(cheb_type: bool, mut order: usiz
     }
 }
 
-impl<P, C, const ORDER: usize> EllipticFilterParam<C, Param<OmegaEpsilon<<P as FilterParam>::F, false, ORDER>>> for P
+impl<P, C, const ORDER: usize> EllipticFilterParam<C, OmegaEpsilon<<P as FilterParam>::F, false, ORDER>> for P
 where
-    P: ChebyshevFilterParam<C, TYPE = false, ORDER = {ORDER}, OmegaEpsilon = OmegaEpsilon<<P as FilterParam>::F, false, ORDER>, Conf: EllipticFilterConf> + EllipticFilterParamBase<C, ImplBase: Same<Param<OmegaEpsilon<<P as FilterParam>::F, false, ORDER>>>>,
+    P: ChebyshevFilterParam<C, TYPE = false, ORDER = {ORDER}, OmegaEpsilon = OmegaEpsilon<<P as FilterParam>::F, false, ORDER>, Conf: EllipticFilterConf> + EllipticFilterParamBase<C, ImplBase: Same<OmegaEpsilon<<P as FilterParam>::F, false, ORDER>>>,
     C: Conf,
     OmegaEpsilonXi<P::F, ORDER>: Same<OmegaEpsilonXi<P::F, {Self::ORDER}>>,
     [(); {Self::TYPE} as usize]:
@@ -114,9 +114,9 @@ where
     }
 }
 
-impl<P, C, const TYPE: bool, const ORDER: usize> EllipticFilterParam<C, Param<OmegaEpsilon<<P as FilterParam>::F, TYPE, ORDER>>> for P
+impl<P, C, const TYPE: bool, const ORDER: usize> EllipticFilterParam<C, OmegaEpsilon<<P as FilterParam>::F, TYPE, ORDER>> for P
 where
-    P: ChebyshevFilterParam<C, TYPE = {TYPE}, ORDER = {ORDER}, OmegaEpsilon = OmegaEpsilon<<P as FilterParam>::F, TYPE, ORDER>, Conf: EllipticFilterConf> + EllipticFilterParamBase<C, ImplBase: Same<Param<OmegaEpsilon<<P as FilterParam>::F, TYPE, ORDER>>>>,
+    P: ChebyshevFilterParam<C, TYPE = {TYPE}, ORDER = {ORDER}, OmegaEpsilon = OmegaEpsilon<<P as FilterParam>::F, TYPE, ORDER>, Conf: EllipticFilterConf> + EllipticFilterParamBase<C, ImplBase: Same<OmegaEpsilon<<P as FilterParam>::F, TYPE, ORDER>>>,
     C: Conf,
     OmegaEpsilonXi<P::F, ORDER>: Same<OmegaEpsilonXi<P::F, {Self::ORDER}>>,
     [(); {Self::TYPE} as usize]:,

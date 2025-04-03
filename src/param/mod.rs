@@ -13,31 +13,6 @@ moddef::moddef!(
     }
 );
 
-pub trait Parameterization: Sized + 'static
-{
-    fn is_unchanged(&self) -> bool;
-    fn set_unchanged(&mut self);
-    fn is_unchanged_then_set(&mut self) -> bool
-    {
-        let b = self.is_unchanged();
-        self.set_unchanged();
-        b
-    }
-}
-impl<T> Parameterization for Param<T>
-where
-    T: 'static
-{
-    fn is_unchanged(&self) -> bool
-    {
-        !self.has_maybe_changed
-    }
-    fn set_unchanged(&mut self)
-    {
-        self.has_maybe_changed = false
-    }
-}
-
 pub trait FilterFloat: Float + FloatConst + Pod + Default
 {
 
@@ -49,7 +24,7 @@ where
 
 }
 
-pub trait FilterParam: Parameterization
+pub trait FilterParam
 {
     const ORDER: usize = 0;
 
@@ -101,6 +76,20 @@ impl<T> Param<T>
         let value = unsafe {(&self.value as *const T).read()};
         core::mem::forget(self);
         value
+    }
+    pub fn is_unchanged(&self) -> bool
+    {
+        !self.has_maybe_changed
+    }
+    pub fn set_unchanged(&mut self)
+    {
+        self.has_maybe_changed = false
+    }
+    pub fn is_unchanged_then_set(&mut self) -> bool
+    {
+        let b = self.is_unchanged();
+        self.set_unchanged();
+        b
     }
 }
 impl<T> From<T> for Param<T>

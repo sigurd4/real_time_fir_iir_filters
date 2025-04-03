@@ -139,7 +139,7 @@ impl_composite_conf!(LowPass, BandPass<1>, BandPass<2>, HighPass => All);
 
 mod private
 {
-    use crate::{conf::{InputOrFeedback, InputOrGND, LowPass}, param::{FirstOrderRCFilterConf, Param, RC2GSallenKey, RC2SallenKey, SecondOrderSallenKeyFilterParam, ThirdOrderSallenKeyFilterConf}};
+    use crate::{conf::{InputOrFeedback, InputOrGND, LowPass}, param::{FirstOrderRCFilterConf, RC2GSallenKey, RC2SallenKey, SecondOrderSallenKeyFilterParam, ThirdOrderSallenKeyFilterConf}};
 
     use super::SecondOrderSallenKeyFilterConf;
 
@@ -178,10 +178,10 @@ mod private
             R2_CONF = {R2_CONF},
             C2_CONF = {C2_CONF}
         >,
-        Param<RC2SallenKey<f32>>: SecondOrderSallenKeyFilterParam<CC, Conf = CC>,
-        Param<RC2SallenKey<f64>>: SecondOrderSallenKeyFilterParam<CC, Conf = CC>,
-        Param<RC2GSallenKey<f32>>: SecondOrderSallenKeyFilterParam<CC, Conf = CC>,
-        Param<RC2GSallenKey<f64>>: SecondOrderSallenKeyFilterParam<CC, Conf = CC>
+        RC2SallenKey<f32>: SecondOrderSallenKeyFilterParam<CC, Conf = CC>,
+        RC2SallenKey<f64>: SecondOrderSallenKeyFilterParam<CC, Conf = CC>,
+        RC2GSallenKey<f32>: SecondOrderSallenKeyFilterParam<CC, Conf = CC>,
+        RC2GSallenKey<f64>: SecondOrderSallenKeyFilterParam<CC, Conf = CC>
     {
 
     }
