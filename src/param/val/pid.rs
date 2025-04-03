@@ -1,9 +1,8 @@
 use num::Float;
-use serde::{Serialize, Deserialize};
 
 use crate::{change::Change, param::{FilterFloat, FilterParam, PIDFilterParam, Param}};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)] 
 pub struct PID<F>
 where

@@ -13,7 +13,7 @@ moddef::moddef!(
     }
 );
 
-#[derive(Clone, Copy, Debug, ConstParamTy, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, ConstParamTy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum InputOrGND
 {
     Input,

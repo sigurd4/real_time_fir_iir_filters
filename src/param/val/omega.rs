@@ -1,5 +1,3 @@
-use serde::{Serialize, Deserialize};
-
 use crate::{change::Change, param::{ButterworthFilterConf, ButterworthFilterParam, ChebyshevFilterParamBase, EllipticFilterParamBase, FilterFloat, FilterParam, FirstOrderFilterParamBase, Param, SecondOrderFilterParamBase, ThirdOrderFilterParamBase}};
 
 use super::OmegaEpsilonCheb1Dyn;
@@ -9,7 +7,7 @@ pub type OmegaFirstOrder<F> = Omega<F, 1>;
 pub type OmegaSecondOrder<F> = Omega<F, 2>;
 pub type OmegaThirdOrder<F> = Omega<F, 3>;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)] 
 pub struct Omega<F, const ORDER: usize = 0>
 where

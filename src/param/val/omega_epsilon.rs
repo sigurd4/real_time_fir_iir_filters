@@ -1,5 +1,3 @@
-use serde::{Serialize, Deserialize};
-
 use crate::{change::Change, param::{ChebyshevFilterParam, ChebyshevFilterParamBase, EllipticFilterConf, EllipticFilterParamBase, FilterFloat, FilterParam, Param}};
 
 pub type OmegaEpsilonDyn<F, const TYPE: bool> = OmegaEpsilon<F, TYPE>;
@@ -19,7 +17,7 @@ pub type OmegaEpsilonCheb2FirstOrder<F> = OmegaEpsilonCheb2<F, 1>;
 pub type OmegaEpsilonCheb2SecondOrder<F> = OmegaEpsilonCheb2<F, 2>;
 pub type OmegaEpsilonCheb2ThirdOrder<F> = OmegaEpsilonCheb2<F, 3>;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)] 
 pub struct OmegaEpsilon<F, const TYPE: bool, const ORDER: usize = 0>
 where

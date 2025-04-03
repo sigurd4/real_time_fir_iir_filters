@@ -1,6 +1,6 @@
 use super::{wildcard_if_zero, Conf, ConfType};
 
-#[derive(Clone, Copy, Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum AllPass<const N: usize = 0> {}
 
 impl<const N: usize> Conf for AllPass<N>

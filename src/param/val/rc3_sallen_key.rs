@@ -1,11 +1,10 @@
 use num::One;
-use serde::{Serialize, Deserialize};
 
 use crate::{change::Change, param::{FilterFloat, FilterParam, Param, ThirdOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParam, ThirdOrderSallenKeyFilterParamBase}};
 
 use super::RC3GSallenKey;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)] 
 pub struct RC3SallenKey<F>
 where

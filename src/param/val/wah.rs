@@ -1,5 +1,3 @@
-use serde::{Serialize, Deserialize};
-
 use crate::{change::Change, param::{FilterFloat, FilterParam, Param, WahFilterParam}};
 
 use super::X;
@@ -16,7 +14,7 @@ pub(crate) const BC109B_BETA: f64 = 500.0;
 pub(crate) const BC184_V_F: f64 = 0.7;
 pub(crate) const BC184_BETA: f64 = 240.0;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)] 
 pub struct CrybabyGCB95<F>
 where
@@ -79,7 +77,7 @@ where
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)] 
 pub struct VoxV847<F>
 where
@@ -142,7 +140,7 @@ where
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)] 
 pub struct ColorsoundWow<F>
 where

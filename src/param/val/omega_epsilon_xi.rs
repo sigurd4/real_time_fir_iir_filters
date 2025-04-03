@@ -1,5 +1,3 @@
-use serde::{Deserialize, Serialize};
-
 use crate::{change::Change, param::{EllipticFilterConf, EllipticFilterParam, EllipticFilterParamBase, FilterFloat, FilterParam, Param}};
 
 pub type OmegaEpsilonXiDyn<F> = OmegaEpsilonXi<F>;
@@ -7,7 +5,7 @@ pub type OmegaEpsilonXiFirstOrder<F> = OmegaEpsilonXi<F, 1>;
 pub type OmegaEpsilonXiSecondOrder<F> = OmegaEpsilonXi<F, 2>;
 pub type OmegaEpsilonXiThirdOrder<F> = OmegaEpsilonXi<F, 3>;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)] 
 pub struct OmegaEpsilonXi<F, const ORDER: usize = 0>
 where
