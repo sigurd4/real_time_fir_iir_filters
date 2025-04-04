@@ -37,15 +37,20 @@ impl WahConstCalc<f64>
         let r_p = P::R_P;
         let c_f = P::C_F;
 
-        let s_g = 1.0/(r_s + beta*r_e1) + 1.0/r_g + 1.0/r_j;
-        let s_c1 = 1.0/r_c1 + 2.0/r_j + beta/(r_s + beta*r_e1)/r_j/s_g - 1.0/r_j/r_j/s_g;
+        let z1 = r_s + beta*r_e1;
+
+        let s_g = 1.0/z1 + 1.0/r_g + 1.0/r_j;
+
+        let z2 = 1.0/z1/r_j/s_g - beta*(1.0 - z1*s_g)/z1/z1/s_g;
+        
+        let s_c1 = 1.0/r_c1 + 2.0/r_j + beta/z1/r_j/s_g - 1.0/r_j/r_j/s_g;
         let s_b2 = 1.0/r_j + 1.0/beta/r_e2 - 1.0/r_j/r_j/s_c1;
 
-        let v_b2 = (v_cc/r_c1 + (1.0/(r_s + beta*r_e1)/r_j/s_g - beta*(1.0 - (r_s + beta*r_e1)*s_g)/(r_s + beta*r_e1)/(r_s + beta*r_e1)/s_g)*v_f)/r_j/s_b2/s_c1 + v_f/r_e2/s_b2;
-        let v_c1 = v_cc/r_c1/s_c1 + v_b2/r_j/s_c1 + (1.0/(r_s + beta*r_e1)/r_j/s_g - beta*(1.0 - (r_s + beta*r_e1)*s_g)/(r_s + beta*r_e1)/(r_s + beta*r_e1)/s_g)/s_c1*v_f;
-        let v_g = v_f/(r_s + beta*r_e1)/s_g + v_c1/r_j/s_g;
+        let v_b2 = (v_cc/r_c1 + z2*v_f)/r_j/s_b2/s_c1 + v_f/r_e2/s_b2;
+        let v_c1 = v_cc/r_c1/s_c1 + v_b2/r_j/s_c1 + z2/s_c1*v_f;
+        let v_g = v_f/z1/s_g + v_c1/r_j/s_g;
 
-        let i_c1 = beta*(v_g - v_f)/(r_s + beta*r_e1);
+        let i_c1 = beta*(v_g - v_f)/z1;
         let i_c2 = (v_b2 - v_f)/r_e2;
 
         let _r_e1 = v_t/i_c1;
