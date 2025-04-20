@@ -40,7 +40,7 @@ mod private
 
     use crate::util::ZeroSized;
 
-    pub(super) trait ParamChange: Sized + Copy + core::fmt::Debug + Eq + Ord + Serialize
+    pub(super) trait ParamChange: Sized + Copy + core::fmt::Debug + Eq + Ord + Serialize + Send + Sync
     {
         const NEW: Self;
         
