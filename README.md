@@ -107,24 +107,36 @@ filter.reset();
 
 ## Adding your own filter
 
-You can also implement your own filter, by using the macro `def_rtf!`.
+To make your own filter, you need to derive an expression for the Z-domain filter coefficients.
+
+For analog circuits, you can use node or loop analysis to derive an expression for the filter's S-domain transfer function.
+
+Once you have an S-plane representation, you can use the Billinear transform to find the Z-domain transfer function. The numerator and denominator of that expression
+are your coefficients, and can be plugged directly into this library.
+
+### Implementation
+
+Once you have your coefficients, you can easily implement your own filter by using the macro [`def_rtf!`](crate::def_rtf).
 
 Here's an example on how to implement your very own first-order low-pass filter:
 
 ```rust
+#![feature(generic_const_exprs)]
+
+use real_time_fir_iir_filters::param::{FirstOrderFilterParam, Omega, OmegaFirstOrder};
+
 // This macro declares a struct for your filter, and implements all the necessary traits for it.
 real_time_fir_iir_filters::def_rtf!(
     {
         /// My very own first-order low-pass filter.
-        /// 
+        ///
         /// You can write your own doc-string here for your filter struct, just like you would document any other struct.
     }
     FirstOrderLowPassFilter
     {
-        // The parameter trait for this filter (the struct containing variables the filter depends on) and its default parameter type.
-        // In this case, we use the pre-defined `FirstOrderFilterParam` and the first order `Omega` as defaults, but you are free to make your own parameter trait and types.
-        // Parameter traits need to extend the the `FilterParam` trait.
-        type Param: FirstOrderFilterParam = OmegaFirstOrder;
+        // Parameter type.
+        // This type contains variables the user can set to modify the filter.
+        type Param = OmegaFirstOrder;
 
         // Amount of outputs for the filter.
         // This is also how many numerators you need in the output-stage.
@@ -158,7 +170,7 @@ real_time_fir_iir_filters::def_rtf!(
         {
             // This retrieves the parameter variable, and does the necessary calculations on fore-hand to then compute the filter-coefficients.
             // This code will only be ran after the filter parameter has changed, and the coefficients will be cached in the mean-time.
-            let Omega {omega} = omega.omega();
+            let Omega {omega} = *param;
             let two_rate = rate + rate;
 
             // This contains the polynomial coefficients of the filter's transfer function in the Z-domain.
