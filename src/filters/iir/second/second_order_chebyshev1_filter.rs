@@ -107,7 +107,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = SecondOrderChebyshev1Filter::new::<All>(OmegaEpsilon {omega: 10e3*TAU, epsilon: 0.5});
+        let mut filter = SecondOrderChebyshev1Filter::<All>::new(OmegaEpsilon {omega: 10e3*TAU, epsilon: 0.5});
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

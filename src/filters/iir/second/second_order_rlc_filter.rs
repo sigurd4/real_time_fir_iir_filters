@@ -298,7 +298,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = SecondOrderRLCFilter::new::<All>(RLC {r: 1e3, l: 10e-3, c: 33e-9});
+        let mut filter = SecondOrderRLCFilter::<All>::new(RLC {r: 1e3, l: 10e-3, c: 33e-9});
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

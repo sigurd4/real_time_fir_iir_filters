@@ -34,7 +34,7 @@ pub trait Rtf: RtfBase
     /// };
     /// 
     /// // Initialize a 1. order low-pass filter at 440Hz
-    /// let mut filter = FirstOrderFilter::new::<LowPass>(
+    /// let mut filter = FirstOrderFilter::<LowPass>::new(
     ///     Omega {
     ///         omega: 440.0*TAU
     ///     }
@@ -77,7 +77,7 @@ pub trait Rtf: RtfBase
     /// let omega = 440.0*TAU;
     /// 
     /// // Initialize a 1. order low-pass filter at 440Hz
-    /// let mut filter = FirstOrderFilter::new::<LowPass>(
+    /// let mut filter = FirstOrderFilter::<LowPass>::new(
     ///     Omega {
     ///         omega
     ///     }
@@ -120,7 +120,7 @@ pub trait Rtf: RtfBase
     /// };
     /// 
     /// // Initialize a 1. order low-pass filter at 440Hz
-    /// let mut filter = FirstOrderFilter::new::<LowPass>(
+    /// let mut filter = FirstOrderFilter::<LowPass>::new(
     ///     Omega {
     ///         omega: 440.0*TAU
     ///     }

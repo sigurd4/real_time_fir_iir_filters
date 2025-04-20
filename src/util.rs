@@ -4,6 +4,49 @@ use num::Float;
 
 use crate::f;
 
+pub(crate) trait MaybeNeq
+{
+    fn maybe_neq(&self, rhs: &Self) -> bool;
+}
+impl<T> MaybeNeq for T
+{
+    default fn maybe_neq(&self, rhs: &Self) -> bool
+    {
+        true
+    }
+}
+impl<T> MaybeNeq for T
+where
+    T: PartialEq
+{
+    fn maybe_neq(&self, rhs: &Self) -> bool
+    {
+        self != rhs
+    }
+}
+
+mod private
+{
+    pub trait SizedAt<const SIZE: usize>: Sized
+    {
+        
+    }
+    impl<T> SizedAt<{core::mem::size_of::<T>()}> for T
+    {
+    
+    }
+}
+pub trait SizedAt<const SIZE: usize>: private::SizedAt<SIZE>
+{
+    
+}
+impl<T> SizedAt<{core::mem::size_of::<T>()}> for T
+{
+
+}
+
+pub trait ZeroSized = SizedAt<0>;
+
 pub mod same
 {
     mod private

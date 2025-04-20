@@ -170,7 +170,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = SecondOrderFilter::new::<All>(OmegaZeta {omega: 10e3*TAU, zeta: 0.05});
+        let mut filter = SecondOrderFilter::<All>::new(OmegaZeta {omega: 10e3*TAU, zeta: 0.05});
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

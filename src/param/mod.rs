@@ -3,6 +3,9 @@ use core::{borrow::{Borrow, BorrowMut}, fmt::Debug, ops::{Deref, DerefMut}};
 use bytemuck::Pod;
 use num::{traits::FloatConst, Float};
 use serde::{Serialize, Deserialize};
+use private::ParamChange;
+
+use crate::util::ZeroSized;
 
 moddef::moddef!(
     flat(pub) mod {
@@ -31,17 +34,84 @@ pub trait FilterParam
     type F: FilterFloat;
 }
 
-fn tru() -> bool
+mod private
 {
-    true
+    use serde::Serialize;
+
+    use crate::util::ZeroSized;
+
+    pub(super) trait ParamChange: Sized + Copy + core::fmt::Debug + Eq + Ord + Serialize
+    {
+        const NEW: Self;
+        
+        fn set_changed(&mut self);
+        fn set_unchanged(&mut self);
+        fn is_unchanged(&self) -> bool;
+    }
+
+    impl ParamChange for ()
+    {
+        const NEW: Self = ();
+        
+        fn set_changed(&mut self)
+        {
+            
+        }
+        fn set_unchanged(&mut self)
+        {
+            
+        }
+        fn is_unchanged(&self) -> bool
+        {
+            true
+        }
+    }
+    impl ParamChange for bool
+    {
+        const NEW: Self = true;
+
+        fn set_changed(&mut self)
+        {
+            *self = true
+        }
+        fn set_unchanged(&mut self)
+        {
+            *self = false
+        }
+        fn is_unchanged(&self) -> bool
+        {
+            !*self
+        }
+    }
+    pub(super) trait ParamSpec
+    {
+        type Change: ParamChange;
+    }
+    impl<T> ParamSpec for T
+    {
+        default type Change = bool;
+    }
+    impl<T> ParamSpec for T
+    where
+        T: ZeroSized
+    {
+        type Change = ();
+    }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+const fn new_change<T>() -> T
+where
+    T: ParamChange
+{
+    T::NEW
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Param<T>
 {
     value: T,
-    #[serde(default = "tru")]
-    has_maybe_changed: bool
+    #[serde(skip, default = "new_change")]
+    has_maybe_changed: <T as private::ParamSpec>::Change
 }
 impl<T> Param<T>
 {
@@ -49,7 +119,7 @@ impl<T> Param<T>
     {
         Self {
             value,
-            has_maybe_changed: true
+            has_maybe_changed: ParamChange::NEW
         }
     }
     pub fn assign(&mut self, value: T)
@@ -58,7 +128,7 @@ impl<T> Param<T>
     {
         if self.value != value
         {
-            self.has_maybe_changed = true;
+            self.has_maybe_changed.set_changed();
             self.value = value
         }
     }
@@ -66,9 +136,9 @@ impl<T> Param<T>
     {
         &self.value
     }
-    pub const fn get_mut(&mut self) -> &mut T
+    pub fn get_mut(&mut self) -> &mut T
     {
-        self.has_maybe_changed = true;
+        self.has_maybe_changed.set_changed();
         &mut self.value
     }
     pub const fn into_value(self) -> T
@@ -79,17 +149,33 @@ impl<T> Param<T>
     }
     pub fn is_unchanged(&self) -> bool
     {
-        !self.has_maybe_changed
+        self.has_maybe_changed.is_unchanged()
     }
     pub fn set_unchanged(&mut self)
     {
-        self.has_maybe_changed = false
+        self.has_maybe_changed.set_unchanged()
     }
     pub fn is_unchanged_then_set(&mut self) -> bool
     {
         let b = self.is_unchanged();
         self.set_unchanged();
         b
+    }
+}
+impl<T> Param<T>
+where
+    T: ZeroSized
+{
+    pub fn null<'a>() -> &'a mut Self
+    {
+        static mut P: Param<()> = Param::new(());
+
+        assert_eq!(core::mem::size_of::<Param<()>>(), 0);
+        assert_eq!(core::mem::size_of::<Param<()>>(), core::mem::size_of::<T>());
+
+        unsafe {
+            &mut *(&raw mut P).cast()
+        }
     }
 }
 impl<T> From<T> for Param<T>
@@ -136,5 +222,77 @@ where
     fn default() -> Self
     {
         T::default().into()
+    }
+}
+impl<T> PartialEq for Param<T>
+where
+    T: PartialEq
+{
+    fn eq(&self, other: &Self) -> bool
+    {
+        (**self).eq(&**other)
+    }
+    #[allow(clippy::partialeq_ne_impl)]
+    fn ne(&self, other: &Self) -> bool
+    {
+        (**self).ne(&**other)
+    }
+}
+impl<T> Eq for Param<T>
+where
+    T: Eq
+{
+    
+}
+impl<T> PartialOrd for Param<T>
+where
+    T: PartialOrd
+{
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering>
+    {
+        (**self).partial_cmp(&**other)
+    }
+    fn ge(&self, other: &Self) -> bool
+    {
+        (**self).ge(&**other)
+    }
+    fn gt(&self, other: &Self) -> bool
+    {
+        (**self).gt(&**other)
+    }
+    fn le(&self, other: &Self) -> bool
+    {
+        (**self).le(&**other)
+    }
+    fn lt(&self, other: &Self) -> bool
+    {
+        (**self).lt(&**other)
+    }
+}
+impl<T> Ord for Param<T>
+where
+    T: Ord
+{
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering
+    {
+        (**self).cmp(&**other)
+    }
+    fn clamp(self, min: Self, max: Self) -> Self
+    where
+        Self: Sized
+    {
+        Self::new(self.into_value().clamp(min.into_value(), max.into_value()))
+    }
+    fn max(self, other: Self) -> Self
+    where
+        Self: Sized
+    {
+        Self::new(self.into_value().max(other.into_value()))
+    }
+    fn min(self, other: Self) -> Self
+    where
+        Self: Sized
+    {
+        Self::new(self.into_value().min(other.into_value()))
     }
 }

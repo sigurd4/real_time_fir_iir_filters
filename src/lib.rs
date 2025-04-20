@@ -17,6 +17,7 @@
 #![feature(core_intrinsics)]
 #![feature(generic_const_exprs)]
 #![feature(specialization)]
+#![feature(const_trait_impl)]
 
 //! Ever needed a low pass filter for your VST? This crate has a wide selection of filters for real-time usage. It's designed to have as little runtime overhead as
 //! possible.
@@ -45,7 +46,7 @@
 //! };
 //!
 //! // Initialize a 2. order elliptic low-pass filter at 440Hz
-//! let mut filter = SecondOrderEllipticFilter::new::<LowPass>(
+//! let mut filter = SecondOrderEllipticFilter::<LowPass>::new(
 //!     OmegaEpsilonXi {
 //!         omega: 440.0*TAU,
 //!         epsilon: 0.5,
@@ -113,8 +114,130 @@
 //!
 //! # Adding your own filter
 //!
-//! You can also implement your own filter, by using the macro [`def_rtf!`](crate::def_rtf). See how i did it with the other filters for an example on how to use the
-//! macro.
+//! To make your own filter, you need to derive an expression for the Z-domain filter coefficients.
+//!
+//! For analog circuits, you can use node or loop analysis to derive an expression for the filter's S-domain transfer function.
+//!
+//! Once you have an S-plane representation, you can use the Billinear transform to find the Z-domain transfer function. The numerator and denominator of that expression
+//! are your coefficients, and can be plugged directly into this library.
+//!
+//! ## Implementation
+//!
+//! Once you have your coefficients, you can easily implement your own filter by using the macro [`def_rtf!`](crate::def_rtf).
+//!
+//! Here's an example on how to implement your very own first-order low-pass filter:
+//!
+//! ```rust
+//! #![feature(generic_const_exprs)]
+//!
+//! use real_time_fir_iir_filters::param::{FirstOrderFilterParam, Omega, OmegaFirstOrder};
+//!
+//! // This macro declares a struct for your filter, and implements all the necessary traits for it.
+//! real_time_fir_iir_filters::def_rtf!(
+//!     {
+//!         /// My very own first-order low-pass filter.
+//!         ///
+//!         /// You can write your own doc-string here for your filter struct, just like you would document any other struct.
+//!     }
+//!     FirstOrderLowPassFilter
+//!     {
+//!         // Parameter type.
+//!         // This type contains variables the user can set to modify the filter.
+//!         type Param = OmegaFirstOrder;
+//!
+//!         // Amount of outputs for the filter.
+//!         // This is also how many numerators you need in the output-stage.
+//!         // This is typically for when you want the filter to act as a low-pass and high-pass filter simultaneously.
+//!         // This can be useful sometimes, since various configurations can often share filter coefficient denominators, so they can then re-use the same computation.
+//!         const OUTPUTS: usize = 1;
+//!
+//!         // The amount of separate buffers for the output stage.
+//!         // This is also how many denominators you need in the output-stage.
+//!         // `OUTPUTS` must be a multiple of `O_BUFFERS`.
+//!         // When you have less output buffers than outputs, denominators will be shared across outputs.
+//!         const O_BUFFERS: usize = 1;
+//!
+//!         // The amount of separate buffers for the second-order section stages.
+//!         // `O_BUFFERS` must be a multiple of `SOS_BUFFERS`.
+//!         // When you have less SOS-buffers than output buffers, the result of the final SOS-stage for each buffer will be shared across output-buffers.
+//!         const SOS_BUFFERS: usize = 1;
+//!
+//!         // The amount of additional second-order section stages.
+//!         // Second-order sections allow computing filters with higher accuracy, by using a cascade of second order filters before the final stage (which can be any order).
+//!         const SOS_STAGES: usize = 0;
+//!
+//!         // The order of the output stage.
+//!         // This means the output stage will have `ORDER + 1` coefficients.
+//!         const ORDER: usize = 1;
+//!
+//!         // Wether or not the filter has a denominator in its transfer function.
+//!         const IS_IIR: bool = true;
+//!
+//!         fn make_coeffs(param, rate) -> _
+//!         {
+//!             // This retrieves the parameter variable, and does the necessary calculations on fore-hand to then compute the filter-coefficients.
+//!             // This code will only be ran after the filter parameter has changed, and the coefficients will be cached in the mean-time.
+//!             let Omega {omega} = *param;
+//!             let two_rate = rate + rate;
+//!
+//!             // This contains the polynomial coefficients of the filter's transfer function in the Z-domain.
+//!             // In this case, the transfer function (in the Z-domain) is on the form:
+//!             // ```
+//!             //        b0 + z⁻¹b1
+//!             // H(z) = ----------
+//!             //        a0 + z⁻¹a1
+//!             // ```
+//!             // For analog circuits, i typically use Kirchhoff's voltage or current law to find `H(s)`.
+//!             // You can then find these Z-domain coefficients by applying the bilinear transform to `H(s)`.
+//!             // Alternatively, there are some functions available in this library that does the bilinear transform for you for specific orders,
+//!             // given the right S-domain coefficients. Those are only available for some specific filter orders.
+//!             (
+//!                 // Numerator
+//!                 (
+//!                     [
+//!                         // Preceeding second-order section-stages numerator coefficients (all except the last one).
+//!                         // One set of `3` coefficients for each second-order section-buffer, for each second-order section except the last one, if there are more than one.
+//!                         // If there is no more than one second-order section, this array is empty.
+//!                         // In this case we have no second-order sections, so this array is empty.
+//!                     ],
+//!                     [
+//!                         // Final second-order section-stage numerator coefficients.
+//!                         // One set of `3` coefficients for each buffered output, for the final second-order section, if it exists.
+//!                         // In this case we have no second-order sections, so this array is empty.
+//!                     ],
+//!                     [
+//!                         // Output-stage numerator coefficients, one set of `ORDER + 1` coefficients for each output
+//!                         [
+//!                             omega, // b0
+//!                             omega // b1
+//!                         ]
+//!                     ]
+//!                 ),
+//!                 // Denominator
+//!                 [
+//!                     // This is an empty array for FIR filters, since it would then have no denominator in its transfer function.
+//!                     // Otherwise, as in this case, it is an array of length `1`.
+//!                     (
+//!                         [
+//!                             // Second-order section-stage denominator coefficients.
+//!                             // One set of `3` coefficients for each second-order section-buffer, for each second-order section.
+//!                             // In this case we have no second-order sections, so this array is empty.
+//!                         ],
+//!                         [
+//!                             // Output-stage denominator coefficients.
+//!                             // One set of `ORDER + 1` coefficients for each buffered output
+//!                             [
+//!                                 omega + two_rate, // a0
+//!                                 omega - two_rate // a1
+//!                             ]
+//!                         ]
+//!                     )
+//!                 ]
+//!             )
+//!         }
+//!     }
+//! );
+//! ```
 
 #[allow(unused)]
 pub(crate) use crate as real_time_fir_iir_filters;
@@ -410,7 +533,7 @@ macro_rules! def_rtf {
         $name:ident
         {
             $(type Conf: $conf_trait_alias:ident $(as $conf_trait:path)?)?;
-            type Param: $param_trait:ident = $param_default:ident;
+            type Param$(: $param_trait:ident)? = $param_default:ident;
 
             $(const O_BUFFERS: usize = $o_buffers:expr;)?
             $(const SOS_BUFFERS: usize = $sos_buffers:expr;)?
@@ -435,7 +558,7 @@ macro_rules! def_rtf {
             $name
             {
                 $(type Conf: $conf_trait_alias $(as $conf_trait)?)?;
-                type Param<C>: $param_trait as $param_trait = $param_default;
+                type Param<C>$(: $param_trait as $param_trait)? = $param_default;
 
                 $(const O_BUFFERS: usize = $o_buffers;)?
                 $(const SOS_BUFFERS: usize = $sos_buffers;)?
@@ -461,7 +584,7 @@ macro_rules! def_rtf {
         $name:ident
         {
             type Conf: $conf_trait:ident;
-            type Param$(<$cc:ident>)?: $param_alias:ident $(as $param_trait:ident)? = $param_default:ident;
+            type Param$(<$cc:ident>)?$(: $param_alias:ident $(as $param_trait:ident)?)? = $param_default:ident;
 
             $(const O_BUFFERS: usize = $o_buffers:expr;)?
             $(const SOS_BUFFERS: usize = $sos_buffers:expr;)?
@@ -486,7 +609,7 @@ macro_rules! def_rtf {
             $name
             {
                 type Conf: $conf_trait as $conf_trait;
-                type Param$(<$cc>)?: $param_alias $(as $param_trait)? = $param_default;
+                type Param$(<$cc>)?$(: $param_alias $(as $param_trait)?)? = $param_default;
 
                 $(const O_BUFFERS: usize = $o_buffers;)?
                 $(const SOS_BUFFERS: usize = $sos_buffers;)?
@@ -602,10 +725,7 @@ macro_rules! def_rtf {
             P: $param_trait_alias<C, Conf = C> + real_time_fir_iir_filters::param::FilterParam<F = F>,
             $($($where)+)?
         {
-            pub const fn new<Conf>(param: P) -> Self
-            where
-                P: $param_trait_alias<Conf, Conf: $conf_trait_alias<Conf = C>>,
-                Conf: real_time_fir_iir_filters::conf::Conf
+            pub const fn new(param: P) -> Self
             {
                 Self {
                     param: real_time_fir_iir_filters::param::Param::new(param),
@@ -733,8 +853,7 @@ macro_rules! def_rtf {
             $($($where)+)?
         {
             pub param: real_time_fir_iir_filters::param::Param<P>,
-            pub internals: Internals<F>,
-            phantom: core::marker::PhantomData<()>
+            pub internals: Internals<F>
         }
 
         impl<P> $name<<P as real_time_fir_iir_filters::param::FilterParam>::F, P>
@@ -746,8 +865,7 @@ macro_rules! def_rtf {
             {
                 Self {
                     param: real_time_fir_iir_filters::param::Param::new(param),
-                    internals: Internals::new(),
-                    phantom: core::marker::PhantomData
+                    internals: Internals::new()
                 }
             }
         }
@@ -781,8 +899,7 @@ macro_rules! def_rtf {
             {
                 Self {
                     param: real_time_fir_iir_filters::param::Param::new(param),
-                    internals: Internals::new(),
-                    phantom: core::marker::PhantomData
+                    internals: Internals::new()
                 }
             }
             fn get_param(&self) -> &Self::Param
@@ -829,6 +946,230 @@ macro_rules! def_rtf {
             }
         }
     };
+    (
+        $({
+            $($docs:tt)+
+        })?
+        $name:ident
+        {
+            type Param = $param:ident;
+            const OUTPUTS: usize = $outputs:expr;
+            const O_BUFFERS: usize = $o_buffers:expr;
+            const SOS_BUFFERS: usize = $sos_buffers:expr;
+            const SOS_STAGES: usize = $sos_stages:expr;
+            const ORDER: usize = $order:expr;
+            const IS_IIR: bool = $is_iir:expr;
+
+            fn make_coeffs($arg_param:ident, $arg_rate:ident) -> _
+            $make_coeffs:block
+        }
+        $(where
+            $($where:tt)+)?
+    ) => {
+        #[allow(type_alias_bounds)]
+        type BInternals<F> = real_time_fir_iir_filters::internals::binternals!(F, $outputs, $o_buffers, $sos_buffers, $sos_stages, $order);
+        #[allow(type_alias_bounds)]
+        type AInternals<F> = real_time_fir_iir_filters::internals::ainternals!(F, $o_buffers, $sos_buffers, $sos_stages, $order);
+        #[allow(type_alias_bounds)]
+        type Internals<F> = real_time_fir_iir_filters::internals::rtfinternals!(F, $outputs, $o_buffers, $sos_buffers, $sos_stages, $order, $is_iir);
+
+        $($($docs)*)?
+        #[derive(Clone, Copy, Debug)]
+        pub struct $name<F = f64>
+        where
+            F: real_time_fir_iir_filters::param::FilterFloat,
+            $param<F>: real_time_fir_iir_filters::param::FilterParam<F = F>,
+            $($($where)+)?
+        {
+            pub param: real_time_fir_iir_filters::param::Param<$param<F>>,
+            pub internals: Internals<F>
+        }
+
+        impl<F> $name<F>
+        where
+            F: real_time_fir_iir_filters::param::FilterFloat,
+            $($($where)+)?
+        {
+            pub const fn new(param: $param<F>) -> Self
+            {
+                Self {
+                    param: real_time_fir_iir_filters::param::Param::new(param),
+                    internals: Internals::new()
+                }
+            }
+        }
+
+        #[allow(unused_braces)]
+        impl<F> real_time_fir_iir_filters::rtf::RtfBase for $name<F>
+        where
+            F: real_time_fir_iir_filters::param::FilterFloat,
+            $($($where)+)?
+        {
+            type Conf = real_time_fir_iir_filters::conf::All;
+            type F = F;
+
+            const IS_IIR: bool = $is_iir;
+            const OUTPUTS: usize = $outputs;
+        }
+        #[allow(unused_braces)]
+        impl<F> real_time_fir_iir_filters::static_rtf::StaticRtfBase for $name<F>
+        where
+            F: real_time_fir_iir_filters::param::FilterFloat,
+            $($($where)+)?
+        {
+            type Param = $param<F>;
+
+            const O_BUFFERS: usize = $o_buffers;
+            const SOS_BUFFERS: usize = $sos_buffers;
+            const SOS_STAGES: usize = $sos_stages;
+            const ORDER: usize = $order;
+
+            fn from_param(param: Self::Param) -> Self
+            {
+                Self::new(param)
+            }
+            fn get_param(&self) -> &Self::Param
+            {
+                &*self.param
+            }
+            fn get_param_mut(&mut self) -> &mut Self::Param
+            {
+                &mut *self.param
+            }
+            fn into_param(self) -> Self::Param
+            {
+                self.param.into_value()
+            }
+
+            #[allow(clippy::type_complexity)]
+            fn get_internals(&self) -> (&Internals<F>, &real_time_fir_iir_filters::param::Param<$param<F>>)
+            {
+                (&self.internals, &self.param)
+            }
+            #[allow(clippy::type_complexity)]
+            fn get_internals_mut(&mut self) -> (&mut Internals<F>, &mut real_time_fir_iir_filters::param::Param<$param<F>>)
+            {
+                (&mut self.internals, &mut self.param)
+            }
+
+            #[allow(clippy::type_complexity)]
+            fn make_coeffs($arg_param: &$param<F>, $arg_rate: Self::F) -> (
+                BInternals<F>,
+                [AInternals<F>; $is_iir as usize]
+            )
+            $make_coeffs
+        }
+    };
+    (
+        $({
+            $($docs:tt)+
+        })?
+        $name:ident
+        {
+            const OUTPUTS: usize = $outputs:expr;
+            const O_BUFFERS: usize = $o_buffers:expr;
+            const SOS_BUFFERS: usize = $sos_buffers:expr;
+            const SOS_STAGES: usize = $sos_stages:expr;
+            const ORDER: usize = $order:expr;
+            const IS_IIR: bool = $is_iir:expr;
+
+            fn make_coeffs($arg_param:ident, $arg_rate:ident) -> _
+            $make_coeffs:block
+        }
+        $(where
+            $($where:tt)+)?
+    ) => {
+        #[allow(type_alias_bounds)]
+        type BInternals<F> = real_time_fir_iir_filters::internals::binternals!(F, $outputs, $o_buffers, $sos_buffers, $sos_stages, $order);
+        #[allow(type_alias_bounds)]
+        type AInternals<F> = real_time_fir_iir_filters::internals::ainternals!(F, $o_buffers, $sos_buffers, $sos_stages, $order);
+        #[allow(type_alias_bounds)]
+        type Internals<F> = real_time_fir_iir_filters::internals::rtfinternals!(F, $outputs, $o_buffers, $sos_buffers, $sos_stages, $order, $is_iir);
+
+        $($($docs)*)?
+        #[derive(Clone, Copy, Debug)]
+        pub struct $name<F = f64>
+        where
+            F: real_time_fir_iir_filters::param::FilterFloat,
+            $($($where)+)?
+        {
+            pub internals: Internals<F>
+        }
+
+        impl<F> $name<F>
+        where
+            F: real_time_fir_iir_filters::param::FilterFloat,
+            $($($where)+)?
+        {
+            pub const fn new() -> Self
+            {
+                Self {
+                    internals: Internals::new()
+                }
+            }
+        }
+
+        #[allow(unused_braces)]
+        impl<F> real_time_fir_iir_filters::rtf::RtfBase for $name<F>
+        where
+            F: real_time_fir_iir_filters::param::FilterFloat,
+            $($($where)+)?
+        {
+            type Conf = real_time_fir_iir_filters::conf::All;
+            type F = F;
+
+            const IS_IIR: bool = $is_iir;
+            const OUTPUTS: usize = $outputs;
+        }
+        #[allow(unused_braces)]
+        impl<F> real_time_fir_iir_filters::static_rtf::StaticRtfBase for $name<F>
+        where
+            F: real_time_fir_iir_filters::param::FilterFloat,
+            $($($where)+)?
+        {
+            type Param = core::marker::PhantomData<F>;
+
+            const O_BUFFERS: usize = $o_buffers;
+            const SOS_BUFFERS: usize = $sos_buffers;
+            const SOS_STAGES: usize = $sos_stages;
+            const ORDER: usize = $order;
+
+            fn from_param((): Self::Param) -> Self
+            {
+                Self::new()
+            }
+            fn get_param(&self) -> &Self::Param
+            {
+                &core::marker::PhantomData
+            }
+            fn get_param_mut(&mut self) -> &mut Self::Param
+            {
+                &mut core::marker::PhantomData
+            }
+            fn into_param(self) -> Self::Param
+            {
+
+            }
+
+            #[allow(clippy::type_complexity)]
+            fn get_internals(&self) -> (&Internals<F>, &real_time_fir_iir_filters::param::Param<core::marker::PhantomData<F>>)
+            {
+                (&self.internals, real_time_fir_iir_filters::param::Param::null())
+            }
+            #[allow(clippy::type_complexity)]
+            fn get_internals_mut(&mut self) -> (&mut Internals<F>, &mut real_time_fir_iir_filters::param::Param<core::marker::PhantomData<F>>)
+            {
+                (&mut self.internals, real_time_fir_iir_filters::param::Param::null())
+            }
+
+            #[allow(clippy::type_complexity)]
+            fn make_coeffs($arg_param: &core::marker::PhantomData<F>, $arg_rate: Self::F) -> (
+                BInternals<F>,
+                [AInternals<F>; $is_iir as usize]
+            )
+            $make_coeffs
+        }
+    };
 }
 
 #[cfg(test)]
@@ -861,7 +1202,7 @@ mod tests
         let omega = 440.0 * TAU;
 
         // Initialize a 2. order elliptic low-pass filter at 440Hz
-        let mut filter = SecondOrderEllipticFilter::new::<LowPass>(OmegaEpsilonXi { omega, epsilon: 0.5, xi: 1.5 });
+        let mut filter = SecondOrderEllipticFilter::<LowPass>::new(OmegaEpsilonXi { omega, epsilon: 0.5, xi: 1.5 });
 
         const N: usize = 10;
         const RATE: f64 = 8000.0;

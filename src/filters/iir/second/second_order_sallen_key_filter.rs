@@ -328,7 +328,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = SecondOrderSallenKeyFilter::new::<All>(RC2GSallenKey {r1: 15.0e3, c1: 2.7e-9, r2: 15.0e3, c2: 2.7e-9, g: 2.0});
+        let mut filter = SecondOrderSallenKeyFilter::<All>::new(RC2GSallenKey {r1: 15.0e3, c1: 2.7e-9, r2: 15.0e3, c2: 2.7e-9, g: 2.0});
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
 }

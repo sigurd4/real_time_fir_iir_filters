@@ -1,4 +1,4 @@
-use crate::{calc::iir::third::ThirdOrderSallenKeyCalc, conf::{self, All, BandPass, HighPass, LowPass}, internals::{ainternals, binternals, rtfinternals}, param::{FilterFloat, FilterParam, FirstOrderRCFilterConf, Param, RC3GSallenKey, SecondOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParam}, rtf::RtfBase, static_rtf::StaticRtfBase};
+use crate::{calc::iir::third::ThirdOrderSallenKeyCalc, conf::{All, BandPass, HighPass, LowPass}, internals::{ainternals, binternals, rtfinternals}, param::{FilterFloat, FilterParam, FirstOrderRCFilterConf, Param, RC3GSallenKey, SecondOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParam}, rtf::RtfBase, static_rtf::StaticRtfBase};
 
 #[allow(type_alias_bounds)]
 type BInternals<F, C1: FirstOrderRCFilterConf, C2: SecondOrderSallenKeyFilterConf> = binternals!(
@@ -185,7 +185,7 @@ type Internals<F, C1: FirstOrderRCFilterConf, C2: SecondOrderSallenKeyFilterConf
 #[serde(deny_unknown_fields)]
 pub struct ThirdOrderSallenKeyFilter<
     C,
-    F,
+    F = f64,
     P = RC3GSallenKey<F>,
     C1 = <C as ThirdOrderSallenKeyFilterConf>::S1Conf,
     C2 = <C as ThirdOrderSallenKeyFilterConf>::S2Conf
@@ -214,10 +214,7 @@ where
     [(); <C1 as FirstOrderRCFilterConf>::OUTPUTS]:,
     [(); <C2 as SecondOrderSallenKeyFilterConf>::OUTPUTS*<C1 as FirstOrderRCFilterConf>::OUTPUTS]:
 {
-    pub const fn new<Conf>(param: P) -> Self
-    where
-        P: ThirdOrderSallenKeyFilterParam<Conf, Conf: ThirdOrderSallenKeyFilterConf<Conf = C, S1Conf = C1, S2Conf = C2>>,
-        Conf: conf::Conf
+    pub const fn new(param: P) -> Self
     {
         Self {
             param: Param::new(param),
@@ -1019,9 +1016,9 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = ThirdOrderSallenKeyFilter::new::<All>(RC3GSallenKey {r1: 470.0, c1: 47.0e-9, r2: 15.0e3, c2: 2.7e-9, r3: 16.0e3, c3: 2.7e-9, g: 1.3846153846153846});
-        //let mut filter = ThirdOrderSallenKeyFilter::new::<All>(RC2GSallenKey {r1: 15.0e3, c1: 2.7e-9, r2: 15.0e3, c2: 2.7e-9, g: 2.0});
-        //let mut filter = ThirdOrderSallenKeyFilter::new::<All>(RC {r: 470.0, c: 47.0e-9});
+        let mut filter = ThirdOrderSallenKeyFilter::<All>::new(RC3GSallenKey {r1: 470.0, c1: 47.0e-9, r2: 15.0e3, c2: 2.7e-9, r3: 16.0e3, c3: 2.7e-9, g: 1.3846153846153846});
+        //let mut filter = ThirdOrderSallenKeyFilter::<All>::new(RC2GSallenKey {r1: 15.0e3, c1: 2.7e-9, r2: 15.0e3, c2: 2.7e-9, g: 2.0});
+        //let mut filter = ThirdOrderSallenKeyFilter::<All>::new(RC {r: 470.0, c: 47.0e-9});
 
         crate::tests::plot_freq(&mut filter, false).unwrap();
     }
