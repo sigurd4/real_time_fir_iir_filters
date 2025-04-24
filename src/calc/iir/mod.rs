@@ -3,6 +3,7 @@ moddef::moddef!(
         first,
         second,
         third,
-        fourth
+        fourth,
+        fifth
     }
 );

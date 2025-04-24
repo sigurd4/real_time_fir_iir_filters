@@ -118,7 +118,7 @@
 //!
 //! For analog circuits, you can use node or loop analysis to derive an expression for the filter's S-domain transfer function.
 //!
-//! Once you have an S-plane representation, you can use the Billinear transform to find the Z-domain transfer function. The numerator and denominator of that expression
+//! Once you have an S-plane representation, you can use the bilinear transform to find the Z-domain transfer function. The numerator and denominator of that expression
 //! are your coefficients, and can be plugged directly into this library.
 //!
 //! ## Implementation

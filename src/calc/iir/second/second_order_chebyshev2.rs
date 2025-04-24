@@ -34,9 +34,10 @@ where
         let eight_rate2 = four_rate2 + four_rate2;
         let omega2 = omega*omega;
         let two_omega2 = omega2 + omega2;
-        let epsilon_inv = epsilon.recip();
-        let alpha = epsilon_inv.asinh()/two;
-        let cosh_2alpha = (alpha + alpha).cosh();
+        let epsilon_inv = epsilon.recip()/two;
+        let two_alpha = epsilon_inv.asinh();
+        let alpha = two_alpha/two;
+        let cosh_2alpha = two_alpha.cosh();
         let sinh_alpha = alpha.sinh();
         let four_sqrt2_rate_omega_sinh_alpha = F::SQRT_2()*four_rate*omega*sinh_alpha;
 
