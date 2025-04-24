@@ -1,6 +1,6 @@
 [package]
 name = "real_time_fir_iir_filters"
-version = "1.3.2"
+version = "1.3.3"
 authors = ["Sigurd Sætherø Spangelo"]
 edition = "2024"
 license = "MIT"
