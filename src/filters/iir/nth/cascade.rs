@@ -1,4 +1,4 @@
-use crate::{rtf::{Rtf, RtfBase}, static_rtf::StaticRtf};
+use crate::rtf::{Rtf, RtfBase, StaticRtf};
 
 pub struct Cascade<A, B, const O: usize>(pub A, pub B)
 where

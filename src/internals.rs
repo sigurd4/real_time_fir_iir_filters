@@ -1,6 +1,6 @@
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::{param::FilterFloat, static_rtf::{StaticRtf, StaticRtfBase}, serde::{MaybeSerialize, DeserializeOrZeroed}};
+use crate::{param::FilterFloat, rtf::{StaticRtf, StaticRtfBase}, serde::{MaybeSerialize, DeserializeOrZeroed}};
 
 pub macro winternals {
     ($f:ty, $o_buffers:expr, $sos_buffers:expr, $sos:expr, $order:expr) => {

@@ -1,4 +1,4 @@
-use crate::{internals::{ainternals, binternals, rtfinternals, RtfInternals}, private::NotSame, rtf::{Rtf, RtfBase}, static_rtf::{StaticRtf, StaticRtfBase}};
+use crate::{internals::{ainternals, binternals, rtfinternals, RtfInternals}, private::NotSame, rtf::{Rtf, RtfBase, StaticRtf, StaticRtfBase}};
 
 pub struct Inverse<T>
 where

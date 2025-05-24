@@ -12,7 +12,6 @@
 #![feature(associated_type_defaults)]
 #![feature(never_type)]
 #![feature(const_type_id)]
-#![feature(const_swap_nonoverlapping)]
 #![feature(adt_const_params)]
 #![feature(core_intrinsics)]
 #![feature(generic_const_exprs)]
@@ -249,8 +248,7 @@ moddef::moddef!(
         internals,
         param,
         conf,
-        rtf,
-        static_rtf
+        rtf
     },
     mod {
         plot for cfg(test),
@@ -750,7 +748,7 @@ macro_rules! def_rtf {
                 const OUTPUTS: usize = __Helper::<<P as real_time_fir_iir_filters::param::FilterParam>::F, $conf>::OUTPUTS;
             }
             #[allow(unused_braces)]
-            impl<P> real_time_fir_iir_filters::static_rtf::StaticRtfBase for $name<$conf, <P as real_time_fir_iir_filters::param::FilterParam>::F, P>
+            impl<P> real_time_fir_iir_filters::rtf::StaticRtfBase for $name<$conf, <P as real_time_fir_iir_filters::param::FilterParam>::F, P>
             where
                 $conf: $conf_trait_alias<Conf = $conf>,
                 P: $param_trait_alias<$conf, Conf = $conf> + real_time_fir_iir_filters::param::FilterParam,
@@ -883,7 +881,7 @@ macro_rules! def_rtf {
             const OUTPUTS: usize = $outputs;
         }
         #[allow(unused_braces)]
-        impl<P> real_time_fir_iir_filters::static_rtf::StaticRtfBase for $name<<P as real_time_fir_iir_filters::param::FilterParam>::F, P>
+        impl<P> real_time_fir_iir_filters::rtf::StaticRtfBase for $name<<P as real_time_fir_iir_filters::param::FilterParam>::F, P>
         where
             P: $param_trait,
             $($($where)+)?
@@ -1012,7 +1010,7 @@ macro_rules! def_rtf {
             const OUTPUTS: usize = $outputs;
         }
         #[allow(unused_braces)]
-        impl<F> real_time_fir_iir_filters::static_rtf::StaticRtfBase for $name<F>
+        impl<F> real_time_fir_iir_filters::rtf::StaticRtfBase for $name<F>
         where
             F: real_time_fir_iir_filters::param::FilterFloat,
             $($($where)+)?
@@ -1122,7 +1120,7 @@ macro_rules! def_rtf {
             const OUTPUTS: usize = $outputs;
         }
         #[allow(unused_braces)]
-        impl<F> real_time_fir_iir_filters::static_rtf::StaticRtfBase for $name<F>
+        impl<F> real_time_fir_iir_filters::rtf::StaticRtfBase for $name<F>
         where
             F: real_time_fir_iir_filters::param::FilterFloat,
             $($($where)+)?

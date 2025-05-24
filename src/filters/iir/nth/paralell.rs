@@ -1,6 +1,6 @@
 use core::mem::MaybeUninit;
 
-use crate::{rtf::{Rtf, RtfBase}, static_rtf::StaticRtf};
+use crate::rtf::{Rtf, RtfBase, StaticRtf};
 
 pub struct Paralell<A, B>(pub A, pub B)
 where
