@@ -14,7 +14,7 @@ exclude = ["plots/"]
 
 [dependencies]
 num = "0.4.3"
-moddef = "0.2.6"
+moddef = "0.3.0"
 static_assertions = "1.1.0"
 bytemuck = "1.23.0"
 tupleops = "0.1.1"
