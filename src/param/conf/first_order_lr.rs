@@ -1,4 +1,4 @@
-use crate::conf::{all, All, HighPass, InputOrGND, LowPass};
+use crate::{util::{self, ArrayChunks}, conf::{all, All, HighPass, InputOrGND, LowPass}};
 
 use super::FirstOrderFilterConf;
 
@@ -6,7 +6,7 @@ pub trait FirstOrderLRFilterConf: FirstOrderFilterConf
 {
     type Conf: private::FirstOrderLRFilterConfFinal<Self>;
 
-    const OUTPUTS: usize;
+    type Outputs<U>: ArrayChunks<[U; 1], Elem = U, Rem = [U; 0]>;
 
     const R_CONF: InputOrGND;
     const L_CONF: InputOrGND = Self::R_CONF.opposite();
@@ -15,7 +15,7 @@ impl FirstOrderLRFilterConf for LowPass
 {
     type Conf = Self;
 
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 
     const R_CONF: InputOrGND = InputOrGND::GND;
 }
@@ -23,34 +23,32 @@ impl FirstOrderLRFilterConf for HighPass
 {
     type Conf = Self;
 
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 
     const R_CONF: InputOrGND = InputOrGND::Input;
 }
 
 macro impl_composite_conf {
-    ($conf:ty: $conf0:ty, $($more:ty),+) => {
+    ($conf:ty: $($more:ty),+) => {
         impl FirstOrderLRFilterConf for $conf
         {
             type Conf = $conf;
 
-            const OUTPUTS: usize = <$conf0 as FirstOrderLRFilterConf>::OUTPUTS $(+ <$more as FirstOrderLRFilterConf>::OUTPUTS)*;
+            type Outputs<U> = util::array_sum!($(<$more as FirstOrderLRFilterConf>::Outputs::<U>),+);
             
             const R_CONF: InputOrGND = InputOrGND::all([
-                <$conf0 as FirstOrderLRFilterConf>::R_CONF,
                 $(<$more as FirstOrderLRFilterConf>::R_CONF),*
             ]);
         }
     },
-    ($conf:ty: $conf0:ty, $($more:ty),+ => $($actual:ty),+) => {
+    ($conf:ty: $($more:ty),+ => $($actual:ty),+) => {
         impl FirstOrderLRFilterConf for $conf
         {
             type Conf = all!($($actual),+);
 
-            const OUTPUTS: usize = <$conf0 as FirstOrderLRFilterConf>::OUTPUTS $(+ <$more as FirstOrderLRFilterConf>::OUTPUTS)*;
+            type Outputs<U> = util::array_sum!($(<$more as FirstOrderLRFilterConf>::Outputs::<U>),+);
             
             const R_CONF: InputOrGND = InputOrGND::all([
-                <$conf0 as FirstOrderLRFilterConf>::R_CONF,
                 $(<$more as FirstOrderLRFilterConf>::R_CONF),*
             ]);
         }
@@ -86,19 +84,18 @@ mod private
     impl<
         CC,
         C,
-        const OUTPUTS: usize,
         const R_CONF: InputOrGND,
         const L_CONF: InputOrGND
     > FirstOrderLRFilterConfFinal<C> for CC
     where
         CC: FirstOrderLRFilterConf<
-            Conf = <C as FirstOrderLRFilterConf>::Conf,
-            OUTPUTS = {OUTPUTS},
+            Conf = CC,
+            Outputs<()> = <C as FirstOrderLRFilterConf>::Outputs<()>,
             R_CONF = {R_CONF},
             L_CONF = {L_CONF}
         >,
         C: FirstOrderLRFilterConf<
-            OUTPUTS = {OUTPUTS},
+            Conf = CC,
             R_CONF = {R_CONF},
             L_CONF = {L_CONF}
         >,

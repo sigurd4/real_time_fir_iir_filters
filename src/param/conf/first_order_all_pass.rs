@@ -63,10 +63,11 @@ mod private
     > FirstOrderAllPassFilterConfFinal<C> for CC
     where
         CC: FirstOrderAllPassFilterConf<
-            Conf = CC
+            Conf = CC,
+            Outputs<()> = C::Outputs<()>
         >,
         C: FirstOrderAllPassFilterConf<
-            Conf = CC::Conf
+            Conf = CC
         >,
         Tau<f64>: FirstOrderAllPassFilterParam<CC, Conf = CC>,
         Tau<f32>: FirstOrderAllPassFilterParam<CC, Conf = CC>
