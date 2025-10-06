@@ -1,34 +1,34 @@
-use crate::conf::{All, AllPass, Conf};
+use crate::{conf::{All, AllPass, Conf}, util::{self, ArrayChunks}};
 
 pub trait FirstOrderAllPassFilterConf: Conf
 {
     type Conf: private::FirstOrderAllPassFilterConfFinal<Self>;
 
-    const OUTPUTS: usize;
+    type Outputs<U>: ArrayChunks<[U; 1], Elem = U, Rem = [U; 0]>;
 }
 
 impl FirstOrderAllPassFilterConf for AllPass
 {
     type Conf = All;
 
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 }
 
 macro impl_composite_conf {
-    ($conf:ty: $conf0:ty $(,$more:ty)*) => {
+    ($conf:ty: $($more:ty),+) => {
         impl FirstOrderAllPassFilterConf for $conf
         {
             type Conf = $conf;
 
-            const OUTPUTS: usize = <$conf0 as FirstOrderAllPassFilterConf>::OUTPUTS $(+ <$more as FirstOrderAllPassFilterConf>::OUTPUTS)*;
+            type Outputs<U> = util::array_sum!($(<$more as FirstOrderAllPassFilterConf>::Outputs::<U>),+);
         }
     },
-    ($conf:ty: $conf0:ty $(,$more:ty)* => $($actual:ty),+) => {
+    ($conf:ty: $($more:ty),+ => $($actual:ty),+) => {
         impl FirstOrderAllPassFilterConf for $conf
         {
             type Conf = all!($($actual),+);
 
-            const OUTPUTS: usize = <$conf0 as FirstOrderAllPassFilterConf>::OUTPUTS $(+ <$more as FirstOrderAllPassFilterConf>::OUTPUTS)*;
+            type Outputs<U> = util::array_sum!($(<$more as FirstOrderAllPassFilterConf>::Outputs::<U>),+);
         }
     },
     ($conf0:ty $(,$more:ty)* $(=> $($actual:ty),+)?) => {

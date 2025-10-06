@@ -1,4 +1,4 @@
-use crate::{calc::iir::second::PIDCalc, param::{PIDFilterParam, PID}, real_time_fir_iir_filters};
+use crate::{calc::iir::second::PIDCalc, param::{PIDFilterParam, PID}};
 
 crate::def_rtf!(
     {
@@ -31,8 +31,8 @@ crate::def_rtf!(
         type Param: PIDFilterParam = PID;
 
         const OUTPUTS: usize = 1;
-        const O_BUFFERS: usize = 1;
-        const SOS_BUFFERS: usize = 1;
+        const OUTPUT_BUFS: usize = 1;
+        const SOS_BUFS: usize = 1;
         const SOS_STAGES: usize = 0;
         const ORDER: usize = 2;
         const IS_IIR: bool = true;

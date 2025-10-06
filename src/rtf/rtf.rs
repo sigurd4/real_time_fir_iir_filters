@@ -1,19 +1,11 @@
 use core::{iter::Sum, mem::MaybeUninit, ops::Add};
 use std::ops::MulAssign;
 
+use array_trait::AsArray;
 use num::{Complex, Float};
-use crate::{conf, internals::{ainternals, binternals, rtfinternals, winternals}, max_len, param::{FilterFloat, Param}, rtf::StaticRtf};
+use crate::{internals::{ainternals, binternals, rtfinternals, winternals}, param::{FilterFloat, Param}, rtf::StaticRtf, util::{ArrayChunks, ArrayMax, ArrayMin1, ArrayMinus1, ArrayPlus1}};
 
-pub trait RtfBase: Sized
-{
-    type Conf: conf::Conf;
-    type F: FilterFloat;
-
-    const OUTPUTS: usize;
-    const IS_IIR: bool;
-}
-
-pub trait Rtf: RtfBase
+pub trait Rtf: StaticRtf
 {
     /// Feeds a single sample through the filter, and returns the results from each output in an array.
     /// 
@@ -56,7 +48,7 @@ pub trait Rtf: RtfBase
     /// // Prints the impulse response of the filter.
     /// println!("h[n] = {:?}", imp_resp);
     /// ```
-    fn filter(&mut self, rate: Self::F, x: Self::F) -> [Self::F; Self::OUTPUTS];
+    fn filter(&mut self, rate: Self::F, x: Self::F) -> Self::Outputs<Self::F>;
 
     /// Returns the response of the filter for a single frequency point, in radians.
     /// 
@@ -89,19 +81,19 @@ pub trait Rtf: RtfBase
     /// 
     /// assert!((h.norm() - FRAC_1_SQRT_2).abs() < 1e-2);
     /// ```
-    fn frequency_response(&mut self, rate: Self::F, omega: Self::F) -> [Complex<Self::F>; Self::OUTPUTS]
+    fn frequency_response(&mut self, rate: Self::F, omega: Self::F) -> Self::Outputs<Complex<Self::F>>
     {
         self.z_response(rate, Complex::cis(omega))
     }
 
     /// Returns the response of the filter for a single s-plane point.
-    fn s_response(&mut self, rate: Self::F, s: Complex<Self::F>) -> [Complex<Self::F>; Self::OUTPUTS]
+    fn s_response(&mut self, rate: Self::F, s: Complex<Self::F>) -> Self::Outputs<Complex<Self::F>>
     {
         self.z_response(rate, (s/rate).exp())
     }
 
     /// Returns the response of the filter for a single z-plane point.
-    fn z_response(&mut self, rate: Self::F, z: Complex<Self::F>) -> [Complex<Self::F>; Self::OUTPUTS];
+    fn z_response(&mut self, rate: Self::F, z: Complex<Self::F>) -> Self::Outputs<Complex<Self::F>>;
 
     /// Resets all internal state of the filter back to zero, but keeps the filter coefficient cache intact.
     /// 
@@ -154,37 +146,101 @@ pub trait Rtf: RtfBase
     fn reset(&mut self);
 }
 
-impl<F, T> Rtf for T
+impl<
+    F, T,
+    const OUTPUTS: usize,
+    const IS_IIR: usize,
+    const OUTPUT_BUFS: usize,
+    const SOS_BUFS: usize,
+    const SOS_STAGES: usize,
+    const SOS_STAGES_MINUS_1: usize,
+    const SOS_STAGES_MAX_1: usize,
+    const ORDER: usize,
+    const ORDER_PLUS_1: usize,
+    const ORDER_PLUS_1_MAX_3: usize,
+    const OUTPUT_BUF_CHUNKS: usize,
+    const OUTPUT_CHUNKS: usize
+> Rtf for T
 where
     F: FilterFloat + Sum,
     Complex<F>: MulAssign,
-    T: StaticRtf<F = F>,
-    [(); crate::max_len(Self::ORDER + 1, 3)]:,
-    [(); Self::ORDER + 1]:,
-    [(); Self::IS_IIR as usize]:,
-    [(); (Self::SOS_STAGES >= 1) as usize]:,
-    [(); Self::SOS_STAGES*(Self::SOS_STAGES >= 1) as usize - (Self::SOS_STAGES >= 1) as usize]:,
-    [(); 0 - Self::OUTPUTS % Self::O_BUFFERS]:,
-    [(); 0 - Self::O_BUFFERS % Self::SOS_BUFFERS]:,
-    [(); 0 - Self::SOS_BUFFERS % Self::SOS_BUFFERS]:
+    T: StaticRtf<
+        F = F,
+        Outputs<F> = [F; OUTPUTS],
+        Outputs<Complex<F>> = [Complex<F>; OUTPUTS],
+        Outputs<[F; ORDER_PLUS_1]> = [[F; ORDER_PLUS_1]; OUTPUTS],
+
+        IsIir<ainternals!(F, OUTPUT_BUFS, SOS_BUFS, SOS_STAGES, ORDER)> = [ainternals!(F, OUTPUT_BUFS, SOS_BUFS, SOS_STAGES, ORDER); IS_IIR],
+
+        OutputBufs<[F; ORDER_PLUS_1]> = [[F; ORDER_PLUS_1]; OUTPUT_BUFS],
+        OutputBufs<[F; ORDER]> = [[F; ORDER]; OUTPUT_BUFS],
+
+        SosBufs<[F; 2]> = [[F; 2]; SOS_BUFS],
+        SosBufs<[F; 3]> = [[F; 3]; SOS_BUFS],
+
+        SosStages<[[F; 2]; SOS_BUFS]> = [[[F; 2]; SOS_BUFS]; SOS_STAGES],
+        SosStages<[[F; 3]; SOS_BUFS]> = [[[F; 3]; SOS_BUFS]; SOS_STAGES],
+
+        Order<F> = [F; ORDER],
+    >,
+    [F; ORDER]: ArrayPlus1<
+        Elem = F,
+        Plus1 = [F; ORDER_PLUS_1]
+    >,
+    [[[F; 3]; SOS_BUFS]; SOS_STAGES]: ArrayMinus1<
+        Elem = [[F; 3]; SOS_BUFS],
+        Minus1 = [[[F; 3]; SOS_BUFS]; SOS_STAGES_MINUS_1]
+    >,
+    [[[F; 3]; OUTPUT_BUFS]; SOS_STAGES]: ArrayMin1<
+        Elem = [[F; 3]; OUTPUT_BUFS],
+        Min1 = [[[F; 3]; OUTPUT_BUFS]; SOS_STAGES_MAX_1]
+    >,
+    [[F; 3]; SOS_BUFS]: ArrayChunks<
+        [[F; 3]; SOS_BUFS],
+        Elem = [F; 3],
+        Rem = [[F; 3]; 0],
+        Chunks = [[[F; 3]; SOS_BUFS]; 1]
+    >,
+    [[F; 3]; OUTPUT_BUFS]: ArrayChunks<
+        [[F; 3]; SOS_BUFS],
+        Elem = [F; 3],
+        Rem = [[F; 3]; 0],
+        Chunks = [[[F; 3]; SOS_BUFS]; OUTPUT_BUF_CHUNKS]
+    >,
+    [[F; ORDER_PLUS_1]; OUTPUTS]: ArrayChunks<
+        [[F; ORDER_PLUS_1]; OUTPUT_BUFS],
+        Elem = [F; ORDER_PLUS_1],
+        Rem = [[F; ORDER_PLUS_1]; 0],
+        Chunks = [[[F; ORDER_PLUS_1]; OUTPUT_BUFS]; OUTPUT_CHUNKS]
+    >,
+    Self::SosStages<Self::OutputBufs<[F; 3]>>: ArrayMin1<
+        Elem = [[F; 3]; OUTPUT_BUFS],
+        Min1 = [[[F; 3]; OUTPUT_BUFS]; SOS_STAGES_MAX_1]
+    >,
+    [Complex<F>; ORDER_PLUS_1]: ArrayMax<
+        [Complex<F>; 3],
+        Elem = Complex<F>,
+        Max = [Complex<F>; ORDER_PLUS_1_MAX_3]
+    >
 {
-    fn filter(&mut self, rate: F, x: F) -> [F; Self::OUTPUTS]
+    fn filter(&mut self, rate: F, x: F) -> Self::Outputs<F>
     {
-        if Self::OUTPUTS == 0
+        if OUTPUTS == 0
         {
             #[allow(clippy::uninit_assumed_init)]
             return unsafe {MaybeUninit::uninit().assume_init()}
         }
 
-        fn filter_once_iir<F, const ORDER: usize, const B: usize, const A: usize>(
+        fn filter_once_iir<F, const ORDER: usize, const ORDER_PLUS_1: usize, const B: usize, const A: usize>(
             y: &mut [F],
             w: &mut [[F; ORDER]; A],
-            b: &[[F; ORDER + 1]; B], // B = A*CHUNKS
-            a: &[[F; ORDER + 1]; A]
+            b: &[[F; ORDER_PLUS_1]; B], // B = A*CHUNKS
+            a: &[[F; ORDER_PLUS_1]; A]
         )
         where
             F: Float + Sum,
-            [(); 0 - B % A]:
+            [[F; ORDER_PLUS_1]; B]: ArrayChunks<[[F; ORDER_PLUS_1]; A], Elem = [F; ORDER_PLUS_1], Rem = [[F; ORDER_PLUS_1]; 0]>,
+            [F; ORDER]: ArrayPlus1<Elem = F, Plus1 = [F; ORDER_PLUS_1]>
         {
             assert!(y.len() >= B);
 
@@ -305,14 +361,15 @@ where
             }
         }
         
-        fn filter_once_fir<F, const ORDER: usize, const B: usize, const A: usize>(
+        fn filter_once_fir<F, const ORDER: usize, const ORDER_PLUS_1: usize, const B: usize, const A: usize>(
             y: &mut [F],
             w: &mut [[F; ORDER]; A],
-            b: &[[F; ORDER + 1]; B]
+            b: &[[F; ORDER_PLUS_1]; B]
         )
         where
             F: Float + Sum,
-            [(); 0 - B % A]:
+            [[F; ORDER_PLUS_1]; B]: ArrayChunks<[[F; ORDER_PLUS_1]; A], Elem = [F; ORDER_PLUS_1], Rem = [[F; ORDER_PLUS_1]; 0]>,
+            [F; ORDER]: ArrayPlus1<Elem = F, Plus1 = [F; ORDER_PLUS_1]>
         {
             assert!(y.len() >= B);
 
@@ -408,22 +465,21 @@ where
         #[allow(clippy::type_complexity)]
         let (internals, _): (&mut rtfinternals!(Self), &mut Param<T::Param>) = self.get_internals_mut();
         #[allow(clippy::type_complexity)]
-        let (w, b, a): (&mut winternals!(Self), &binternals!(Self), &[ainternals!(Self); Self::IS_IIR as usize])
-            = (&mut internals.w, &internals.b, &internals.a);
+        let (w, b, a): (&mut winternals!(Self), &binternals!(Self), &Self::IsIir<ainternals!(Self)>) = (&mut internals.w, &internals.b, &internals.a);
         let (w_stages, w_output) = w;
-        let (w_stages, w_last_stage) = w_stages.split_at_mut(Self::SOS_STAGES.saturating_sub(1));
+        let (w_stages, w_last_stage) = w_stages.split_at_mut(<Self as StaticRtf>::SosStages::<()>::LENGTH.saturating_sub(1));
         let (b_stages, b_last_stage, b_output) = b;
         
-        let mut y = [x; Self::OUTPUTS];
+        let mut y = [x; OUTPUTS];
 
         if let Some((a_stages, a_output)) = a.first()
         {
-            let (a_stages, a_last_stage) = a_stages.split_at(Self::SOS_STAGES.saturating_sub(1));
+            let (a_stages, a_last_stage) = a_stages.split_at(<Self as StaticRtf>::SosStages::<()>::LENGTH.saturating_sub(1));
             for ((w_stage, b_stage), a_stage) in w_stages.iter_mut()
                 .zip(b_stages.iter())
                 .zip(a_stages.iter())
             {
-                filter_once_iir::<F, 2, {Self::SOS_BUFFERS}, {Self::SOS_BUFFERS}>(
+                filter_once_iir::<F, 2, 3, {SOS_BUFS}, {SOS_BUFS}>(
                     &mut y,
                     w_stage,
                     b_stage,
@@ -434,14 +490,14 @@ where
                 .zip(b_last_stage.first())
                 .zip(a_last_stage.first())
             {
-                filter_once_iir::<F, 2, {Self::O_BUFFERS}, {Self::SOS_BUFFERS}>(
+                filter_once_iir::<F, 2, 3, {OUTPUT_BUFS}, {SOS_BUFS}>(
                     &mut y,
                     w_stage,
                     b_stage,
                     a_stage
                 )
             }
-            filter_once_iir::<F, {Self::ORDER}, {Self::OUTPUTS}, {Self::O_BUFFERS}>(
+            filter_once_iir::<F, {ORDER}, {ORDER_PLUS_1}, {OUTPUTS}, {OUTPUT_BUFS}>(
                 &mut y,
                 w_output,
                 b_output,
@@ -453,7 +509,7 @@ where
             for (w_stage, b_stage) in w_stages.iter_mut()
                 .zip(b_stages.iter())
             {
-                filter_once_fir::<F, 2, {Self::SOS_BUFFERS}, {Self::SOS_BUFFERS}>(
+                filter_once_fir::<F, 2, 3, {SOS_BUFS}, {SOS_BUFS}>(
                     &mut y,
                     w_stage,
                     b_stage
@@ -462,13 +518,13 @@ where
             if let Some((w_stage, b_stage)) = w_last_stage.first_mut()
                 .zip(b_last_stage.first())
             {
-                filter_once_fir::<F, 2, {Self::O_BUFFERS}, {Self::SOS_BUFFERS}>(
+                filter_once_fir::<F, 2, 3, {OUTPUT_BUFS}, {SOS_BUFS}>(
                     &mut y,
                     w_stage,
                     b_stage
                 )
             }
-            filter_once_fir::<F, {Self::ORDER}, {Self::OUTPUTS}, {Self::O_BUFFERS}>(
+            filter_once_fir::<F, {ORDER}, {ORDER_PLUS_1}, {OUTPUTS}, {OUTPUT_BUFS}>(
                 &mut y,
                 w_output,
                 b_output
@@ -478,24 +534,24 @@ where
         y
     }
     
-    fn z_response(&mut self, rate: Self::F, z: Complex<Self::F>) -> [Complex<Self::F>; Self::OUTPUTS]
+    fn z_response(&mut self, rate: Self::F, z: Complex<Self::F>) -> Self::Outputs<Complex<Self::F>>
     {
-        if Self::OUTPUTS == 0
+        if OUTPUTS == 0
         {
             #[allow(clippy::uninit_assumed_init)]
             return unsafe {MaybeUninit::uninit().assume_init()}
         }
         
-        fn z_response_once_iir<F, const ORDER: usize, const B: usize, const A: usize>(
+        fn z_response_once_iir<F, const ORDER_PLUS_1: usize, const B: usize, const A: usize>(
             h: &mut [Complex<F>],
             z_inv_n: &[Complex<F>],
-            b: &[[F; ORDER + 1]; B],
-            a: &[[F; ORDER + 1]; A]
+            b: &[[F; ORDER_PLUS_1]; B],
+            a: &[[F; ORDER_PLUS_1]; A]
         )
         where
             F: Float + Sum,
             Complex<F>: MulAssign,
-            [(); 0 - B % A]:
+            [[F; ORDER_PLUS_1]; B]: ArrayChunks<[[F; ORDER_PLUS_1]; A], Elem = [F; ORDER_PLUS_1], Rem = [[F; ORDER_PLUS_1]; 0]>
         {
             assert!(h.len() >= B);
 
@@ -561,14 +617,13 @@ where
             }
         }
         
-        fn z_response_once_fir<F, const ORDER: usize, const B: usize, const A: usize>(
+        fn z_response_once_fir<F, const ORDER_PLUS_1: usize, const B: usize, const A: usize>(
             h: &mut [Complex<F>],
             z_inv_n: &[Complex<F>],
-            b: &[[F; ORDER + 1]; B]
+            b: &[[F; ORDER_PLUS_1]; B]
         )
         where
-            F: Float + Sum,
-            [(); 0 - B % A]:
+            F: Float + Sum
         {
             assert!(h.len() >= B);
 
@@ -644,9 +699,9 @@ where
         let a = a.first();
 
         let z_inv_n_3: Option<&[_; 3]>;
-        let z_inv_n_owned: Result<[_; Self::ORDER + 1], [_; max_len(Self::ORDER + 1, 3)]>;
-        let z_inv_n: &[_; Self::ORDER + 1];
-        match Self::SOS_STAGES == 0
+        let z_inv_n_owned: Result<[_; ORDER_PLUS_1], [_; ORDER_PLUS_1_MAX_3]>;
+        let z_inv_n: &[_; ORDER_PLUS_1];
+        match SOS_STAGES == 0
         {
             true => {
                 z_inv_n_owned = Ok(into_z_inv_n(z));
@@ -665,14 +720,14 @@ where
             }
         };
 
-        let mut h = [Complex::from(F::one()); Self::OUTPUTS];
+        let mut h = [Complex::from(F::one()); OUTPUTS];
         if let Some((a_stages, a_output)) = &a
         {
-            let (a_stages, a_last_stage) = a_stages.split_at(Self::SOS_STAGES.saturating_sub(1));
+            let (a_stages, a_last_stage) = a_stages.split_at(SOS_STAGES.saturating_sub(1));
             for (b_stage, a_stage) in b_stages.iter()
                 .zip(a_stages.iter())
             {
-                z_response_once_iir::<F, 2, {Self::SOS_BUFFERS}, {Self::SOS_BUFFERS}>(
+                z_response_once_iir::<F, 3, {SOS_BUFS}, {SOS_BUFS}>(
                     &mut h,
                     z_inv_n_3.unwrap(),
                     b_stage,
@@ -682,14 +737,14 @@ where
             if let Some((b_stage, a_stage)) = b_last_stage.first()
                 .zip(a_last_stage.first())
             {
-                z_response_once_iir::<F, 2, {Self::O_BUFFERS}, {Self::SOS_BUFFERS}>(
+                z_response_once_iir::<F, 3, {OUTPUT_BUFS}, {SOS_BUFS}>(
                     &mut h,
                     z_inv_n_3.unwrap(),
                     b_stage,
                     a_stage
                 )
             }
-            z_response_once_iir::<F, {Self::ORDER}, {Self::OUTPUTS}, {Self::O_BUFFERS}>(
+            z_response_once_iir::<F, {ORDER_PLUS_1}, {OUTPUTS}, {OUTPUT_BUFS}>(
                 &mut h,
                 z_inv_n,
                 b_output,
@@ -700,7 +755,7 @@ where
         {
             for b_stage in b_stages.iter()
             {
-                z_response_once_fir::<F, 2, {Self::SOS_BUFFERS}, {Self::SOS_BUFFERS}>(
+                z_response_once_fir::<F, 3, {SOS_BUFS}, {SOS_BUFS}>(
                     &mut h,
                     z_inv_n_3.unwrap(),
                     b_stage
@@ -708,13 +763,13 @@ where
             }
             if let Some(b_stage) = b_last_stage.first()
             {
-                z_response_once_fir::<F, 2, {Self::O_BUFFERS}, {Self::SOS_BUFFERS}>(
+                z_response_once_fir::<F, 3, {OUTPUT_BUFS}, {SOS_BUFS}>(
                     &mut h,
                     z_inv_n_3.unwrap(),
                     b_stage
                 )
             }
-            z_response_once_fir::<F, {Self::ORDER}, {Self::OUTPUTS}, {Self::O_BUFFERS}>(
+            z_response_once_fir::<F, {ORDER_PLUS_1}, {OUTPUTS}, {OUTPUT_BUFS}>(
                 &mut h,
                 z_inv_n,
                 b_output

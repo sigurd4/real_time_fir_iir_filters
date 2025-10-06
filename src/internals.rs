@@ -1,29 +1,64 @@
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::{param::FilterFloat, rtf::{StaticRtf, StaticRtfBase}, serde::{MaybeSerialize, DeserializeOrZeroed}};
+use crate::{param::FilterFloat, rtf::StaticRtf, serde::{DeserializeOrZeroed, MaybeSerialize}, util::{ArrayMin1, ArrayMinus1, ArrayPlus1}};
 
 pub macro winternals {
     ($f:ty, $o_buffers:expr, $sos_buffers:expr, $sos:expr, $order:expr) => {
-        ([[[$f; 2]; $sos_buffers]; $sos], [[$f; $order]; $o_buffers])
+        (
+            [[[$f; 2]; $sos_buffers]; $sos],
+            [[$f; $order]; $o_buffers]
+        )
     },
     ($rtf:ty) => {
-        winternals!(<$rtf>::F, <$rtf>::O_BUFFERS, <$rtf>::SOS_BUFFERS, <$rtf>::SOS_STAGES, <$rtf>::ORDER)
+        winternals!($rtf as StaticRtf)
+    },
+    ($rtf:ty as $($trait:tt)+) => {
+        winternals!($rtf where <$rtf as $($trait)+>::F as $($trait)+)
+    },
+    ($rtf:ty where $f:ty as $($trait:tt)+) => {
+        (
+            <$rtf as $($trait)+>::SosStages<<$rtf as $($trait)+>::SosBufs<[$f; 2]>>,
+            <$rtf as $($trait)+>::OutputBufs<<$rtf as $($trait)+>::Order<$f>>
+        )
     }
 }
 pub macro binternals {
     ($f:ty, $outputs:expr, $o_buffers:expr, $sos_buffers:expr, $sos:expr, $order:expr) => {
-        ([[[$f; 3]; $sos_buffers]; $sos*($sos >= 1) as usize - ($sos >= 1) as usize], [[[$f; 3]; $o_buffers]; ($sos >= 1) as usize], [[$f; $order + 1]; $outputs])
+        (
+            <[[[$f; 3]; $sos_buffers]; $sos] as ArrayMinus1>::Minus1,
+            <[[[$f; 3]; $o_buffers]; $sos] as ArrayMin1>::Min1,
+            [<[$f; $order] as ArrayPlus1>::Plus1; $outputs]
+        )
     },
     ($rtf:ty) => {
-        binternals!(<$rtf>::F, <$rtf>::OUTPUTS, <$rtf>::O_BUFFERS, <$rtf>::SOS_BUFFERS, <$rtf>::SOS_STAGES, <$rtf>::ORDER)
+        binternals!($rtf as StaticRtf)
+    },
+    ($rtf:ty as $($trait:tt)+) => {
+        binternals!($rtf where <$rtf as $($trait)+>::F as $($trait)+)
+    },
+    ($rtf:ty where $f:ty as $($trait:tt)+) => {
+        (
+            <<$rtf as $($trait)+>::SosStages<<$rtf as $($trait)+>::SosBufs<[$f; 3]>> as ArrayMinus1>::Minus1,
+            <<$rtf as $($trait)+>::SosStages<<$rtf as $($trait)+>::OutputBufs<[$f; 3]>> as ArrayMin1>::Min1,
+            <$rtf as $($trait)+>::Outputs<<<$rtf as $($trait)+>::Order::<$f> as ArrayPlus1>::Plus1>
+        )
     }
 }
 pub macro ainternals {
     ($f:ty, $o_buffers:expr, $sos_buffers:expr, $sos:expr, $order:expr) => {
-        ([[[$f; 3]; $sos_buffers]; $sos], [[$f; $order + 1]; $o_buffers])
+        ([[[$f; 3]; $sos_buffers]; $sos], [<[$f; $order] as ArrayPlus1>::Plus1; $o_buffers])
     },
     ($rtf:ty) => {
-        ainternals!(<$rtf>::F, <$rtf>::O_BUFFERS, <$rtf>::SOS_BUFFERS, <$rtf>::SOS_STAGES, <$rtf>::ORDER)
+        ainternals!($rtf as StaticRtf)
+    },
+    ($rtf:ty as $($trait:tt)+) => {
+        ainternals!($rtf where <$rtf as $($trait)+>::F as $($trait)+)
+    },
+    ($rtf:ty where $f:ty as $($trait:tt)+) => {
+        (
+            <$rtf as $($trait)+>::SosStages<<$rtf as $($trait)+>::SosBufs<[$f; 3]>>,
+            <$rtf as $($trait)+>::OutputBufs<<<$rtf as $($trait)+>::Order::<$f> as ArrayPlus1>::Plus1>
+        )
     }
 }
 pub macro rtfinternals {
@@ -35,7 +70,17 @@ pub macro rtfinternals {
         >
     },
     ($rtf:ty) => {
-        rtfinternals!(<$rtf>::F, <$rtf>::OUTPUTS, <$rtf>::O_BUFFERS, <$rtf>::SOS_BUFFERS, <$rtf>::SOS_STAGES, <$rtf>::ORDER, <$rtf>::IS_IIR)
+        rtfinternals!($rtf as StaticRtf)
+    },
+    ($rtf:ty as $($trait:tt)+) => {
+        rtfinternals!($rtf where <$rtf as $($trait)+>::F as $($trait)+)
+    },
+    ($rtf:ty where $f:ty as $($trait:tt)+) => {
+        RtfInternals<$f,
+            winternals!($rtf where $f as $($trait)+),
+            binternals!($rtf where $f as $($trait)+),
+            <$rtf as $($trait)+>::IsIir<ainternals!($rtf where $f as $($trait)+)>
+        >
     }
 }
 
@@ -51,14 +96,14 @@ pub type RtfInternalsGiven<F, const OUTPUTS: usize, const O_BUFFERS: usize, cons
     >;
 
 #[allow(type_alias_bounds)]
-pub type WInternalsFor<Rtf: StaticRtfBase> = winternals!(Rtf);
+pub type WInternalsFor<Rtf: StaticRtf> = winternals!(Rtf);
 #[allow(type_alias_bounds)]
-pub type BInternalsFor<Rtf: StaticRtfBase> = binternals!(Rtf);
+pub type BInternalsFor<Rtf: StaticRtf> = binternals!(Rtf);
 #[allow(type_alias_bounds)]
-pub type AInternalsFor<Rtf: StaticRtfBase> = ainternals!(Rtf);
+pub type AInternalsFor<Rtf: StaticRtf> = ainternals!(Rtf);
 
 #[allow(type_alias_bounds)]
-pub type RtfInternalsFor<Rtf: StaticRtfBase> = RtfInternals<Rtf::F, WInternalsFor<Rtf>, BInternalsFor<Rtf>, [AInternalsFor<Rtf>; Rtf::IS_IIR as usize]>;
+pub type RtfInternalsFor<Rtf: StaticRtf> = RtfInternals<Rtf::F, WInternalsFor<Rtf>, BInternalsFor<Rtf>, Rtf::IsIir<AInternalsFor<Rtf>>>;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct RtfInternals<F, W, B, A>
@@ -128,12 +173,12 @@ pub(crate) fn update<Rtf>(
 )
 where
     Rtf: StaticRtf,
-    [(); Rtf::ORDER + 1]:,
+    /*[(); Rtf::ORDER + 1]:,
     [(); Rtf::IS_IIR as usize]:,
     [(); Rtf::SOS_STAGES*(Rtf::SOS_STAGES >= 1) as usize - (Rtf::SOS_STAGES >= 1) as usize]:,
     [(); (Rtf::SOS_STAGES >= 1) as usize]:,
     [(); 0 - Rtf::OUTPUTS % Rtf::O_BUFFERS]:,
-    [(); 0 - Rtf::O_BUFFERS % Rtf::SOS_BUFFERS]:
+    [(); 0 - Rtf::O_BUFFERS % Rtf::SOS_BUFFERS]:*/
 {
     let (internals, param) = rtf.get_internals_mut();
     if !param.is_unchanged_then_set() || internals.rate != Some(rate)

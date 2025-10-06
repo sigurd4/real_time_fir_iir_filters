@@ -1,8 +1,8 @@
 #![allow(unused)]
 
-use std::{f64::{consts::{TAU, PI}, EPSILON}, ops::{Range, AddAssign, SubAssign}, fmt::Debug};
+use std::{f64::consts::{TAU, PI}, ops::{Range, AddAssign, SubAssign}, fmt::Debug};
 
-use linspace::LinspaceArray;
+use linspace::Linspace;
 use num::{Complex, Float, traits::AsPrimitive, NumCast};
 use plotters::{prelude::*, element::PointCollection, coord::{ranged3d::{ProjectionMatrixBuilder, ProjectionMatrix, Cartesian3d}, ranged1d::{ValueFormatter, DefaultFormatting, AsRangedCoord, NoDefaultFormatting}}, style::full_palette::PURPLE, chart::MeshStyle};
 
@@ -35,8 +35,8 @@ pub fn plot_pz(
     let zero_sym: [Complex<f64>; CIRCLE_RES] = (0.0..=TAU).linspace_array()
         .map(|theta| Complex::new(theta.cos(), theta.sin()));
 
-    let (sigma_min, sigma_max, omega_min, omega_max) = poles.into_iter()
-        .chain(zeros.into_iter())
+    let (sigma_min, sigma_max, omega_min, omega_max) = poles.iter()
+        .chain(zeros.iter())
         .map(|c| (c.re, c.re, c.im, c.im))
         .reduce(|a, b| (a.0.min(b.0), a.1.max(b.1), a.2.min(b.2), a.3.max(b.3)))
         .unwrap();
@@ -60,14 +60,14 @@ pub fn plot_pz(
         .set_all_tick_mark_size(0.1)
         .draw()?;
     
-    for series in zeros.into_iter()
+    for series in zeros.iter()
         .map(|pos| (pos, zero_sym.as_slice(), &BLUE))
-        .chain(poles.into_iter()
+        .chain(poles.iter()
             .flat_map(|pos| POLE_SYM.iter()
                 .map(move |sym| (pos, sym.as_slice(), &RED))
             )
         ).map(|(pos, sym_stroke, color)| (
-            sym_stroke.into_iter()
+            sym_stroke.iter()
                 .map(move |point| Complex::new(point.re*sym_scale.re, point.im*sym_scale.im) + pos)
                 .collect::<Vec<Complex<f64>>>(),
             color
@@ -289,7 +289,7 @@ where
         .legend(|(x, y)| Rectangle::new([(x + 5, y - 5), (x + 15, y + 5)], BLUE.mix(0.5).filled()));
     
     chart.configure_series_labels()
-        .border_style(&BLACK)
+        .border_style(BLACK)
         .draw()?;
     
     // To avoid the IO failure being ignored silently, we manually call the present function
@@ -350,7 +350,7 @@ where
                 let mut sum_theta = F::zero();
                 let mut n_theta = 0;
                 let points: Vec<(F, F, F)> = polygon.point_iter()
-                    .into_iter()
+                    .iter()
                     .map(|(u, [x, y, z], v)| {
                         let theta = v.atan2(*u);
                         if theta.is_finite()
@@ -374,7 +374,7 @@ where
         .legend(|(x, y)| Rectangle::new([(x + 5, y - 5), (x + 15, y + 5)], BLUE.mix(0.5).filled()));
     
     chart.configure_series_labels()
-        .border_style(&BLACK)
+        .border_style(BLACK)
         .draw()?;
     
     // To avoid the IO failure being ignored silently, we manually call the present function
@@ -390,7 +390,7 @@ pub fn plot_curve_2d_rad<F, const NTHETA: usize, const NR: usize>(
     f: impl Fn(F, F) -> F
 ) -> Result<(), Box<dyn std::error::Error>>
 where
-    [(); 2*NR]:,
+    //[(); 2*NR]:,
     F: Float + AddAssign,
     Range<F>: AsRangedCoord<CoordDescType: ValueFormatter<<Range<F> as AsRangedCoord>::Value>, Value: Debug + Clone>,
     for<'b> &'b Polygon<(F, F, F)>:
@@ -447,7 +447,7 @@ where
             SurfaceSeries::xoz(
                 r.into_iter(),
                 theta.into_iter(),
-                |r, theta| f(r, theta),
+                f,
             )
             //.style_func(&|&c| HSLColor(c as f64, 1.0, 0.5).mix(0.2).filled())
             .map(|polygon| {
@@ -465,7 +465,7 @@ where
         .legend(|(x, y)| Rectangle::new([(x + 5, y - 5), (x + 15, y + 5)], BLUE.mix(0.5).filled()));
     
     chart.configure_series_labels()
-        .border_style(&BLACK)
+        .border_style(BLACK)
         .draw()?;
     
     // To avoid the IO failure being ignored silently, we manually call the present function
@@ -520,13 +520,13 @@ where
             SurfaceSeries::xoz(
                 u.into_iter(),
                 v.into_iter(),
-                |u, v| f(u, v),
+                f
             )
             //.style_func(&|&c| HSLColor(c as f64, 1.0, 0.5).mix(0.2).filled())
             .map(|polygon| {
                 let mut sum_theta = F::zero();
                 let points: Vec<(F, F, F)> = polygon.point_iter()
-                    .into_iter()
+                    .iter()
                     .map(|(_, [r, theta, z], _)| {sum_theta += *theta; (*r*theta.cos(), *z, *r*theta.sin())})
                     .collect();
                 let avg_theta = sum_theta / F::from(points.len()).unwrap();
@@ -538,7 +538,7 @@ where
         .legend(|(x, y)| Rectangle::new([(x + 5, y - 5), (x + 15, y + 5)], BLUE.mix(0.5).filled()));
     
     chart.configure_series_labels()
-        .border_style(&BLACK)
+        .border_style(BLACK)
         .draw()?;
     
     // To avoid the IO failure being ignored silently, we manually call the present function

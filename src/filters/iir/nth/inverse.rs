@@ -3,11 +3,11 @@ use crate::{internals::{ainternals, binternals, rtfinternals, RtfInternals}, pri
 pub struct Inverse<T>
 where
     T: Rtf + StaticRtf + NotSame<Self>,
-    [(); T::OUTPUTS*true as usize]:,
+    /*[(); T::OUTPUTS*true as usize]:,
     [(); T::OUTPUTS*true as usize + !true as usize]:,
     [(); T::SOS_STAGES]:,
     [(); T::ORDER]:,
-    [(); T::ORDER + 1]:
+    [(); T::ORDER + 1]:*/
 {
     pub param: T::Param,
     pub internals: rtfinternals!(T::F, T::OUTPUTS, true, T::SOS_STAGES, T::ORDER, true)
@@ -16,11 +16,11 @@ where
 impl<T> Inverse<T>
 where
     T: Rtf + StaticRtf + NotSame<Self>,
-    [(); T::OUTPUTS*true as usize]:,
+    /*[(); T::OUTPUTS*true as usize]:,
     [(); T::OUTPUTS*true as usize + !true as usize]:,
     [(); T::SOS_STAGES]:,
     [(); T::ORDER]:,
-    [(); T::ORDER + 1]:
+    [(); T::ORDER + 1]:*/
 {
     pub fn new(param: T::Param) -> Self
     {
@@ -34,11 +34,9 @@ where
 impl<T> RtfBase for Inverse<T>
 where
     T: Rtf + StaticRtf + NotSame<Self>,
-    [(); T::OUTPUTS*true as usize]:,
+    /*[(); T::OUTPUTS*true as usize]:,
     [(); T::OUTPUTS*true as usize + !true as usize]:,
-    [(); T::SOS_STAGES]:,
-    [(); T::ORDER]:,
-    [(); T::ORDER + 1]:
+    [(); T::SOS_STAGES]:*/
 {
     type F = T::F;
 
@@ -49,11 +47,9 @@ where
 impl<T> StaticRtfBase for Inverse<T>
 where
     T: Rtf + StaticRtf + NotSame<Self>,
-    [(); T::OUTPUTS*true as usize]:,
+    /*[(); T::OUTPUTS*true as usize]:,
     [(); T::OUTPUTS*true as usize + !true as usize]:,
-    [(); T::SOS_STAGES]:,
-    [(); T::ORDER]:,
-    [(); T::ORDER + 1]:
+    [(); T::SOS_STAGES]:*/
 {
     type Param = T::Param;
 

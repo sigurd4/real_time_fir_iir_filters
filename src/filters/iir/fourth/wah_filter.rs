@@ -1,4 +1,4 @@
-use crate::{calc::iir::fourth::WahCalc, param::{CrybabyGCB95, WahFilterParam}, real_time_fir_iir_filters};
+use crate::{calc::iir::fourth::WahCalc, param::{CrybabyGCB95, WahFilterParam}};
 
 // TODO: make it SOS
 crate::def_rtf!(

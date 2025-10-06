@@ -1,8 +1,9 @@
 #![allow(unused)]
 
+use array_trait::{Array, AsArray, AsSlice};
 use num::Float;
 
-use crate::f;
+use crate::{f, max_len};
 
 pub(crate) trait MaybeNeq
 {
@@ -43,6 +44,129 @@ pub trait SizedAt<const SIZE: usize>: private::SizedAt<SIZE>
 impl<T> SizedAt<{core::mem::size_of::<T>()}> for T
 {
 
+}
+
+pub macro array_sum {
+    ($a:ty$(,)?) => {
+        $a
+    },
+    ($a0:ty, $a1:ty$(,)?) => {
+        <$a0 as ArrayPlus<$a1>>::Plus
+    },
+    ($a0:ty, $a1:ty, $($a:ty),+$(,)?) => {
+        array_sum!(array_sum!($a0, $a1), $($a),*)
+    }
+}
+
+pub trait ArrayPlus<Rhs>: Array
+where
+    Rhs: Array<Elem = <Self as AsSlice>::Elem>
+{
+    type Plus: Array<Elem = Self::Elem>;
+}
+impl<T, const N: usize, const M: usize> ArrayPlus<[T; M]> for [T; N]
+{
+    default type Plus = [T; N];
+}
+impl<T, const N: usize, const M: usize> ArrayPlus<[T; M]> for [T; N]
+where
+    [(); N + M]:
+{
+    type Plus = [T; N + M];
+}
+
+pub trait ArrayPlus1: Array
+{
+    type Plus1: Array<Elem = Self::Elem>;
+}
+impl<T, const N: usize> ArrayPlus1 for [T; N]
+{
+    default type Plus1 = Self;
+}
+impl<T, const N: usize> ArrayPlus1 for [T; N]
+where
+    [(); N.saturating_add(1)]:
+{
+    type Plus1 = [T; N.saturating_add(1)];
+}
+
+pub trait ArrayMinus1: Array
+{
+    type Minus1: Array<Elem = Self::Elem>;
+}
+impl<T, const N: usize> ArrayMinus1 for [T; N]
+{
+    default type Minus1 = Self;
+}
+impl<T, const N: usize> ArrayMinus1 for [T; N]
+where
+    [(); N.saturating_sub(1)]:
+{
+    type Minus1 = [T; N.saturating_sub(1)];
+}
+
+pub trait ArrayMin1: Array
+{
+    type Min1: BoolArray<Elem = Self::Elem>;
+}
+impl<T, const N: usize> ArrayMin1 for [T; N]
+{
+    default type Min1 = [T; 1];
+}
+impl<T> ArrayMin1 for [T; 0]
+{
+    type Min1 = [T; 0];
+}
+
+pub trait ArrayMax<Rhs>: Array
+where
+    Rhs: Array<Elem = <Self as AsSlice>::Elem>
+{
+    type Max: Array<Elem = Self::Elem>;
+}
+impl<T, const N: usize, const M: usize> ArrayMax<[T; M]> for [T; N]
+{
+    default type Max = [T; N];
+}
+impl<T, const N: usize, const M: usize> ArrayMax<[T; M]> for [T; N]
+where
+    [(); max_len(N, M)]:
+{
+    type Max = [T; max_len(N, M)];
+}
+
+pub trait EmptyArray: Array
+{
+
+}
+impl<T> EmptyArray for [T; 0] {}
+
+pub trait BoolArray: Array
+{
+
+}
+impl<T> BoolArray for [T; 0] {}
+impl<T> BoolArray for [T; 1] {}
+
+pub trait ArrayChunks<Chunk>: Array
+where
+    Chunk: Array<Elem = <Self as AsSlice>::Elem>
+{
+    type Chunks: Array<Elem = Chunk>;
+    type Rem: Array<Elem = Self::Elem>;
+}
+impl<T, const N: usize, const M: usize> ArrayChunks<[T; N]> for [T; M]
+{
+    default type Chunks = [[T; N]; 0];
+    default type Rem = [T; M];
+}
+impl<T, const N: usize, const M: usize> ArrayChunks<[T; N]> for [T; M]
+where
+    [(); M / N]:,
+    [(); M % N]:
+{
+    type Chunks = [[T; N]; M / N];
+    type Rem = [T; M % N];
 }
 
 pub trait ZeroSized = SizedAt<0>;

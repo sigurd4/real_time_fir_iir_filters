@@ -1,6 +1,5 @@
 #![allow(incomplete_features)]
 #![allow(internal_features)]
-#![feature(generic_arg_infer)]
 #![feature(trait_alias)]
 #![feature(associated_const_equality)]
 #![feature(split_array)]
@@ -11,12 +10,12 @@
 #![feature(derive_const)]
 #![feature(associated_type_defaults)]
 #![feature(never_type)]
-#![feature(const_type_id)]
 #![feature(adt_const_params)]
 #![feature(core_intrinsics)]
 #![feature(generic_const_exprs)]
 #![feature(specialization)]
 #![feature(const_trait_impl)]
+#![feature(non_lifetime_binders)]
 
 //! Ever needed a low pass filter for your VST? This crate has a wide selection of filters for real-time usage. It's designed to have as little runtime overhead as
 //! possible.
@@ -152,14 +151,14 @@
 //!
 //!         // The amount of separate buffers for the output stage.
 //!         // This is also how many denominators you need in the output-stage.
-//!         // `OUTPUTS` must be a multiple of `O_BUFFERS`.
+//!         // `OUTPUTS` must be a multiple of `OUTPUT_BUFS`.
 //!         // When you have less output buffers than outputs, denominators will be shared across outputs.
-//!         const O_BUFFERS: usize = 1;
+//!         const OUTPUT_BUFS: usize = 1;
 //!
 //!         // The amount of separate buffers for the second-order section stages.
-//!         // `O_BUFFERS` must be a multiple of `SOS_BUFFERS`.
+//!         // `OUTPUT_BUFS` must be a multiple of `SOS_BUFS`.
 //!         // When you have less SOS-buffers than output buffers, the result of the final SOS-stage for each buffer will be shared across output-buffers.
-//!         const SOS_BUFFERS: usize = 1;
+//!         const SOS_BUFS: usize = 1;
 //!
 //!         // The amount of additional second-order section stages.
 //!         // Second-order sections allow computing filters with higher accuracy, by using a cascade of second order filters before the final stage (which can be any order).
@@ -238,9 +237,6 @@
 //! );
 //! ```
 
-#[allow(unused)]
-pub(crate) use crate as real_time_fir_iir_filters;
-
 moddef::moddef!(
     pub mod {
         change,
@@ -314,20 +310,20 @@ macro_rules! f {
 
 macro_rules! impl_from {
     ($a:ident <=> $b:ident: $p:path) => {
-        /*impl<P> From<$a<<P as real_time_fir_iir_filters::param::FilterParam>::F, P>> for $b<<P as real_time_fir_iir_filters::param::FilterParam>::F, P>
+        /*impl<P> From<$a<<P as $crate::param::FilterParam>::F, P>> for $b<<P as $crate::param::FilterParam>::F, P>
         where
             P: $p
         {
-            fn from(value: $a<<P as real_time_fir_iir_filters::param::FilterParam>::F, P>) -> Self
+            fn from(value: $a<<P as $crate::param::FilterParam>::F, P>) -> Self
             {
                 Self::new(value.param)
             }
         }
-        impl<P> From<$b<<P as real_time_fir_iir_filters::param::FilterParam>::F, P>> for $a<<P as real_time_fir_iir_filters::param::FilterParam>::F, P>
+        impl<P> From<$b<<P as $crate::param::FilterParam>::F, P>> for $a<<P as $crate::param::FilterParam>::F, P>
         where
             P: $p
         {
-            fn from(value: $b<<P as real_time_fir_iir_filters::param::FilterParam>::F, P>) -> Self
+            fn from(value: $b<<P as $crate::param::FilterParam>::F, P>) -> Self
             {
                 Self::new(value.param)
             }
@@ -358,168 +354,24 @@ pub macro rtf_conf_const {
     (
         $(type Conf: $conf_trait_alias:ident $(as $conf_trait:path)?$( = $cc:ty)?;)?
 
-        const $const:ident: $ty:ty = $outputs:expr;
+        const type $const:ident<$u:ty> = $outputs:ty;
     ) => {
         $outputs
     },
     (
         type Conf: $conf_trait_alias:ident as $conf_trait:path = $cc:ty;
 
-        const $const:ident: $ty:ty;
+        const type $const:ident<$u:ty>;
     ) => {
-        <$cc as $conf_trait>::$const
+        <$cc as $conf_trait>::$const<$u>
     },
     (
         type Conf: $conf_trait:ident = $cc:ty;
 
-        const $const:ident: $ty:ty;
+        const type $const:ident<$u:ty>;
     ) => {
-        <$cc as $conf_trait>::$const
+        <$cc as $conf_trait>::$const<$u>
     },
-}
-
-#[doc(hidden)]
-#[macro_export]
-macro_rules! def_rtf_internals {
-    (
-        $(type Conf: $conf_trait_alias:ident $(as $conf_trait:path)?;)?
-
-        const OUTPUTS: usize = $outputs:expr;
-        const O_BUFFERS: usize = $o_buffers:expr;
-        const SOS_BUFFERS: usize = $sos_buffers:expr;
-        const SOS_STAGES: usize = $sos_stages:expr;
-        const ORDER: usize = $order:expr;
-        const IS_IIR: bool = $is_iir:expr;
-    ) => {
-        #[allow(unused)]
-        #[allow(type_alias_bounds)]
-        type BInternals<F, C$(: $conf_trait_alias $(+ $conf_trait)?)? = real_time_fir_iir_filters::conf::All> = real_time_fir_iir_filters::internals::binternals!(
-            F,
-            $outputs,
-            $o_buffers,
-            $sos_buffers,
-            $sos_stages,
-            $order
-        );
-        #[allow(unused)]
-        #[allow(type_alias_bounds)]
-        type AInternals<F, C$(: $conf_trait_alias $(+ $conf_trait)?)? = real_time_fir_iir_filters::conf::All> = real_time_fir_iir_filters::internals::ainternals!(
-            F,
-            $o_buffers,
-            $sos_buffers,
-            $sos_stages,
-            $order
-        );
-        #[allow(unused)]
-        #[allow(type_alias_bounds)]
-        type Internals<F, C$(: $conf_trait_alias $(+ $conf_trait)?)? = real_time_fir_iir_filters::conf::All> = real_time_fir_iir_filters::internals::rtfinternals!(
-            F,
-            $outputs,
-            $o_buffers,
-            $sos_buffers,
-            $sos_stages,
-            $order,
-            $is_iir
-        );
-    };
-    (
-        type Conf: $conf_trait_alias:ident $(as $conf_trait:path)?;
-
-        $(const OUTPUTS: usize = $outputs:expr;)?
-        $(const O_BUFFERS: usize = $o_buffers:expr;)?
-        $(const SOS_BUFFERS: usize = $sos_buffers:expr;)?
-        $(const SOS_STAGES: usize = $sos_stages:expr;)?
-        $(const ORDER: usize = $order:expr;)?
-        $(const IS_IIR: bool = $is_iir:expr;)?
-    ) => {
-        #[allow(type_alias_bounds)]
-        type BInternals<F, C: $conf_trait_alias $(+ $conf_trait)?> = real_time_fir_iir_filters::internals::binternals!(
-            F,
-            real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
-
-                const OUTPUTS: usize $(= $outputs)?;
-            ),
-            real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
-
-                const O_BUFFERS: usize $(= $o_buffers)?;
-            ),
-            real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
-
-                const SOS_BUFFERS: usize $(= $sos_buffers)?;
-            ),
-            real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
-
-                const SOS_STAGES: usize $(= $sos_stages)?;
-            ),
-            real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
-
-                const ORDER: usize $(= $order)?;
-            )
-        );
-        #[allow(type_alias_bounds)]
-        type AInternals<F, C: $conf_trait_alias $(+ $conf_trait)?> = real_time_fir_iir_filters::internals::ainternals!(
-            F,
-            real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
-
-                const O_BUFFERS: usize $(= $o_buffers)?;
-            ),
-            real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
-
-                const SOS_BUFFERS: usize $(= $sos_buffers)?;
-            ),
-            real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
-
-                const SOS_STAGES: usize $(= $sos_stages)?;
-            ),
-            real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
-
-                const ORDER: usize $(= $order)?;
-            )
-        );
-        #[allow(type_alias_bounds)]
-        type Internals<F, C: $conf_trait_alias $(+ $conf_trait)?> = real_time_fir_iir_filters::internals::rtfinternals!(
-            F,
-            real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
-
-                const OUTPUTS: usize $(= $outputs)?;
-            ),
-            real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
-
-                const O_BUFFERS: usize $(= $o_buffers)?;
-            ),
-            real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
-
-                const SOS_BUFFERS: usize $(= $sos_buffers)?;
-            ),
-            real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
-
-                const SOS_STAGES: usize $(= $sos_stages)?;
-            ),
-            real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
-
-                const ORDER: usize $(= $order)?;
-            ),
-            real_time_fir_iir_filters::rtf_conf_const!(
-                type Conf: $conf_trait_alias $(as $conf_trait)? = C;
-
-                const IS_IIR: bool $(= $is_iir)?;
-            )
-        );
-    };
 }
 
 #[macro_export]
@@ -533,10 +385,17 @@ macro_rules! def_rtf {
             $(type Conf: $conf_trait_alias:ident $(as $conf_trait:path)?)?;
             type Param$(: $param_trait:ident)? = $param_default:ident;
 
-            $(const O_BUFFERS: usize = $o_buffers:expr;)?
-            $(const SOS_BUFFERS: usize = $sos_buffers:expr;)?
+            $(type Outputs = $outputs_ty:ty;)?
+            $(const OUTPUTS: usize = $outputs:expr;)?
+            $(type OutputBufs = $output_bufs_ty:ty;)?
+            $(const OUTPUT_BUFS: usize = $output_bufs:expr;)?
+            $(type SosBufs = $sos_bufs_ty:ty;)?
+            $(const SOS_BUFS: usize = $sos_bufs:expr;)?
+            $(type SosStages = $sos_stages_ty:ty;)?
             $(const SOS_STAGES: usize = $sos_stages:expr;)?
+            $(type Order = $order_ty:ty;)?
             $(const ORDER: usize = $order:expr;)?
+            $(type IsIir = $is_iir_ty:ty;)?
             $(const IS_IIR: bool = $is_iir:expr;)?
 
             $(
@@ -549,7 +408,7 @@ macro_rules! def_rtf {
         $(where
             $($where:tt)+)?
     ) => {
-        real_time_fir_iir_filters::def_rtf!(
+        $crate::def_rtf!(
             $({
                 $($docs)+
             })?
@@ -558,10 +417,17 @@ macro_rules! def_rtf {
                 $(type Conf: $conf_trait_alias $(as $conf_trait)?)?;
                 type Param<C>$(: $param_trait as $param_trait)? = $param_default;
 
-                $(const O_BUFFERS: usize = $o_buffers;)?
-                $(const SOS_BUFFERS: usize = $sos_buffers;)?
+                $(type Outputs = $outputs_ty;)?
+                $(const OUTPUTS: usize = $outputs;)?
+                $(type OutputBufs = $output_bufs_ty;)?
+                $(const OUTPUT_BUFS: usize = $output_bufs;)?
+                $(type SosBufs = $sos_bufs_ty;)?
+                $(const SOS_BUFS: usize = $sos_bufs;)?
+                $(type SosStages = $sos_stages_ty;)?
                 $(const SOS_STAGES: usize = $sos_stages;)?
+                $(type Order = $order_ty;)?
                 $(const ORDER: usize = $order;)?
+                $(type IsIir = $is_iir_ty;)?
                 $(const IS_IIR: bool = $is_iir;)?
 
                 $(
@@ -584,10 +450,17 @@ macro_rules! def_rtf {
             type Conf: $conf_trait:ident;
             type Param$(<$cc:ident>)?$(: $param_alias:ident $(as $param_trait:ident)?)? = $param_default:ident;
 
-            $(const O_BUFFERS: usize = $o_buffers:expr;)?
-            $(const SOS_BUFFERS: usize = $sos_buffers:expr;)?
+            $(type Outputs = $outputs_ty:ty;)?
+            $(const OUTPUTS: usize = $outputs:expr;)?
+            $(type OutputBufs = $output_bufs_ty:ty;)?
+            $(const OUTPUT_BUFS: usize = $output_bufs:expr;)?
+            $(type SosBufs = $sos_bufs_ty:ty;)?
+            $(const SOS_BUFS: usize = $sos_bufs:expr;)?
+            $(type SosStages = $sos_stages_ty:ty;)?
             $(const SOS_STAGES: usize = $sos_stages:expr;)?
+            $(type Order = $order_ty:ty;)?
             $(const ORDER: usize = $order:expr;)?
+            $(type IsIir = $is_iir_ty:ty;)?
             $(const IS_IIR: bool = $is_iir:expr;)?
 
             $(
@@ -600,7 +473,7 @@ macro_rules! def_rtf {
         $(where
             $($where:tt)+)?
     ) => {
-        real_time_fir_iir_filters::def_rtf!(
+        $crate::def_rtf!(
             $({
                 $($docs)+
             })?
@@ -609,10 +482,17 @@ macro_rules! def_rtf {
                 type Conf: $conf_trait as $conf_trait;
                 type Param$(<$cc>)?$(: $param_alias $(as $param_trait)?)? = $param_default;
 
-                $(const O_BUFFERS: usize = $o_buffers;)?
-                $(const SOS_BUFFERS: usize = $sos_buffers;)?
+                $(type Outputs = $outputs_ty;)?
+                $(const OUTPUTS: usize = $outputs;)?
+                $(type OutputBufs = $output_bufs_ty;)?
+                $(const OUTPUT_BUFS: usize = $output_bufs;)?
+                $(type SosBufs = $sos_bufs_ty;)?
+                $(const SOS_BUFS: usize = $sos_bufs;)?
+                $(type SosStages = $sos_stages_ty;)?
                 $(const SOS_STAGES: usize = $sos_stages;)?
+                $(type Order = $order_ty;)?
                 $(const ORDER: usize = $order;)?
+                $(type IsIir = $is_iir_ty;)?
                 $(const IS_IIR: bool = $is_iir;)?
 
                 $(
@@ -635,12 +515,18 @@ macro_rules! def_rtf {
             type Conf: $conf_trait_alias:ident as $conf_trait:path;
             type Param<C>: $param_trait_alias:ident as $param_trait:ident = $param_default:ident;
 
+            $(type Outputs = $outputs_ty:ty;)?
             $(const OUTPUTS: usize = $outputs:expr;)?
-            $(const O_BUFFERS: usize = $o_buffers:expr;)?
-            $(const SOS_BUFFERS: usize = $sos_buffers:expr;)?
+            $(type OutputBufs = $output_bufs_ty:ty;)?
+            $(const OUTPUT_BUFS: usize = $output_bufs:expr;)?
+            $(type SosBufs = $sos_bufs_ty:ty;)?
+            $(const SOS_BUFS: usize = $sos_bufs:expr;)?
+            $(type SosStages = $sos_stages_ty:ty;)?
             $(const SOS_STAGES: usize = $sos_stages:expr;)?
+            $(type Order = $order_ty:ty;)?
             $(const ORDER: usize = $order:expr;)?
-            const IS_IIR: bool = $is_iir:expr;
+            $(type IsIir = $is_iir_ty:ty;)?
+            $(const IS_IIR: bool = $is_iir:expr;)?
 
             $(
                 fn make_coeffs<$conf:ty>($arg_param:ident, $arg_rate:ident) -> _
@@ -652,65 +538,71 @@ macro_rules! def_rtf {
         $(where
             $($where:tt)+)?
     ) => {
-        real_time_fir_iir_filters::def_rtf_internals!(
-            type Conf: $conf_trait_alias as $conf_trait;
-
-            $(const OUTPUTS: usize = $outputs;)?
-            $(const O_BUFFERS: usize = $o_buffers;)?
-            $(const SOS_BUFFERS: usize = $sos_buffers;)?
-            $(const SOS_STAGES: usize = $sos_stages;)?
-            $(const ORDER: usize = $order;)?
-            const IS_IIR: bool = $is_iir;
-        );
-
-        struct __Helper<F, C>
+        pub trait __Helper<F>: $conf_trait_alias<Conf = Self> + $conf_trait
+        where
+            F: $crate::param::FilterFloat
         {
-            phantom: core::marker::PhantomData<(F, C)>
+            type Outputs<U>: $crate::util::ArrayChunks<Self::OutputBufs<U>, Elem = U, Rem = [U; 0]>;
+            type IsIir<U>: $crate::util::BoolArray<Elem = U>;
+            type Order<U>: $crate::util::ArrayPlus1<Elem = U>;
+            type OutputBufs<U>: $crate::util::ArrayChunks<Self::SosBufs<U>, Elem = U, Rem = [U; 0]>;
+            type SosBufs<U>: $crate::util::ArrayChunks<Self::SosBufs<U>, Elem = U, Rem = [U; 0], Chunks = [Self::SosBufs<U>; 1]>;
+            type SosStages<U>: $crate::util::ArrayMin1<Elem = U> + $crate::util::ArrayMinus1<Elem = U>;
         }
 
-        impl<F, C> __Helper<F, C>
+        impl<F, C> __Helper<F> for C
         where
-            F: real_time_fir_iir_filters::param::FilterFloat,
+            F: $crate::param::FilterFloat,
             C: $conf_trait_alias<Conf = C> + $conf_trait
         {
-            const OUTPUTS: usize = real_time_fir_iir_filters::rtf_conf_const!(
+            type IsIir<U> = $crate::rtf_conf_const!(
                 type Conf: $conf_trait_alias as $conf_trait = C;
 
-                const OUTPUTS: usize $(= $outputs)?;
+                const type IsIir<U> $(= $is_iir_ty)? $(= [U; $is_iir as usize])?;
             );
-            const O_BUFFERS: usize = real_time_fir_iir_filters::rtf_conf_const!(
+            type Outputs<U> = $crate::rtf_conf_const!(
                 type Conf: $conf_trait_alias as $conf_trait = C;
 
-                const O_BUFFERS: usize $(= $o_buffers)?;
+                const type Outputs<U> $(= $outputs_ty)? $(= [U; $outputs])?;
             );
-            const SOS_BUFFERS: usize = real_time_fir_iir_filters::rtf_conf_const!(
+            type Order<U> = $crate::rtf_conf_const!(
                 type Conf: $conf_trait_alias as $conf_trait = C;
 
-                const SOS_BUFFERS: usize $(= $sos_buffers)?;
+                const type Order<U> $(= $order_ty)? $(= [U; $order])?;
             );
-            const SOS_STAGES: usize = real_time_fir_iir_filters::rtf_conf_const!(
+            type OutputBufs<U> = $crate::rtf_conf_const!(
                 type Conf: $conf_trait_alias as $conf_trait = C;
 
-                const SOS_STAGES: usize $(= $sos_stages)?;
+                const type OutputBufs<U> $(= $output_bufs_ty)? $(= [U; $output_bufs])?;
             );
-            const ORDER: usize = real_time_fir_iir_filters::rtf_conf_const!(
+            type SosBufs<U> = $crate::rtf_conf_const!(
                 type Conf: $conf_trait_alias as $conf_trait = C;
 
-                const ORDER: usize $(= $order)?;
+                const type SosBufs<U> $(= $sos_bufs_ty)? $(= [U; $sos_bufs])?;
+            );
+            type SosStages<U> = $crate::rtf_conf_const!(
+                type Conf: $conf_trait_alias as $conf_trait = C;
+
+                const type SosStages<U> $(= $sos_stages_ty)? $(= [U; $sos_stages])?;
             );
         }
 
+        type Internals<F, C> = $crate::internals::rtfinternals!(C where F as __Helper::<F>);
+        type BInternals<F, C> = $crate::internals::binternals!(C where F as __Helper::<F>);
+        type AInternals<F, C> = $crate::internals::ainternals!(C where F as __Helper::<F>);
+
         $($($docs)*)?
-        #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+        #[derive(Clone, Copy, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
         #[serde(deny_unknown_fields)]
-        pub struct $name<C = real_time_fir_iir_filters::conf::All, F = f64, P = $param_default<F>>
+        pub struct $name<C = $crate::conf::All, F = f64, P = $param_default<F>>
         where
-            F: real_time_fir_iir_filters::param::FilterFloat,
+            F: $crate::param::FilterFloat,
             C: $conf_trait_alias<Conf = C>,
-            P: $param_trait_alias<C, Conf = C> + real_time_fir_iir_filters::param::FilterParam<F = F>,
+            P: $param_trait_alias<C, Conf = C> + $crate::param::FilterParam<F = F>,
+            Internals<F, C>: Copy + core::fmt::Debug + Default + PartialEq,
             $($($where)+)?
         {
-            pub param: real_time_fir_iir_filters::param::Param<P>,
+            pub param: $crate::param::Param<P>,
             pub internals: Internals<F, C>,
             #[serde(skip)]
             phantom: core::marker::PhantomData<C>
@@ -718,16 +610,17 @@ macro_rules! def_rtf {
 
         impl<C, F, P> $name<C, F, P>
         where
-            F: real_time_fir_iir_filters::param::FilterFloat,
+            F: $crate::param::FilterFloat,
             C: $conf_trait_alias<Conf = C>,
-            P: $param_trait_alias<C, Conf = C> + real_time_fir_iir_filters::param::FilterParam<F = F>,
+            P: $param_trait_alias<C, Conf = C> + $crate::param::FilterParam<F = F>,
+            Internals<F, C>: Copy + core::fmt::Debug + Default + PartialEq,
             $($($where)+)?
         {
             pub const fn new(param: P) -> Self
             {
                 Self {
-                    param: real_time_fir_iir_filters::param::Param::new(param),
-                    internals: Internals::new(),
+                    param: $crate::param::Param::new(param),
+                    internals: Internals::<F, C>::new(),
                     phantom: core::marker::PhantomData
                 }
             }
@@ -735,37 +628,29 @@ macro_rules! def_rtf {
 
         $(
             #[allow(unused_braces)]
-            impl<P> real_time_fir_iir_filters::rtf::RtfBase for $name<$conf, <P as real_time_fir_iir_filters::param::FilterParam>::F, P>
+            impl<P> $crate::rtf::StaticRtf for $name<$conf, <P as $crate::param::FilterParam>::F, P>
             where
                 $conf: $conf_trait_alias<Conf = $conf>,
-                P: $param_trait_alias<$conf, Conf = $conf> + real_time_fir_iir_filters::param::FilterParam,
+                P: $param_trait_alias<$conf, Conf = $conf> + $crate::param::FilterParam,
+                Internals<P::F, $conf>: Copy + core::fmt::Debug + Default + PartialEq,
                 $($($where_c)+)?
             {
-                type Conf = $conf;
-                type F = <P as real_time_fir_iir_filters::param::FilterParam>::F;
-
-                const IS_IIR: bool = $is_iir;
-                const OUTPUTS: usize = __Helper::<<P as real_time_fir_iir_filters::param::FilterParam>::F, $conf>::OUTPUTS;
-            }
-            #[allow(unused_braces)]
-            impl<P> real_time_fir_iir_filters::rtf::StaticRtfBase for $name<$conf, <P as real_time_fir_iir_filters::param::FilterParam>::F, P>
-            where
-                $conf: $conf_trait_alias<Conf = $conf>,
-                P: $param_trait_alias<$conf, Conf = $conf> + real_time_fir_iir_filters::param::FilterParam,
-                $($($where_c)+)?
-            {
+                type F = <P as $crate::param::FilterParam>::F;
                 type Param = P;
+                type Conf = $conf;
 
-                const O_BUFFERS: usize = __Helper::<<P as real_time_fir_iir_filters::param::FilterParam>::F, $conf>::O_BUFFERS;
-                const SOS_BUFFERS: usize = __Helper::<<P as real_time_fir_iir_filters::param::FilterParam>::F, $conf>::SOS_BUFFERS;
-                const SOS_STAGES: usize = __Helper::<<P as real_time_fir_iir_filters::param::FilterParam>::F, $conf>::SOS_STAGES;
-                const ORDER: usize = __Helper::<<P as real_time_fir_iir_filters::param::FilterParam>::F, $conf>::ORDER;
+                type IsIir<U> = <$conf as __Helper::<P::F>>::IsIir<U>;
+                type Outputs<U> = <$conf as __Helper::<P::F>>::Outputs<U>;
+                type Order<U> = <$conf as __Helper::<P::F>>::Order<U>;
+                type OutputBufs<U> = <$conf as __Helper::<P::F>>::OutputBufs<U>;
+                type SosBufs<U> = <$conf as __Helper::<P::F>>::SosBufs<U>;
+                type SosStages<U> = <$conf as __Helper::<P::F>>::SosStages<U>;
 
                 fn from_param(param: Self::Param) -> Self
                 {
                     Self {
-                        param: real_time_fir_iir_filters::param::Param::new(param),
-                        internals: Internals::new(),
+                        param: $crate::param::Param::new(param),
+                        internals: Internals::<P::F, $conf>::new(),
                         phantom: core::marker::PhantomData
                     }
                 }
@@ -783,20 +668,20 @@ macro_rules! def_rtf {
                 }
 
                 #[allow(clippy::type_complexity)]
-                fn get_internals(&self) -> (&Internals<<P as real_time_fir_iir_filters::param::FilterParam>::F, $conf>, &real_time_fir_iir_filters::param::Param<P>)
+                fn get_internals(&self) -> (&$crate::internals::RtfInternalsFor<Self>, &$crate::param::Param<P>)
                 {
                     (&self.internals, &self.param)
                 }
                 #[allow(clippy::type_complexity)]
-                fn get_internals_mut(&mut self) -> (&mut Internals<<P as real_time_fir_iir_filters::param::FilterParam>::F, $conf>, &mut real_time_fir_iir_filters::param::Param<P>)
+                fn get_internals_mut(&mut self) -> (&mut $crate::internals::RtfInternalsFor<Self>, &mut $crate::param::Param<P>)
                 {
                     (&mut self.internals, &mut self.param)
                 }
 
                 #[allow(clippy::type_complexity)]
                 fn make_coeffs($arg_param: &P, $arg_rate: Self::F) -> (
-                    BInternals<<P as real_time_fir_iir_filters::param::FilterParam>::F, $conf>,
-                    [AInternals<<P as real_time_fir_iir_filters::param::FilterParam>::F, $conf>; $is_iir as usize]
+                    $crate::internals::BInternalsFor<Self>,
+                    Self::IsIir<$crate::internals::AInternalsFor<Self>>
                 )
                 {
                     fn make_coeffs<F, P>($arg_param: &P, $arg_rate: F) -> (
@@ -804,9 +689,9 @@ macro_rules! def_rtf {
                         [AInternals<F, $conf>; $is_iir as usize]
                     )
                     where
-                        F: real_time_fir_iir_filters::param::FilterFloat,
+                        F: $crate::param::FilterFloat,
                         $conf: $conf_trait_alias<Conf = $conf>,
-                        P: $param_trait_alias<$conf, Conf = $conf> + real_time_fir_iir_filters::param::FilterParam<F = F>,
+                        P: $param_trait_alias<$conf, Conf = $conf> + $crate::param::FilterParam<F = F>,
                         $($($where_c)+)?
                     $make_coeffs
 
@@ -823,8 +708,8 @@ macro_rules! def_rtf {
         {
             type Param: $param_trait:ident = $param_default:ident;
             const OUTPUTS: usize = $outputs:expr;
-            const O_BUFFERS: usize = $o_buffers:expr;
-            const SOS_BUFFERS: usize = $sos_buffers:expr;
+            const OUTPUT_BUFS: usize = $output_bufs:expr;
+            const SOS_BUFS: usize = $sos_bufs:expr;
             const SOS_STAGES: usize = $sos_stages:expr;
             const ORDER: usize = $order:expr;
             const IS_IIR: bool = $is_iir:expr;
@@ -835,26 +720,23 @@ macro_rules! def_rtf {
         $(where
             $($where:tt)+)?
     ) => {
-        #[allow(type_alias_bounds)]
-        type BInternals<F> = real_time_fir_iir_filters::internals::binternals!(F, $outputs, $o_buffers, $sos_buffers, $sos_stages, $order);
-        #[allow(type_alias_bounds)]
-        type AInternals<F> = real_time_fir_iir_filters::internals::ainternals!(F, $o_buffers, $sos_buffers, $sos_stages, $order);
-        #[allow(type_alias_bounds)]
-        type Internals<F> = real_time_fir_iir_filters::internals::rtfinternals!(F, $outputs, $o_buffers, $sos_buffers, $sos_stages, $order, $is_iir);
+        type BInternals<F> = $crate::internals::binternals!(F, $outputs, $output_bufs, $sos_bufs, $sos_stages, $order);
+        type AInternals<F> = $crate::internals::ainternals!(F, $output_bufs, $sos_bufs, $sos_stages, $order);
+        type Internals<F> = $crate::internals::rtfinternals!(F, $outputs, $output_bufs, $sos_bufs, $sos_stages, $order, $is_iir);
 
         $($($docs)*)?
-        #[derive(Clone, Copy, Debug)]
+        #[derive(Clone, Copy, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
         pub struct $name<F = f64, P = $param_default<F>>
         where
-            F: real_time_fir_iir_filters::param::FilterFloat,
-            P: $param_trait + real_time_fir_iir_filters::param::FilterParam<F = F>,
+            F: $crate::param::FilterFloat,
+            P: $param_trait + $crate::param::FilterParam<F = F>,
             $($($where)+)?
         {
-            pub param: real_time_fir_iir_filters::param::Param<P>,
+            pub param: $crate::param::Param<P>,
             pub internals: Internals<F>
         }
 
-        impl<P> $name<<P as real_time_fir_iir_filters::param::FilterParam>::F, P>
+        impl<P> $name<<P as $crate::param::FilterParam>::F, P>
         where
             P: $param_trait,
             $($($where)+)?
@@ -862,165 +744,28 @@ macro_rules! def_rtf {
             pub const fn new(param: P) -> Self
             {
                 Self {
-                    param: real_time_fir_iir_filters::param::Param::new(param),
+                    param: $crate::param::Param::new(param),
                     internals: Internals::new()
                 }
             }
         }
 
         #[allow(unused_braces)]
-        impl<P> real_time_fir_iir_filters::rtf::RtfBase for $name<<P as real_time_fir_iir_filters::param::FilterParam>::F, P>
+        impl<P> $crate::rtf::StaticRtf for $name<<P as $crate::param::FilterParam>::F, P>
         where
             P: $param_trait,
             $($($where)+)?
         {
-            type Conf = real_time_fir_iir_filters::conf::All;
-            type F = <P as real_time_fir_iir_filters::param::FilterParam>::F;
-
-            const IS_IIR: bool = $is_iir;
-            const OUTPUTS: usize = $outputs;
-        }
-        #[allow(unused_braces)]
-        impl<P> real_time_fir_iir_filters::rtf::StaticRtfBase for $name<<P as real_time_fir_iir_filters::param::FilterParam>::F, P>
-        where
-            P: $param_trait,
-            $($($where)+)?
-        {
+            type Conf = $crate::conf::All;
             type Param = P;
+            type F = <P as $crate::param::FilterParam>::F;
 
-            const O_BUFFERS: usize = $o_buffers;
-            const SOS_BUFFERS: usize = $sos_buffers;
-            const SOS_STAGES: usize = $sos_stages;
-            const ORDER: usize = $order;
-
-            fn from_param(param: Self::Param) -> Self
-            {
-                Self {
-                    param: real_time_fir_iir_filters::param::Param::new(param),
-                    internals: Internals::new()
-                }
-            }
-            fn get_param(&self) -> &Self::Param
-            {
-                &*self.param
-            }
-            fn get_param_mut(&mut self) -> &mut Self::Param
-            {
-                &mut *self.param
-            }
-            fn into_param(self) -> Self::Param
-            {
-                self.param.into_value()
-            }
-
-            #[allow(clippy::type_complexity)]
-            fn get_internals(&self) -> (&Internals<<P as real_time_fir_iir_filters::param::FilterParam>::F>, &real_time_fir_iir_filters::param::Param<P>)
-            {
-                (&self.internals, &self.param)
-            }
-            #[allow(clippy::type_complexity)]
-            fn get_internals_mut(&mut self) -> (&mut Internals<<P as real_time_fir_iir_filters::param::FilterParam>::F>, &mut real_time_fir_iir_filters::param::Param<P>)
-            {
-                (&mut self.internals, &mut self.param)
-            }
-
-            #[allow(clippy::type_complexity)]
-            fn make_coeffs($arg_param: &P, $arg_rate: Self::F) -> (
-                BInternals<<P as real_time_fir_iir_filters::param::FilterParam>::F>,
-                [AInternals<<P as real_time_fir_iir_filters::param::FilterParam>::F>; $is_iir as usize]
-            )
-            {
-                fn make_coeffs<F, P>($arg_param: &P, $arg_rate: F) -> (
-                    BInternals<F>,
-                    [AInternals<F>; $is_iir as usize]
-                )
-                where
-                    F: real_time_fir_iir_filters::param::FilterFloat,
-                    P: $param_trait + real_time_fir_iir_filters::param::FilterParam<F = F>,
-                    $($($where)+)?
-                $make_coeffs
-
-                make_coeffs($arg_param, $arg_rate)
-            }
-        }
-    };
-    (
-        $({
-            $($docs:tt)+
-        })?
-        $name:ident
-        {
-            type Param = $param:ident;
-            const OUTPUTS: usize = $outputs:expr;
-            const O_BUFFERS: usize = $o_buffers:expr;
-            const SOS_BUFFERS: usize = $sos_buffers:expr;
-            const SOS_STAGES: usize = $sos_stages:expr;
-            const ORDER: usize = $order:expr;
-            const IS_IIR: bool = $is_iir:expr;
-
-            fn make_coeffs($arg_param:ident, $arg_rate:ident) -> _
-            $make_coeffs:block
-        }
-        $(where
-            $($where:tt)+)?
-    ) => {
-        #[allow(type_alias_bounds)]
-        type BInternals<F> = real_time_fir_iir_filters::internals::binternals!(F, $outputs, $o_buffers, $sos_buffers, $sos_stages, $order);
-        #[allow(type_alias_bounds)]
-        type AInternals<F> = real_time_fir_iir_filters::internals::ainternals!(F, $o_buffers, $sos_buffers, $sos_stages, $order);
-        #[allow(type_alias_bounds)]
-        type Internals<F> = real_time_fir_iir_filters::internals::rtfinternals!(F, $outputs, $o_buffers, $sos_buffers, $sos_stages, $order, $is_iir);
-
-        $($($docs)*)?
-        #[derive(Clone, Copy, Debug)]
-        pub struct $name<F = f64>
-        where
-            F: real_time_fir_iir_filters::param::FilterFloat,
-            $param<F>: real_time_fir_iir_filters::param::FilterParam<F = F>,
-            $($($where)+)?
-        {
-            pub param: real_time_fir_iir_filters::param::Param<$param<F>>,
-            pub internals: Internals<F>
-        }
-
-        impl<F> $name<F>
-        where
-            F: real_time_fir_iir_filters::param::FilterFloat,
-            $($($where)+)?
-        {
-            pub const fn new(param: $param<F>) -> Self
-            {
-                Self {
-                    param: real_time_fir_iir_filters::param::Param::new(param),
-                    internals: Internals::new()
-                }
-            }
-        }
-
-        #[allow(unused_braces)]
-        impl<F> real_time_fir_iir_filters::rtf::RtfBase for $name<F>
-        where
-            F: real_time_fir_iir_filters::param::FilterFloat,
-            $($($where)+)?
-        {
-            type Conf = real_time_fir_iir_filters::conf::All;
-            type F = F;
-
-            const IS_IIR: bool = $is_iir;
-            const OUTPUTS: usize = $outputs;
-        }
-        #[allow(unused_braces)]
-        impl<F> real_time_fir_iir_filters::rtf::StaticRtfBase for $name<F>
-        where
-            F: real_time_fir_iir_filters::param::FilterFloat,
-            $($($where)+)?
-        {
-            type Param = $param<F>;
-
-            const O_BUFFERS: usize = $o_buffers;
-            const SOS_BUFFERS: usize = $sos_buffers;
-            const SOS_STAGES: usize = $sos_stages;
-            const ORDER: usize = $order;
+            type IsIir<U> = [U; $is_iir as usize];
+            type Outputs<U> = [U; $outputs];
+            type OutputBufs<U> = [U; $output_bufs];
+            type SosBufs<U> = [U; $sos_bufs];
+            type SosStages<U> = [U; $sos_stages];
+            type Order<U> = [U; $order];
 
             fn from_param(param: Self::Param) -> Self
             {
@@ -1040,22 +785,34 @@ macro_rules! def_rtf {
             }
 
             #[allow(clippy::type_complexity)]
-            fn get_internals(&self) -> (&Internals<F>, &real_time_fir_iir_filters::param::Param<$param<F>>)
+                fn get_internals(&self) -> (&$crate::internals::RtfInternalsFor<Self>, &$crate::param::Param<P>)
             {
                 (&self.internals, &self.param)
             }
             #[allow(clippy::type_complexity)]
-            fn get_internals_mut(&mut self) -> (&mut Internals<F>, &mut real_time_fir_iir_filters::param::Param<$param<F>>)
+                fn get_internals_mut(&mut self) -> (&mut $crate::internals::RtfInternalsFor<Self>, &mut $crate::param::Param<P>)
             {
                 (&mut self.internals, &mut self.param)
             }
 
             #[allow(clippy::type_complexity)]
-            fn make_coeffs($arg_param: &$param<F>, $arg_rate: Self::F) -> (
-                BInternals<F>,
-                [AInternals<F>; $is_iir as usize]
+            fn make_coeffs($arg_param: &P, $arg_rate: Self::F) -> (
+                $crate::internals::BInternalsFor<Self>,
+                Self::IsIir<$crate::internals::AInternalsFor<Self>>
             )
-            $make_coeffs
+            {
+                fn make_coeffs<F, P>($arg_param: &P, $arg_rate: F) -> (
+                    BInternals<F>,
+                    [AInternals<F>; $is_iir as usize]
+                )
+                where
+                    F: $crate::param::FilterFloat,
+                    P: $param_trait + $crate::param::FilterParam<F = F>,
+                    $($($where)+)?
+                $make_coeffs
+
+                make_coeffs($arg_param, $arg_rate)
+            }
         }
     };
     (
@@ -1064,9 +821,10 @@ macro_rules! def_rtf {
         })?
         $name:ident
         {
+            type Param = $param:ident;
             const OUTPUTS: usize = $outputs:expr;
-            const O_BUFFERS: usize = $o_buffers:expr;
-            const SOS_BUFFERS: usize = $sos_buffers:expr;
+            const OUTPUT_BUFS: usize = $output_bufs:expr;
+            const SOS_BUFS: usize = $sos_bufs:expr;
             const SOS_STAGES: usize = $sos_stages:expr;
             const ORDER: usize = $order:expr;
             const IS_IIR: bool = $is_iir:expr;
@@ -1077,60 +835,162 @@ macro_rules! def_rtf {
         $(where
             $($where:tt)+)?
     ) => {
-        #[allow(type_alias_bounds)]
-        type BInternals<F> = real_time_fir_iir_filters::internals::binternals!(F, $outputs, $o_buffers, $sos_buffers, $sos_stages, $order);
-        #[allow(type_alias_bounds)]
-        type AInternals<F> = real_time_fir_iir_filters::internals::ainternals!(F, $o_buffers, $sos_buffers, $sos_stages, $order);
-        #[allow(type_alias_bounds)]
-        type Internals<F> = real_time_fir_iir_filters::internals::rtfinternals!(F, $outputs, $o_buffers, $sos_buffers, $sos_stages, $order, $is_iir);
+        type BInternals<F> = $crate::internals::binternals!(F, $outputs, $output_bufs, $sos_bufs, $sos_stages, $order);
+        type AInternals<F> = $crate::internals::ainternals!(F, $output_bufs, $sos_bufs, $sos_stages, $order);
+        type Internals<F> = $crate::internals::rtfinternals!(F, $outputs, $output_bufs, $sos_bufs, $sos_stages, $order, $is_iir);
 
         $($($docs)*)?
-        #[derive(Clone, Copy, Debug)]
-        pub struct $name<F = f64>
+        #[derive(Clone, Copy, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
+        pub struct $name
         where
-            F: real_time_fir_iir_filters::param::FilterFloat,
+            $param: $crate::param::FilterParam,
             $($($where)+)?
         {
-            pub internals: Internals<F>
+            pub param: $crate::param::Param<$param>,
+            pub internals: Internals<<$param as $crate::param::FilterParam>::F>
         }
 
-        impl<F> $name<F>
+        impl $name
         where
-            F: real_time_fir_iir_filters::param::FilterFloat,
             $($($where)+)?
         {
-            pub const fn new() -> Self
+            pub const fn new(param: $param) -> Self
             {
                 Self {
+                    param: $crate::param::Param::new(param),
                     internals: Internals::new()
                 }
             }
         }
 
         #[allow(unused_braces)]
-        impl<F> real_time_fir_iir_filters::rtf::RtfBase for $name<F>
+        impl $crate::rtf::StaticRtf for $name
         where
-            F: real_time_fir_iir_filters::param::FilterFloat,
             $($($where)+)?
         {
-            type Conf = real_time_fir_iir_filters::conf::All;
+            type Conf = $crate::conf::All;
+            type Param = $param;
+            type F = <$param as $crate::param::FilterParam>::F;
+
+            type IsIir<U> = [U; $is_iir as usize];
+            type Outputs<U> = [U; $outputs];
+            type OutputBufs<U> = [U; $output_bufs];
+            type SosBufs<U> = [U; $sos_bufs];
+            type SosStages<U> = [U; $sos_stages];
+            type Order<U> = [U; $order];
+
+            fn from_param(param: Self::Param) -> Self
+            {
+                Self::new(param)
+            }
+            fn get_param(&self) -> &Self::Param
+            {
+                &*self.param
+            }
+            fn get_param_mut(&mut self) -> &mut Self::Param
+            {
+                &mut *self.param
+            }
+            fn into_param(self) -> Self::Param
+            {
+                self.param.into_value()
+            }
+
+            #[allow(clippy::type_complexity)]
+                fn get_internals(&self) -> (&$crate::internals::RtfInternalsFor<Self>, &$crate::param::Param<$param>)
+            {
+                (&self.internals, &self.param)
+            }
+            #[allow(clippy::type_complexity)]
+                fn get_internals_mut(&mut self) -> (&mut $crate::internals::RtfInternalsFor<Self>, &mut $crate::param::Param<$param>)
+            {
+                (&mut self.internals, &mut self.param)
+            }
+
+            #[allow(clippy::type_complexity)]
+            fn make_coeffs($arg_param: &$param, $arg_rate: Self::F) -> (
+                $crate::internals::BInternalsFor<Self>,
+                Self::IsIir<$crate::internals::AInternalsFor<Self>>
+            )
+            {
+                fn make_coeffs<F>($arg_param: &$param, $arg_rate: F) -> (
+                    BInternals<F>,
+                    [AInternals<F>; $is_iir as usize]
+                )
+                where
+                    F: $crate::param::FilterFloat,
+                    $param: $crate::param::FilterParam<F = F>,
+                    $($($where)+)?
+                $make_coeffs
+
+                make_coeffs($arg_param, $arg_rate)
+            }
+        }
+    };
+    (
+        $({
+            $($docs:tt)+
+        })?
+        $name:ident
+        {
+            const OUTPUTS: usize = $outputs:expr;
+            const OUTPUT_BUFS: usize = $output_bufs:expr;
+            const SOS_BUFS: usize = $sos_bufs:expr;
+            const SOS_STAGES: usize = $sos_stages:expr;
+            const ORDER: usize = $order:expr;
+            const IS_IIR: bool = $is_iir:expr;
+
+            fn make_coeffs($arg_param:ident, $arg_rate:ident) -> _
+            $make_coeffs:block
+        }
+        $(where
+            $($where:tt)+)?
+    ) => {
+        type BInternals<F> = $crate::internals::binternals!(F, $outputs, $output_bufs, $sos_bufs, $sos_stages, $order);
+        type AInternals<F> = $crate::internals::ainternals!(F, $output_bufs, $sos_bufs, $sos_stages, $order);
+        type Internals<F> = $crate::internals::rtfinternals!(F, $outputs, $output_bufs, $sos_bufs, $sos_stages, $order, $is_iir);
+
+        $($($docs)*)?
+        #[derive(Clone, Copy, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
+        pub struct $name<F>
+        where
+            F: FilterFloat,
+            $($($where)+)?
+        {
+            pub param: $crate::param::Param<$param>,
+            pub internals: Internals<F>
+        }
+
+        impl<F> $name<F>
+        where
+            F: FilterFloat,
+            $($($where)+)?
+        {
+            pub const fn new() -> Self
+            {
+                Self {
+                    param: $crate::param::Param::new(())
+                    internals: Internals::new()
+                }
+            }
+        }
+
+        #[allow(unused_braces)]
+        impl<F> $crate::rtf::StaticRtf for $name<F>
+        where
+            F: FilterFloat,
+            $($($where)+)?
+        {
+            type Conf = $crate::conf::All;
+            type Param = ();
             type F = F;
 
-            const IS_IIR: bool = $is_iir;
-            const OUTPUTS: usize = $outputs;
-        }
-        #[allow(unused_braces)]
-        impl<F> real_time_fir_iir_filters::rtf::StaticRtfBase for $name<F>
-        where
-            F: real_time_fir_iir_filters::param::FilterFloat,
-            $($($where)+)?
-        {
-            type Param = core::marker::PhantomData<F>;
-
-            const O_BUFFERS: usize = $o_buffers;
-            const SOS_BUFFERS: usize = $sos_buffers;
-            const SOS_STAGES: usize = $sos_stages;
-            const ORDER: usize = $order;
+            type IsIir<U> = [U; $is_iir as usize];
+            type Outputs<U> = [U; $outputs];
+            type OutputBufs<U> = [U; $output_bufs];
+            type SosBufs<U> = [U; $sos_bufs];
+            type SosStages<U> = [U; $sos_stages];
+            type Order<U> = [U; $order];
 
             fn from_param((): Self::Param) -> Self
             {
@@ -1138,34 +998,45 @@ macro_rules! def_rtf {
             }
             fn get_param(&self) -> &Self::Param
             {
-                &core::marker::PhantomData
+                &*self.param
             }
             fn get_param_mut(&mut self) -> &mut Self::Param
             {
-                &mut core::marker::PhantomData
+                &mut *self.param
             }
             fn into_param(self) -> Self::Param
             {
-
+                self.param.into_value()
             }
 
             #[allow(clippy::type_complexity)]
-            fn get_internals(&self) -> (&Internals<F>, &real_time_fir_iir_filters::param::Param<core::marker::PhantomData<F>>)
+                fn get_internals(&self) -> (&$crate::internals::RtfInternalsFor<Self>, &$crate::param::Param<()>)
             {
-                (&self.internals, real_time_fir_iir_filters::param::Param::null())
+                (&self.internals, &self.param)
             }
             #[allow(clippy::type_complexity)]
-            fn get_internals_mut(&mut self) -> (&mut Internals<F>, &mut real_time_fir_iir_filters::param::Param<core::marker::PhantomData<F>>)
+                fn get_internals_mut(&mut self) -> (&mut $crate::internals::RtfInternalsFor<Self>, &mut $crate::param::Param<()>)
             {
-                (&mut self.internals, real_time_fir_iir_filters::param::Param::null())
+                (&mut self.internals, &mut self.param)
             }
 
             #[allow(clippy::type_complexity)]
-            fn make_coeffs($arg_param: &core::marker::PhantomData<F>, $arg_rate: Self::F) -> (
-                BInternals<F>,
-                [AInternals<F>; $is_iir as usize]
+            fn make_coeffs($arg_param: &$param, $arg_rate: Self::F) -> (
+                $crate::internals::BInternalsFor<Self>,
+                Self::IsIir<$crate::internals::AInternalsFor<Self>>
             )
-            $make_coeffs
+            {
+                fn make_coeffs<F>($arg_param: &$param, $arg_rate: F) -> (
+                    BInternals<F>,
+                    [AInternals<F>; $is_iir as usize]
+                )
+                where
+                    F: $crate::param::FilterFloat,
+                    $($($where)+)?
+                $make_coeffs
+
+                make_coeffs($arg_param, $arg_rate)
+            }
         }
     };
 }
@@ -1174,8 +1045,8 @@ macro_rules! def_rtf {
 mod tests
 {
     use crate::{plot, rtf::Rtf};
-    use core::ops::Range;
-    use linspace::LinspaceArray;
+    use core::{f64::consts::PI, ops::Range};
+    use linspace::Linspace;
     use num::{Complex, Float};
     use plotters::{
         coord::ranged1d::{AsRangedCoord, ValueFormatter},
@@ -1235,17 +1106,17 @@ mod tests
         }
     }
 
-    pub fn plot_freq<F, T>(filter: &mut T, two_sided: bool) -> Result<(), Box<dyn std::error::Error>>
+    pub fn plot_freq<F, T, const OUTPUTS: usize>(filter: &mut T, two_sided: bool) -> Result<(), Box<dyn std::error::Error>>
     where
         F: Display + Debug,
-        T: Rtf<F = F>,
-        [(); T::OUTPUTS - 1]:,
+        T: Rtf<F = F, Outputs<()> = [(); OUTPUTS]>,
+        //[(); T::OUTPUTS - 1]:,
         F: Float + AddAssign + SubAssign + 'static,
         Range<F>: AsRangedCoord<CoordDescType: ValueFormatter<<Range<F> as AsRangedCoord>::Value>, Value: Debug + Clone>,
         for<'b, 'a> &'b DynElement<'static, BitMapBackend<'a>, (F, F)>: PointCollection<'b, (<Range<F> as AsRangedCoord>::Value, <Range<F> as AsRangedCoord>::Value)>
     {
         const N: usize = 256;
-        let omega: [F; N] = (if two_sided { -core::f64::consts::PI } else { core::f64::EPSILON }..core::f64::consts::PI)
+        let omega: [F; N] = (if two_sided { -PI } else { f64::EPSILON }..PI)
             .linspace_array()
             .map(|omega| f!(omega));
 
@@ -1302,7 +1173,7 @@ mod tests
             .collect();
 
         let freq_response = {
-            let mut h: [_; T::OUTPUTS] = core::array::from_fn(|_| Box::new([Complex::from(F::zero()); N]));
+            let mut h: [_; OUTPUTS] = core::array::from_fn(|_| Box::new([Complex::from(F::zero()); N]));
 
             for (i, hh) in freq_response.into_iter().enumerate()
             {
@@ -1330,7 +1201,7 @@ mod tests
     fn inv()
     {
         const N: usize = 5;
-        const M: usize = (N + 1) / 2;
+        const M: usize = N.div_ceil(2);
         const K: usize = 2usize.pow(M as u32);
         let inv_map: [[_; M]; K] = core::array::from_fn(|mut i| {
             core::array::from_fn(|_| {

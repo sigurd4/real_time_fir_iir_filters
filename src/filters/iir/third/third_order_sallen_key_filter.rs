@@ -1,4 +1,4 @@
-use crate::{calc::iir::third::ThirdOrderSallenKeyCalc, conf::{All, BandPass, HighPass, LowPass}, internals::{ainternals, binternals, rtfinternals}, param::{FilterFloat, FilterParam, FirstOrderRCFilterConf, Param, RC3GSallenKey, SecondOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParam}, rtf::{RtfBase, StaticRtfBase}};
+use crate::{calc::iir::third::ThirdOrderSallenKeyCalc, conf::{All, BandPass, HighPass, LowPass}, internals::{ainternals, binternals, rtfinternals}, param::{FilterFloat, FilterParam, FirstOrderRCFilterConf, Param, RC3GSallenKey, SecondOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParam}, rtf::{RtfBase, StaticRtf}};
 
 #[allow(type_alias_bounds)]
 type BInternals<F, C1: FirstOrderRCFilterConf, C2: SecondOrderSallenKeyFilterConf> = binternals!(
@@ -243,10 +243,10 @@ macro_rules! c {
                 type Conf = C;
                 type F = <P as FilterParam>::F;
             
-                const IS_IIR: bool = true;
-                const OUTPUTS: usize = <$conf2 as SecondOrderSallenKeyFilterConf>::OUTPUTS*<$conf1 as FirstOrderRCFilterConf>::OUTPUTS;
+                type IsIir<U> = [U; 1];
+                type Outputs<U> = [U; <$conf2 as SecondOrderSallenKeyFilterConf>::OUTPUTS*<$conf1 as FirstOrderRCFilterConf>::OUTPUTS];
             }
-            impl<P, C> StaticRtfBase for ThirdOrderSallenKeyFilter<C, <P as FilterParam>::F, P, $conf1, $conf2>
+            impl<P, C> StaticRtf for ThirdOrderSallenKeyFilter<C, <P as FilterParam>::F, P, $conf1, $conf2>
             where
                 P: ThirdOrderSallenKeyFilterParam<C, Conf = C>,
                 C: ThirdOrderSallenKeyFilterConf<Conf = C, S1Conf = $conf1, S2Conf = $conf2>,
@@ -254,10 +254,10 @@ macro_rules! c {
             {
                 type Param = P;
 
-                const O_BUFFERS: usize = <$conf2 as SecondOrderSallenKeyFilterConf>::OUTPUTS;
-                const SOS_BUFFERS: usize = 1;
-                const SOS_STAGES: usize = 0;
-                const ORDER: usize = 3;
+                type OutputBufs<U> = [U; <$conf2 as SecondOrderSallenKeyFilterConf>::OUTPUTS];
+                type SosBufs<U> = [U; 1];
+                type SosStages<U> = [U; 0];
+                type Order<U> = [U; 3];
                 
                 fn from_param(param: Self::Param) -> Self
                 {
@@ -280,18 +280,18 @@ macro_rules! c {
                     self.param.into_value()
                 }
                 
-                fn get_internals(&self) -> (&Internals<<P as FilterParam>::F, $conf1, $conf2>, &Param<Self::Param>)
+                fn get_internals(&self) -> (&$crate::internals::RtfInternalsFor<Self>, &Param<Self::Param>)
                 {
                     (&self.internals, &self.param)
                 }
-                fn get_internals_mut(&mut self) -> (&mut Internals<<P as FilterParam>::F, $conf1, $conf2>, &mut Param<Self::Param>)
+                fn get_internals_mut(&mut self) -> (&mut $crate::internals::RtfInternalsFor<Self>, &mut Param<Self::Param>)
                 {
                     (&mut self.internals, &mut self.param)
                 }
 
                 fn make_coeffs($arg_param: &Self::Param, $arg_rate: Self::F) -> (
-                    BInternals<<P as FilterParam>::F, $conf1, $conf2>,
-                    [AInternals<<P as FilterParam>::F, $conf1, $conf2>; true as usize]
+                    $crate::internals::BInternalsFor<Self>,
+                    Self::IsIir<$crate::internals::AInternalsFor<Self>>
                 )
                 {
                     fn make_coeffs<F, P, C>($arg_param: &P, $arg_rate: F) -> (

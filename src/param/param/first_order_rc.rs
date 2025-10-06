@@ -10,7 +10,7 @@ pub trait FirstOrderRCFilterParam<C>: FirstOrderFilterParamBase<C, ImplBase = RC
     + ThirdOrderSallenKeyFilterParamBase<C, ImplBase = RC<<Self as FilterParam>::F>>
     + SecondOrderRCFilterParamBase<C, ImplBase = RC<<Self as FilterParam>::F>>
     + SecondOrderRLCFilterParamBase<C, ImplBase = RC<<Self as FilterParam>::F>>
-    + FilterParam<ORDER = 1>
+    + FilterParam/*<ORDER = 1>*/
 where
     C: Conf
 {

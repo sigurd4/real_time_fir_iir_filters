@@ -55,7 +55,7 @@ impl_composite_conf!(LowPass, HighPass => All);
 
 mod private
 {
-    use crate::param::{ButterworthFilterConf, DynOrderButterworthFilterParam, DynOrderChebyshev1FilterParam, DynOrderChebyshev2FilterParam, DynOrderEllipticFilterParam, EllipticFilterConf, FirstOrderButterworthFilterParam, FirstOrderChebyshev1FilterParam, FirstOrderChebyshev2FilterParam, FirstOrderEllipticFilterParam, OmegaDyn, OmegaEpsilonCheb1Dyn, OmegaEpsilonCheb1FirstOrder, OmegaEpsilonCheb1SecondOrder, OmegaEpsilonCheb2Dyn, OmegaEpsilonCheb2FirstOrder, OmegaEpsilonCheb2SecondOrder, OmegaEpsilonXiDyn, OmegaEpsilonXiFirstOrder, OmegaEpsilonXiSecondOrder, OmegaFirstOrder, OmegaSecondOrder, SecondOrderButterworthFilterParam, SecondOrderChebyshev1FilterParam, SecondOrderChebyshev2FilterParam, SecondOrderEllipticFilterParam};
+    use crate::param::{ButterworthFilterConf, EllipticFilterConf};
 
     pub trait EllipticFilterConfFinal<C>: EllipticFilterConf<
         Conf = Self
@@ -85,7 +85,7 @@ mod private
             Conf = CC,
             //OUTPUTS = {OUTPUTS}
         >,
-        OmegaDyn<f32>: DynOrderButterworthFilterParam<CC, Conf = CC>,
+        /*OmegaDyn<f32>: DynOrderButterworthFilterParam<CC, Conf = CC>,
         OmegaDyn<f64>: DynOrderButterworthFilterParam<CC, Conf = CC>,
         OmegaEpsilonCheb1Dyn<f32>: DynOrderChebyshev1FilterParam<CC, Conf = CC>,
         OmegaEpsilonCheb1Dyn<f64>: DynOrderChebyshev1FilterParam<CC, Conf = CC>,
@@ -110,7 +110,7 @@ mod private
         OmegaEpsilonCheb2SecondOrder<f32>: SecondOrderChebyshev2FilterParam<CC, Conf = CC>,
         OmegaEpsilonCheb2SecondOrder<f64>: SecondOrderChebyshev2FilterParam<CC, Conf = CC>,
         OmegaEpsilonXiSecondOrder<f32>: SecondOrderEllipticFilterParam<CC, Conf = CC>,
-        OmegaEpsilonXiSecondOrder<f64>: SecondOrderEllipticFilterParam<CC, Conf = CC>
+        OmegaEpsilonXiSecondOrder<f64>: SecondOrderEllipticFilterParam<CC, Conf = CC>*/
     {
 
     }

@@ -3,7 +3,7 @@ use crate::{conf::Conf, param::{FilterParam, FirstOrderFilterParamBase, FirstOrd
 use super::FirstOrderFilterParam;
 
 pub trait FirstOrderLRFilterParam<C>: FirstOrderFilterParamBase<C, ImplBase = LR<<Self as FilterParam>::F>>
-    + FilterParam<ORDER = 1>
+    + FilterParam/*<ORDER = 1>*/
 where
     C: Conf
 {

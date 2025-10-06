@@ -1,4 +1,4 @@
-use crate::{calc::iir::first::PICalc, param::{PIFilterParam, PI}, real_time_fir_iir_filters};
+use crate::{calc::iir::first::PICalc, param::{PIFilterParam, PI}};
 
 crate::def_rtf!(
     {
@@ -29,8 +29,8 @@ crate::def_rtf!(
         type Param: PIFilterParam = PI;
 
         const OUTPUTS: usize = 1;
-        const O_BUFFERS: usize = 1;
-        const SOS_BUFFERS: usize = 1;
+        const OUTPUT_BUFS: usize = 1;
+        const SOS_BUFS: usize = 1;
         const SOS_STAGES: usize = 0;
         const ORDER: usize = 1;
         const IS_IIR: bool = true;

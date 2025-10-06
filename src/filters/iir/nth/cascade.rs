@@ -3,14 +3,14 @@ use crate::rtf::{Rtf, RtfBase, StaticRtf};
 pub struct Cascade<A, B, const O: usize>(pub A, pub B)
 where
     A: Rtf<F = B::F>,
-    B: Rtf + StaticRtf,
-    [(); A::OUTPUTS - O - 1]:;
+    B: Rtf + StaticRtf;
+    //[(); A::OUTPUTS - O - 1]:;
 
 impl<A, B, const O: usize> RtfBase for Cascade<A, B, O>
 where
     A: Rtf<F = B::F>,
     B: Rtf + StaticRtf,
-    [(); A::OUTPUTS - O - 1]:
+    //[(); A::OUTPUTS - O - 1]:
 {
     type F = A::F;
 
@@ -27,7 +27,7 @@ impl<A, B, const O: usize> !StaticRtf for Cascade<A, B, O>
 where
     A: Rtf<F = B::F>,
     B: Rtf + StaticRtf,
-    [(); A::OUTPUTS - O - 1]:
+    //[(); A::OUTPUTS - O - 1]:
 {
 
 }
@@ -35,7 +35,7 @@ impl<A, B, const O: usize> Rtf for Cascade<A, B, O>
 where
     A: Rtf<F = B::F>,
     B: Rtf + StaticRtf,
-    [(); A::OUTPUTS - O - 1]:
+    //[(); A::OUTPUTS - O - 1]:
 {
     fn filter(&mut self, rate: Self::F, mut x: Self::F) -> [Self::F; Self::OUTPUTS]
     {

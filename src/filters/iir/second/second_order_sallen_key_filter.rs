@@ -1,4 +1,4 @@
-use crate::{calc::iir::second::SecondOrderSallenKeyCalc, conf::{All, BandPass, HighPass, LowPass}, param::{RC2GSallenKey, SecondOrderSallenKeyFilterConf, SecondOrderSallenKeyFilterParam}, real_time_fir_iir_filters};
+use crate::{calc::iir::second::SecondOrderSallenKeyCalc, conf::{All, BandPass, HighPass, LowPass}, param::{RC2GSallenKey, SecondOrderSallenKeyFilterConf, SecondOrderSallenKeyFilterParam}};
 
 crate::def_rtf!(
     {

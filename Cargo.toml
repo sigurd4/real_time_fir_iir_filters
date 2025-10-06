@@ -14,15 +14,16 @@ exclude = ["plots/"]
 
 [dependencies]
 num = "0.4.3"
-moddef = "0.2.6"
+moddef = "0.3.0"
 static_assertions = "1.1.0"
-bytemuck = "1.23.0"
+bytemuck = "1.24.0"
 tupleops = "0.1.1"
-serde = {version = "1.0.219", features = ["derive"]}
+serde = {version = "1.0.228", features = ["derive"]}
+array_trait = "1.1.0"
 
 [dev-dependencies]
 plotters = "0.3.7"
-linspace = "0.1.1"
+linspace = "0.2.1"
 
 [package.metadata.docs.rs]
 rustdoc-args = ["--html-in-header", "katex-header.html"]
@@ -31,23 +32,23 @@ all-features = true
 [features]
 default = [
     "first_order_all_pass",
-    "first_order",
-    "first_order_lr",
-    "first_order_rc",
+    #"first_order",
+    #"first_order_lr",
+    #"first_order_rc",
     "pi",
     "pid",
-    "second_order_butterworth",
-    "second_order_chebyshev1",
-    "second_order_chebyshev2",
-    "second_order_elliptic",
-    "second_order",
-    "second_order_rc",
-    "second_order_rlc",
-    "second_order_sallen_key",
-    "third_order_butterworth",
-    "third_order",
-    "third_order_sallen_key",
-    "wah"
+    #"second_order_butterworth",
+    #"second_order_chebyshev1",
+    #"second_order_chebyshev2",
+    #"second_order_elliptic",
+    #"second_order",
+    #"second_order_rc",
+    #"second_order_rlc",
+    #"second_order_sallen_key",
+    #"third_order_butterworth",
+    #"third_order",
+    #"third_order_sallen_key",
+    #"wah"
 ]
 
 first_order_all_pass = []

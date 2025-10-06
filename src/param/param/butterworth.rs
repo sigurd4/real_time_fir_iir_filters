@@ -4,7 +4,7 @@ use super::{FirstOrderFilterParam, SecondOrderFilterParam, ThirdOrderFilterParam
 
 pub trait ButterworthFilterParam<
     C
->: ChebyshevFilterParamBase<C, ImplBase = OmegaDyn<<Self as FilterParam>::F>, TYPE = false>
+>: ChebyshevFilterParamBase<C, ImplBase = OmegaDyn<<Self as FilterParam>::F>/*, TYPE = false*/>
     + EllipticFilterParamBase<C, ImplBase = OmegaEpsilonCheb1Dyn<<Self as FilterParam>::F>>
 where
     C: Conf

@@ -1,13 +1,18 @@
-use crate::{internals::{ainternals, binternals, rtfinternals}, param::Param, rtf::RtfBase};
+use crate::{conf, internals::{ainternals, binternals, rtfinternals}, param::{FilterFloat, Param}, util::{ArrayChunks, ArrayMin1, ArrayMinus1, ArrayPlus1, BoolArray}};
 
-pub trait StaticRtfBase: RtfBase + Sized
+pub trait StaticRtf: Sized
 {
     type Param;
 
-    const ORDER: usize;
-    const SOS_STAGES: usize;
-    const O_BUFFERS: usize;
-    const SOS_BUFFERS: usize;
+    type Conf: conf::Conf;
+    type F: FilterFloat;
+    
+    type Outputs<U>: ArrayChunks<Self::OutputBufs<U>, Elem = U, Rem = [U; 0]>;
+    type IsIir<U>: BoolArray<Elem = U>;
+    type Order<U>: ArrayPlus1<Elem = U>;
+    type OutputBufs<U>: ArrayChunks<Self::SosBufs<U>, Elem = U, Rem = [U; 0]>;
+    type SosBufs<U>: ArrayChunks<Self::SosBufs<U>, Elem = U, Rem = [U; 0], Chunks = [Self::SosBufs<U>; 1]>;
+    type SosStages<U>: ArrayMin1<Elem = U> + ArrayMinus1<Elem = U>;
     
     fn from_param(param: Self::Param) -> Self;
     fn get_param(&self) -> &Self::Param;
@@ -15,66 +20,18 @@ pub trait StaticRtfBase: RtfBase + Sized
     fn into_param(self) -> Self::Param;
     
     #[allow(clippy::type_complexity)]
-    fn get_internals(&self) -> (&rtfinternals!(Self::F, Self::OUTPUTS, Self::O_BUFFERS, Self::SOS_BUFFERS, Self::SOS_STAGES, Self::ORDER, Self::IS_IIR), &Param<Self::Param>);
+    fn get_internals(&self) -> (&rtfinternals!(Self), &Param<Self::Param>);
     #[allow(clippy::type_complexity)]
-    fn get_internals_mut(&mut self) -> (&mut rtfinternals!(Self::F, Self::OUTPUTS, Self::O_BUFFERS, Self::SOS_BUFFERS, Self::SOS_STAGES, Self::ORDER, Self::IS_IIR), &mut Param<Self::Param>);
+    fn get_internals_mut(&mut self) -> (&mut rtfinternals!(Self), &mut Param<Self::Param>);
     
     #[allow(clippy::type_complexity)]
     fn make_coeffs(param: &Self::Param, rate: Self::F) -> (
-        binternals!(Self::F, Self::OUTPUTS, Self::O_BUFFERS, Self::SOS_BUFFERS, Self::SOS_STAGES, Self::ORDER),
-        [ainternals!(Self::F, Self::O_BUFFERS, Self::SOS_BUFFERS, Self::SOS_STAGES, Self::ORDER); Self::IS_IIR as usize]
+        binternals!(Self),
+        Self::IsIir<ainternals!(Self)>
     );
-}
-
-mod private
-{
-    use super::StaticRtfBase;
-
-    pub trait _StaticRtf: StaticRtfBase
-    {
-        fn _update_internals(&mut self, rate: Self::F);
-    }
-
-    impl<T> _StaticRtf for T
-    where
-        T: StaticRtfBase,
-        [(); Self::ORDER + 1]:,
-        [(); Self::IS_IIR as usize]:,
-        [(); Self::SOS_STAGES*(Self::SOS_STAGES >= 1) as usize - (Self::SOS_STAGES >= 1) as usize]:,
-        [(); (Self::SOS_STAGES >= 1) as usize]:,
-        [(); 0 - Self::OUTPUTS % Self::O_BUFFERS]:,
-        [(); 0 - Self::O_BUFFERS % Self::SOS_BUFFERS]:
-    {
-        fn _update_internals(&mut self, rate: Self::F)
-        {
-            crate::internals::update(self, rate)
-        }
-    }
-}
-
-pub trait StaticRtf: private::_StaticRtf
-{
-    const O_BUF_CHUNK: usize;
-    const SOS_BUF_CHUNK: usize;
-
-    const REM_SOS_LEN: usize;
-    const LAST_SOS_LEN: usize;
-
-    fn update_internals(&mut self, rate: Self::F);
-}
-
-impl<T> StaticRtf for T
-where
-    T: private::_StaticRtf
-{
-    const O_BUF_CHUNK: usize = Self::OUTPUTS/Self::O_BUFFERS;
-    const SOS_BUF_CHUNK: usize = Self::O_BUFFERS/Self::SOS_BUFFERS;
-
-    const REM_SOS_LEN: usize = Self::SOS_STAGES*(Self::SOS_STAGES >= 1) as usize - (Self::SOS_STAGES >= 1) as usize;
-    const LAST_SOS_LEN: usize = (Self::SOS_STAGES >= 1) as usize;
 
     fn update_internals(&mut self, rate: Self::F)
     {
-        self._update_internals(rate)
+        crate::internals::update(self, rate)
     }
 }
