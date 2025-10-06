@@ -32,7 +32,7 @@ all-features = true
 [features]
 default = [
     "first_order_all_pass",
-    #"first_order",
+    "first_order",
     #"first_order_lr",
     #"first_order_rc",
     "pi",

@@ -146,14 +146,14 @@ real_time_fir_iir_filters::def_rtf!(
 
         // The amount of separate buffers for the output stage.
         // This is also how many denominators you need in the output-stage.
-        // `OUTPUTS` must be a multiple of `O_BUFFERS`.
+        // `OUTPUTS` must be a multiple of `OUTPUT_BUFS`.
         // When you have less output buffers than outputs, denominators will be shared across outputs.
-        const O_BUFFERS: usize = 1;
+        const OUTPUT_BUFS: usize = 1;
 
         // The amount of separate buffers for the second-order section stages.
-        // `O_BUFFERS` must be a multiple of `SOS_BUFFERS`.
+        // `OUTPUT_BUFS` must be a multiple of `SOS_BUFS`.
         // When you have less SOS-buffers than output buffers, the result of the final SOS-stage for each buffer will be shared across output-buffers.
-        const SOS_BUFFERS: usize = 1;
+        const SOS_BUFS: usize = 1;
 
         // The amount of additional second-order section stages.
         // Second-order sections allow computing filters with higher accuracy, by using a cascade of second order filters before the final stage (which can be any order).

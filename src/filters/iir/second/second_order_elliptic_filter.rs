@@ -48,8 +48,8 @@ crate::def_rtf!(
         type Conf: EllipticFilterConf;
         type Param: SecondOrderEllipticFilterParam = OmegaEpsilonXiSecondOrder;
 
-        const O_BUFFERS: usize = <C as EllipticFilterConf>::OUTPUTS;
-        const SOS_BUFFERS: usize = 1;
+        const OUTPUT_BUFS: usize = <C as EllipticFilterConf>::OUTPUTS;
+        const SOS_BUFS: usize = 1;
         const SOS_STAGES: usize = 0;
         const ORDER: usize = 2;
         const IS_IIR: bool = true;

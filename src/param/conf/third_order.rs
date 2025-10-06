@@ -1,51 +1,51 @@
-use crate::conf::{all, All, Conf, HighPass, LowPass, Peak};
+use crate::{util::{self, ArrayChunks}, conf::{all, All, Conf, HighPass, LowPass, Peak}};
 
 pub trait ThirdOrderFilterConf: Conf
 {
     type Conf: private::ThirdOrderFilterConfFinal<Self>;
 
-    const OUTPUTS: usize;
+    type Outputs<U>: ArrayChunks<[U; 1], Elem = U, Rem = [U; 0]>;
 }
 impl ThirdOrderFilterConf for LowPass
 {
     type Conf = Self;
 
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 }
 impl ThirdOrderFilterConf for Peak<1>
 {
     type Conf = Self;
     
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 }
 impl ThirdOrderFilterConf for Peak<2>
 {
     type Conf = Self;
     
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 }
 impl ThirdOrderFilterConf for HighPass
 {
     type Conf = Self;
     
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 }
 
 macro impl_composite_conf {
-    ($conf:ty: $conf0:ty, $($more:ty),+) => {
+    ($conf:ty: $($more:ty),+) => {
         impl ThirdOrderFilterConf for $conf
         {
             type Conf = $conf;
 
-            const OUTPUTS: usize = <$conf0 as ThirdOrderFilterConf>::OUTPUTS $(+ <$more as ThirdOrderFilterConf>::OUTPUTS)*;
+            type Outputs<U> = util::array_sum!($(<$more as ThirdOrderFilterConf>::Outputs::<U>),+);
         }
     },
-    ($conf:ty: $conf0:ty, $($more:ty),+ => $($actual:ty),+) => {
+    ($conf:ty: $($more:ty),+ => $($actual:ty),+) => {
         impl ThirdOrderFilterConf for $conf
         {
             type Conf = all!($($actual),+);
 
-            const OUTPUTS: usize = <$conf0 as ThirdOrderFilterConf>::OUTPUTS $(+ <$more as ThirdOrderFilterConf>::OUTPUTS)*;
+            type Outputs<U> = util::array_sum!($(<$more as ThirdOrderFilterConf>::Outputs::<U>),+);
         }
     },
     ($conf0:ty, $($more:ty),+ $(=> $($actual:ty),+)?) => {
@@ -95,21 +95,18 @@ mod private
     }
     impl<
         CC,
-        C,
-        const OUTPUTS: usize
+        C
     > ThirdOrderFilterConfFinal<C> for CC
     where
         CC: ThirdOrderFilterConf<
             Conf = C::Conf,
-            OUTPUTS = {OUTPUTS}
+            Outputs<()> = C::Outputs<()>
         > + ButterworthFilterConf<
             3,
             Conf = C::Conf,
-            OUTPUTS = {OUTPUTS}
+            Outputs<()> = C::Outputs<()>
         >,
-        C: ThirdOrderFilterConf<
-            OUTPUTS = {OUTPUTS}
-        >,
+        C: ThirdOrderFilterConf,
         Omega2Zeta<f64>: ThirdOrderFilterParam<CC, Conf = CC>,
         Omega2Zeta<f32>: ThirdOrderFilterParam<CC, Conf = CC>,
     {

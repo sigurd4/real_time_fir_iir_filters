@@ -53,8 +53,8 @@ where
 {
     type Param = T::Param;
 
-    const O_BUFFERS: usize = T::OUTPUTS;
-    const SOS_BUFFERS: usize = T::OUTPUTS;
+    const OUTPUT_BUFS: usize = T::OUTPUTS;
+    const SOS_BUFS: usize = T::OUTPUTS;
     const ORDER: usize = T::ORDER;
     const SOS_STAGES: usize = T::SOS_STAGES;
     

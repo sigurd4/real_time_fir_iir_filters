@@ -1,40 +1,40 @@
-use crate::conf::{all, All, Conf, HighPass, LowPass};
+use crate::{conf::{All, Conf, HighPass, LowPass, all}, util::{self, ArrayChunks}};
 
 pub trait FirstOrderFilterConf: Conf
 {
     type Conf: private::FirstOrderFilterConfFinal<Self>;
 
-    const OUTPUTS: usize;
+    type Outputs<U>: ArrayChunks<[U; 1], Elem = U, Rem = [U; 0]>;
 }
 
 impl FirstOrderFilterConf for LowPass
 {
     type Conf = Self;
 
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 }
 impl FirstOrderFilterConf for HighPass
 {
     type Conf = Self;
 
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 }
 
 macro impl_composite_conf {
-    ($conf:ty: $conf0:ty, $($more:ty),+) => {
+    ($conf:ty: $($more:ty),+) => {
         impl FirstOrderFilterConf for $conf
         {
             type Conf = $conf;
 
-            const OUTPUTS: usize = <$conf0 as FirstOrderFilterConf>::OUTPUTS $(+ <$more as FirstOrderFilterConf>::OUTPUTS)*;
+            type Outputs<U> = util::array_sum!($(<$more as FirstOrderFilterConf>::Outputs::<U>),+);
         }
     },
-    ($conf:ty: $conf0:ty, $($more:ty),+ => $($actual:ty),+) => {
+    ($conf:ty: $($more:ty),+ => $($actual:ty),+) => {
         impl FirstOrderFilterConf for $conf
         {
             type Conf = all!($($actual),+);
 
-            const OUTPUTS: usize = <$conf0 as FirstOrderFilterConf>::OUTPUTS $(+ <$more as FirstOrderFilterConf>::OUTPUTS)*;
+            type Outputs<U> = util::array_sum!($(<$more as FirstOrderFilterConf>::Outputs::<U>),+);
         }
     },
     ($conf0:ty, $($more:ty),+ $(=> $($actual:ty),+)?) => {
@@ -67,17 +67,15 @@ mod private
     }
     impl<
         CC,
-        C,
-        const OUTPUTS: usize
+        C
     > FirstOrderFilterConfFinal<C> for CC
     where
         CC: FirstOrderFilterConf<
             Conf = CC,
-            OUTPUTS = {OUTPUTS}
+            Outputs<()> = C::Outputs<()>
         >,
         C: FirstOrderFilterConf<
-            Conf = CC::Conf,
-            OUTPUTS = {OUTPUTS}
+            Conf = CC
         >,
         OmegaFirstOrder<f64>: FirstOrderFilterParam<CC, Conf = CC>,
         OmegaFirstOrder<f32>: FirstOrderFilterParam<CC, Conf = CC>

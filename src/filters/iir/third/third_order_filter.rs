@@ -72,8 +72,8 @@ crate::def_rtf!(
         type Conf: ThirdOrderFilterConf;
         type Param: ThirdOrderFilterParam = Omega2Zeta;
 
-        const O_BUFFERS: usize = 1;
-        const SOS_BUFFERS: usize = 1;
+        const OUTPUT_BUFS: usize = 1;
+        const SOS_BUFS: usize = 1;
         const SOS_STAGES: usize = 0;
         const ORDER: usize = 3;
         const IS_IIR: bool = true;

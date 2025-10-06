@@ -1,4 +1,4 @@
-use crate::conf::Conf;
+use crate::{util::ArrayChunks, conf::Conf};
 
 use super::{EllipticFilterConf, FirstOrderFilterConf, SecondOrderFilterConf, ThirdOrderFilterConf};
 
@@ -10,40 +10,40 @@ pub trait ButterworthFilterConf<const ORDER: usize>: Conf
 {
     type Conf: private::ButterworthFilterConfFinal<ORDER, Self>;
 
-    const OUTPUTS: usize;
+    type Outputs<U>: ArrayChunks<[U; 1], Elem = U, Rem = [U; 0]>;
 }
 
-impl<C, const OUTPUTS: usize> ButterworthFilterConf<0> for C
+impl<C> ButterworthFilterConf<0> for C
 where
-    C: EllipticFilterConf<OUTPUTS = {OUTPUTS}>
+    C: EllipticFilterConf
 {
     type Conf = <Self as EllipticFilterConf>::Conf;
 
-    const OUTPUTS: usize = OUTPUTS;
+    type Outputs<U> = <C as EllipticFilterConf>::Outputs<U>;
 }
-impl<C, const OUTPUTS: usize> ButterworthFilterConf<1> for C
+impl<C> ButterworthFilterConf<1> for C
 where
-    C: FirstOrderFilterConf<OUTPUTS = {OUTPUTS}>
+    C: FirstOrderFilterConf
 {
     type Conf = <Self as FirstOrderFilterConf>::Conf;
 
-    const OUTPUTS: usize = OUTPUTS;
+    type Outputs<U> = <C as FirstOrderFilterConf>::Outputs<U>;
 }
-impl<C, const OUTPUTS: usize> ButterworthFilterConf<2> for C
+impl<C> ButterworthFilterConf<2> for C
 where
-    C: SecondOrderFilterConf<OUTPUTS = {OUTPUTS}>
+    C: SecondOrderFilterConf
 {
     type Conf = <Self as SecondOrderFilterConf>::Conf;
     
-    const OUTPUTS: usize = OUTPUTS;
+    type Outputs<U> = <C as SecondOrderFilterConf>::Outputs<U>;
 }
-impl<C, const OUTPUTS: usize> ButterworthFilterConf<3> for C
+impl<C> ButterworthFilterConf<3> for C
 where
-    C: ThirdOrderFilterConf<OUTPUTS = {OUTPUTS}>
+    C: ThirdOrderFilterConf
 {
     type Conf = <Self as ThirdOrderFilterConf>::Conf;
     
-    const OUTPUTS: usize = OUTPUTS;
+    type Outputs<U> = <C as ThirdOrderFilterConf>::Outputs<U>;
 }
 
 mod private

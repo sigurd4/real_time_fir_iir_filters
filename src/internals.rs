@@ -84,15 +84,15 @@ pub macro rtfinternals {
     }
 }
 
-pub type WInternals<F, const O_BUFFERS: usize, const SOS_BUFFERS: usize, const SOS_STAGES: usize, const ORDER: usize> = winternals!(F, O_BUFFERS, SOS_BUFFERS, SOS_STAGES, ORDER);
-pub type BInternals<F, const OUTPUTS: usize, const O_BUFFERS: usize, const SOS_BUFFERS: usize, const SOS_STAGES: usize, const ORDER: usize> = binternals!(F, OUTPUTS, O_BUFFERS, SOS_BUFFERS, SOS_STAGES, ORDER);
-pub type AInternals<F, const O_BUFFERS: usize, const SOS_BUFFERS: usize, const SOS_STAGES: usize, const ORDER: usize> = ainternals!(F, O_BUFFERS, SOS_BUFFERS, SOS_STAGES, ORDER);
+pub type WInternals<F, const OUTPUT_BUFS: usize, const SOS_BUFS: usize, const SOS_STAGES: usize, const ORDER: usize> = winternals!(F, OUTPUT_BUFS, SOS_BUFS, SOS_STAGES, ORDER);
+pub type BInternals<F, const OUTPUTS: usize, const OUTPUT_BUFS: usize, const SOS_BUFS: usize, const SOS_STAGES: usize, const ORDER: usize> = binternals!(F, OUTPUTS, OUTPUT_BUFS, SOS_BUFS, SOS_STAGES, ORDER);
+pub type AInternals<F, const OUTPUT_BUFS: usize, const SOS_BUFS: usize, const SOS_STAGES: usize, const ORDER: usize> = ainternals!(F, OUTPUT_BUFS, SOS_BUFS, SOS_STAGES, ORDER);
 
-pub type RtfInternalsGiven<F, const OUTPUTS: usize, const O_BUFFERS: usize, const SOS_BUFFERS: usize, const SOS_STAGES: usize, const ORDER: usize, const IS_IIR: bool>
+pub type RtfInternalsGiven<F, const OUTPUTS: usize, const OUTPUT_BUFS: usize, const SOS_BUFS: usize, const SOS_STAGES: usize, const ORDER: usize, const IS_IIR: bool>
     = RtfInternals<F,
-        WInternals<F, O_BUFFERS, SOS_BUFFERS, SOS_STAGES, ORDER>,
-        BInternals<F, OUTPUTS, O_BUFFERS, SOS_BUFFERS, SOS_STAGES, ORDER>,
-        [AInternals<F, O_BUFFERS, SOS_BUFFERS, SOS_STAGES, ORDER>; IS_IIR as usize]
+        WInternals<F, OUTPUT_BUFS, SOS_BUFS, SOS_STAGES, ORDER>,
+        BInternals<F, OUTPUTS, OUTPUT_BUFS, SOS_BUFS, SOS_STAGES, ORDER>,
+        [AInternals<F, OUTPUT_BUFS, SOS_BUFS, SOS_STAGES, ORDER>; IS_IIR as usize]
     >;
 
 #[allow(type_alias_bounds)]
@@ -177,8 +177,8 @@ where
     [(); Rtf::IS_IIR as usize]:,
     [(); Rtf::SOS_STAGES*(Rtf::SOS_STAGES >= 1) as usize - (Rtf::SOS_STAGES >= 1) as usize]:,
     [(); (Rtf::SOS_STAGES >= 1) as usize]:,
-    [(); 0 - Rtf::OUTPUTS % Rtf::O_BUFFERS]:,
-    [(); 0 - Rtf::O_BUFFERS % Rtf::SOS_BUFFERS]:*/
+    [(); 0 - Rtf::OUTPUTS % Rtf::OUTPUT_BUFS]:,
+    [(); 0 - Rtf::OUTPUT_BUFS % Rtf::SOS_BUFS]:*/
 {
     let (internals, param) = rtf.get_internals_mut();
     if !param.is_unchanged_then_set() || internals.rate != Some(rate)

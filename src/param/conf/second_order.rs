@@ -1,45 +1,45 @@
-use crate::conf::{all, All, Conf, HighPass, LowPass, Peak};
+use crate::{util::{self, ArrayChunks}, conf::{all, All, Conf, HighPass, LowPass, Peak}};
 
 pub trait SecondOrderFilterConf: Conf
 {
     type Conf: private::SecondOrderFilterConfFinal<Self>;
 
-    const OUTPUTS: usize;
+    type Outputs<U>: ArrayChunks<[U; 1], Elem = U, Rem = [U; 0]>;
 }
 impl SecondOrderFilterConf for LowPass
 {
     type Conf = Self;
 
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 }
 impl SecondOrderFilterConf for Peak
 {
     type Conf = Self;
     
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 }
 impl SecondOrderFilterConf for HighPass
 {
     type Conf = Self;
     
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 }
 
 macro impl_composite_conf {
-    ($conf:ty: $conf0:ty, $($more:ty),+) => {
+    ($conf:ty: $($more:ty),+) => {
         impl SecondOrderFilterConf for $conf
         {
             type Conf = $conf;
 
-            const OUTPUTS: usize = <$conf0 as SecondOrderFilterConf>::OUTPUTS $(+ <$more as SecondOrderFilterConf>::OUTPUTS)*;
+            type Outputs<U> = util::array_sum!($(<$more as SecondOrderFilterConf>::Outputs::<U>),+);
         }
     },
-    ($conf:ty: $conf0:ty, $($more:ty),+ => $($actual:ty),+) => {
+    ($conf:ty: $($more:ty),+ => $($actual:ty),+) => {
         impl SecondOrderFilterConf for $conf
         {
             type Conf = all!($($actual),+);
 
-            const OUTPUTS: usize = <$conf0 as SecondOrderFilterConf>::OUTPUTS $(+ <$more as SecondOrderFilterConf>::OUTPUTS)*;
+            type Outputs<U> = util::array_sum!($(<$more as SecondOrderFilterConf>::Outputs::<U>),+);
         }
     },
     ($conf0:ty, $($more:ty),+ $(=> $($actual:ty),+)?) => {
@@ -75,21 +75,17 @@ mod private
     }
     impl<
         CC,
-        C,
-        const OUTPUTS: usize
+        C
     > SecondOrderFilterConfFinal<C> for CC
     where
         CC: SecondOrderFilterConf<
             Conf = C::Conf,
-            OUTPUTS = {OUTPUTS}
+            Outputs<()> = C::Outputs<()>
         > + ButterworthFilterConf<
             2,
-            Conf = C::Conf,
-            OUTPUTS = {OUTPUTS}
+            Conf = C::Conf
         >,
-        C: SecondOrderFilterConf<
-            OUTPUTS = {OUTPUTS}
-        >,
+        C: SecondOrderFilterConf,
         OmegaZeta<f64>: SecondOrderFilterParam<CC, Conf = CC>,
         OmegaZeta<f32>: SecondOrderFilterParam<CC, Conf = CC>
     {

@@ -1,42 +1,41 @@
-use crate::conf::{all, All, Conf, HighPass, LowPass};
-
+use crate::{util::{self, ArrayChunks}, conf::{all, All, Conf, HighPass, LowPass}};
 
 pub trait EllipticFilterConf: Conf
 {
     type Conf: private::EllipticFilterConfFinal<Self>;
 
-    const OUTPUTS: usize;
+    type Outputs<U>: ArrayChunks<[U; 1], Elem = U, Rem = [U; 0]>;
 }
 
 impl EllipticFilterConf for LowPass
 {
     type Conf = Self;
 
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 }
 impl EllipticFilterConf for HighPass
 {
     type Conf = Self;
 
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 }
 
 
 macro impl_composite_conf {
-    ($conf:ty: $conf0:ty, $($more:ty),+) => {
+    ($conf:ty: $($more:ty),+) => {
         impl EllipticFilterConf for $conf
         {
             type Conf = $conf;
 
-            const OUTPUTS: usize = <$conf0 as EllipticFilterConf>::OUTPUTS $(+ <$more as EllipticFilterConf>::OUTPUTS)*;
+            type Outputs<U> = util::array_sum!($(<$more as EllipticFilterConf>::Outputs::<U>),+);
         }
     },
-    ($conf:ty: $conf0:ty, $($more:ty),+ => $($actual:ty),+) => {
+    ($conf:ty: $($more:ty),+ => $($actual:ty),+) => {
         impl EllipticFilterConf for $conf
         {
             type Conf = all!($($actual),+);
 
-            const OUTPUTS: usize = <$conf0 as EllipticFilterConf>::OUTPUTS $(+ <$more as EllipticFilterConf>::OUTPUTS)*;
+            type Outputs<U> = util::array_sum!($(<$more as EllipticFilterConf>::Outputs::<U>),+);
         }
     },
     ($conf0:ty, $($more:ty),+ $(=> $($actual:ty),+)?) => {
@@ -69,21 +68,19 @@ mod private
     }
     impl<
         CC,
-        C,
-        //const OUTPUTS: usize
+        C
     > EllipticFilterConfFinal<C> for CC
     where
         CC: EllipticFilterConf<
             Conf = CC,
-            //OUTPUTS = {OUTPUTS}
+            Outputs<()> = C::Outputs<()>
         > + ButterworthFilterConf<
             0,
             Conf = CC,
-            //OUTPUTS = {OUTPUTS}
+            Outputs<()> = C::Outputs<()>
         >,
         C: EllipticFilterConf<
-            Conf = CC,
-            //OUTPUTS = {OUTPUTS}
+            Conf = CC
         >,
         /*OmegaDyn<f32>: DynOrderButterworthFilterParam<CC, Conf = CC>,
         OmegaDyn<f64>: DynOrderButterworthFilterParam<CC, Conf = CC>,

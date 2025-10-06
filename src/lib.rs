@@ -525,8 +525,7 @@ macro_rules! def_rtf {
             $(const SOS_STAGES: usize = $sos_stages:expr;)?
             $(type Order = $order_ty:ty;)?
             $(const ORDER: usize = $order:expr;)?
-            $(type IsIir = $is_iir_ty:ty;)?
-            $(const IS_IIR: bool = $is_iir:expr;)?
+            const IS_IIR: bool = $is_iir:expr;
 
             $(
                 fn make_coeffs<$conf:ty>($arg_param:ident, $arg_rate:ident) -> _
@@ -555,11 +554,7 @@ macro_rules! def_rtf {
             F: $crate::param::FilterFloat,
             C: $conf_trait_alias<Conf = C> + $conf_trait
         {
-            type IsIir<U> = $crate::rtf_conf_const!(
-                type Conf: $conf_trait_alias as $conf_trait = C;
-
-                const type IsIir<U> $(= $is_iir_ty)? $(= [U; $is_iir as usize])?;
-            );
+            type IsIir<U> = [U; $is_iir as usize];
             type Outputs<U> = $crate::rtf_conf_const!(
                 type Conf: $conf_trait_alias as $conf_trait = C;
 

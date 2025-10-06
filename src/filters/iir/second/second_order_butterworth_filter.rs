@@ -56,8 +56,8 @@ crate::def_rtf!(
         type Conf: SecondOrderButterworthFilterConf as ButterworthFilterConf<2>;
         type Param: SecondOrderButterworthFilterParam = OmegaSecondOrder;
 
-        const O_BUFFERS: usize = 1;
-        const SOS_BUFFERS: usize = 1;
+        const OUTPUT_BUFS: usize = 1;
+        const SOS_BUFS: usize = 1;
         const SOS_STAGES: usize = 0;
         const ORDER: usize = 2;
         const IS_IIR: bool = true;
