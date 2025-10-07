@@ -1,10 +1,10 @@
-use crate::conf::{all, All, BandPass, BandStop, Conf, HighPass, InputOrGND, LowPass};
+use crate::{util::{self, ObviousArray}, conf::{all, All, BandPass, BandStop, Conf, HighPass, InputOrGND, LowPass}};
 
 pub trait SecondOrderRLCFilterConf: Conf
 {
     type Conf: private::SecondOrderRLCFilterConfFinal<Self>;
 
-    const OUTPUTS: usize;
+    type Outputs<U>: ObviousArray<Elem = U>;
 
     const R_CONF: InputOrGND;
     const L_CONF: InputOrGND;
@@ -15,7 +15,7 @@ impl SecondOrderRLCFilterConf for LowPass
 {
     type Conf = Self;
 
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 
     const R_CONF: InputOrGND = InputOrGND::Input;
     const L_CONF: InputOrGND = InputOrGND::Input;
@@ -25,7 +25,7 @@ impl SecondOrderRLCFilterConf for BandStop
 {
     type Conf = Self;
 
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 
     const R_CONF: InputOrGND = InputOrGND::Input;
     const L_CONF: InputOrGND = InputOrGND::GND;
@@ -35,7 +35,7 @@ impl SecondOrderRLCFilterConf for BandPass
 {
     type Conf = Self;
 
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 
     const R_CONF: InputOrGND = InputOrGND::GND;
     const L_CONF: InputOrGND = InputOrGND::Input;
@@ -45,7 +45,7 @@ impl SecondOrderRLCFilterConf for HighPass
 {
     type Conf = Self;
 
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 
     const R_CONF: InputOrGND = InputOrGND::GND;
     const L_CONF: InputOrGND = InputOrGND::GND;
@@ -53,44 +53,38 @@ impl SecondOrderRLCFilterConf for HighPass
 }
 
 macro impl_composite_conf {
-    ($conf:ty: $conf0:ty, $($more:ty),+ => $($actual:ty),+) => {
+    ($conf:ty: $($more:ty),+ => $($actual:ty),+) => {
         impl SecondOrderRLCFilterConf for $conf
         {
             type Conf = all!($($actual),*);
 
-            const OUTPUTS: usize = <$conf0 as SecondOrderRLCFilterConf>::OUTPUTS $(+ <$more as SecondOrderRLCFilterConf>::OUTPUTS)*;
+            type Outputs<U> = util::array_sum!($(<$more as SecondOrderRLCFilterConf>::Outputs::<U>),+);
 
             const R_CONF: InputOrGND = InputOrGND::all([
-                <$conf0 as SecondOrderRLCFilterConf>::R_CONF,
                 $(<$more as SecondOrderRLCFilterConf>::R_CONF),*
             ]);
             const L_CONF: InputOrGND = InputOrGND::all([
-                <$conf0 as SecondOrderRLCFilterConf>::L_CONF,
                 $(<$more as SecondOrderRLCFilterConf>::L_CONF),*
             ]);
             const C_CONF: InputOrGND = InputOrGND::all([
-                <$conf0 as SecondOrderRLCFilterConf>::C_CONF,
                 $(<$more as SecondOrderRLCFilterConf>::C_CONF),*
             ]);
         }
     },
-    ($conf:ty: $conf0:ty, $($more:ty),+) => {
+    ($conf:ty: $($more:ty),+) => {
         impl SecondOrderRLCFilterConf for $conf
         {
             type Conf = $conf;
 
-            const OUTPUTS: usize = <$conf0 as SecondOrderRLCFilterConf>::OUTPUTS $(+ <$more as SecondOrderRLCFilterConf>::OUTPUTS)*;
+            type Outputs<U> = util::array_sum!($(<$more as SecondOrderRLCFilterConf>::Outputs::<U>),+);
 
             const R_CONF: InputOrGND = InputOrGND::all([
-                <$conf0 as SecondOrderRLCFilterConf>::R_CONF,
                 $(<$more as SecondOrderRLCFilterConf>::R_CONF),*
             ]);
             const L_CONF: InputOrGND = InputOrGND::all([
-                <$conf0 as SecondOrderRLCFilterConf>::L_CONF,
                 $(<$more as SecondOrderRLCFilterConf>::L_CONF),*
             ]);
             const C_CONF: InputOrGND = InputOrGND::all([
-                <$conf0 as SecondOrderRLCFilterConf>::C_CONF,
                 $(<$more as SecondOrderRLCFilterConf>::C_CONF),*
             ]);
         }
@@ -138,7 +132,6 @@ mod private
     impl<
         CC,
         C,
-        const OUTPUTS: usize,
         const R_CONF: InputOrGND,
         const L_CONF: InputOrGND,
         const C_CONF: InputOrGND,
@@ -146,13 +139,12 @@ mod private
     where
         CC: SecondOrderRLCFilterConf<
             Conf = C::Conf,
-            OUTPUTS = {OUTPUTS},
+            Outputs<()> = C::Outputs<()>,
             R_CONF = {R_CONF},
             L_CONF = {L_CONF},
             C_CONF = {C_CONF}
         >,
         C: SecondOrderRLCFilterConf<
-            OUTPUTS = {OUTPUTS},
             R_CONF = {R_CONF},
             L_CONF = {L_CONF},
             C_CONF = {C_CONF}

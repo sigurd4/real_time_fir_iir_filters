@@ -1,4 +1,4 @@
-use crate::conf::{all, All, BandPass, Conf, HighPass, InputOrFeedback, InputOrGND, LowPass};
+use crate::{util::{self, ObviousArray}, conf::{all, All, BandPass, Conf, HighPass, InputOrFeedback, InputOrGND, LowPass}};
 
 use super::ThirdOrderSallenKeyFilterConf;
 
@@ -6,7 +6,7 @@ pub trait SecondOrderSallenKeyFilterConf: Conf
 {
     type Conf: private::SecondOrderSallenKeyFilterConfFinal<Self>;
 
-    const OUTPUTS: usize;
+    type Outputs<U>: ObviousArray<Elem = U>;
 
     type AsThirdOrderSallenKeyFilterConf: private::ThirdOrderSallenKeyFilterConfForSecondOrderSallenKeyFilterConf<Self>;
 
@@ -20,7 +20,7 @@ impl SecondOrderSallenKeyFilterConf for LowPass
 {
     type Conf = Self;
 
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 
     type AsThirdOrderSallenKeyFilterConf = LowPass;
 
@@ -31,7 +31,7 @@ impl SecondOrderSallenKeyFilterConf for BandPass<1>
 {
     type Conf = Self;
 
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 
     type AsThirdOrderSallenKeyFilterConf = BandPass<2>;
 
@@ -42,7 +42,7 @@ impl SecondOrderSallenKeyFilterConf for BandPass<2>
 {
     type Conf = Self;
 
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 
     type AsThirdOrderSallenKeyFilterConf = BandPass<4>;
 
@@ -53,7 +53,7 @@ impl SecondOrderSallenKeyFilterConf for HighPass
 {
     type Conf = Self;
 
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 
     type AsThirdOrderSallenKeyFilterConf = BandPass<6>;
 
@@ -62,46 +62,40 @@ impl SecondOrderSallenKeyFilterConf for HighPass
 }
 
 macro impl_composite_conf {
-    ($conf:ty: $conf0:ty, $($more:ty),+ => $($actual:ty),+) => {
+    ($conf:ty: $($more:ty),+ => $($actual:ty),+) => {
         impl SecondOrderSallenKeyFilterConf for $conf
         {
             type Conf = all!($($actual),*);
 
-            const OUTPUTS: usize = <$conf0 as SecondOrderSallenKeyFilterConf>::OUTPUTS $(+ <$more as SecondOrderSallenKeyFilterConf>::OUTPUTS)*;
+            type Outputs<U> = util::array_sum!($(<$more as SecondOrderSallenKeyFilterConf>::Outputs::<U>),+);
 
             type AsThirdOrderSallenKeyFilterConf = <all!(
-                <$conf0 as SecondOrderSallenKeyFilterConf>::AsThirdOrderSallenKeyFilterConf,
                 $(<$more as SecondOrderSallenKeyFilterConf>::AsThirdOrderSallenKeyFilterConf),*
             ) as ThirdOrderSallenKeyFilterConf>::Conf;
         
             const R1_CONF: InputOrFeedback = InputOrFeedback::all([
-                <$conf0 as SecondOrderSallenKeyFilterConf>::R1_CONF,
                 $(<$more as SecondOrderSallenKeyFilterConf>::R1_CONF),*
             ]);
             const R2_CONF: InputOrGND = InputOrGND::all([
-                <$conf0 as SecondOrderSallenKeyFilterConf>::R2_CONF,
                 $(<$more as SecondOrderSallenKeyFilterConf>::R2_CONF),*
             ]);
         }
     },
-    ($conf:ty: $conf0:ty, $($more:ty),+) => {
+    ($conf:ty: $($more:ty),+) => {
         impl SecondOrderSallenKeyFilterConf for $conf
         {
             type Conf = $conf;
 
-            const OUTPUTS: usize = <$conf0 as SecondOrderSallenKeyFilterConf>::OUTPUTS $(+ <$more as SecondOrderSallenKeyFilterConf>::OUTPUTS)*;
+            type Outputs<U> = util::array_sum!($(<$more as SecondOrderSallenKeyFilterConf>::Outputs::<U>),+);
 
             type AsThirdOrderSallenKeyFilterConf = <all!(
-                <$conf0 as SecondOrderSallenKeyFilterConf>::AsThirdOrderSallenKeyFilterConf,
                 $(<$more as SecondOrderSallenKeyFilterConf>::AsThirdOrderSallenKeyFilterConf),*
             ) as ThirdOrderSallenKeyFilterConf>::Conf;
         
             const R1_CONF: InputOrFeedback = InputOrFeedback::all([
-                <$conf0 as SecondOrderSallenKeyFilterConf>::R1_CONF,
                 $(<$more as SecondOrderSallenKeyFilterConf>::R1_CONF),*
             ]);
             const R2_CONF: InputOrGND = InputOrGND::all([
-                <$conf0 as SecondOrderSallenKeyFilterConf>::R2_CONF,
                 $(<$more as SecondOrderSallenKeyFilterConf>::R2_CONF),*
             ]);
         }
@@ -155,7 +149,6 @@ mod private
     impl<
         CC,
         C,
-        const OUTPUTS: usize,
         const R1_CONF: InputOrFeedback,
         const C1_CONF: InputOrFeedback,
         const R2_CONF: InputOrGND,
@@ -165,14 +158,13 @@ mod private
         CC: SecondOrderSallenKeyFilterConf<
             Conf = C::Conf,
             AsThirdOrderSallenKeyFilterConf = C::AsThirdOrderSallenKeyFilterConf,
-            OUTPUTS = {OUTPUTS},
+            Outputs<()> = C::Outputs<()>,
             R1_CONF = {R1_CONF},
             C1_CONF = {C1_CONF},
             R2_CONF = {R2_CONF},
             C2_CONF = {C2_CONF}
         >,
         C: SecondOrderSallenKeyFilterConf<
-            OUTPUTS = {OUTPUTS},
             R1_CONF = {R1_CONF},
             C1_CONF = {C1_CONF},
             R2_CONF = {R2_CONF},

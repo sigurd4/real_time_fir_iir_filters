@@ -1,4 +1,4 @@
-use crate::conf::{all, All, BandPass, Conf, HighPass, InputOrGND, LowPass};
+use crate::{util::{self, ObviousArray}, conf::{all, All, BandPass, Conf, HighPass, InputOrGND, LowPass}};
 
 use super::FirstOrderRCFilterConf;
 
@@ -6,7 +6,7 @@ pub trait SecondOrderRCFilterConf: Conf
 {
     type Conf: private::SecondOrderRCFilterConfFinal<Self>;
 
-    const OUTPUTS: usize;
+    type Outputs<U>: ObviousArray<Elem = U>;
 
     type S1Conf: private::S1ConfForSecondOrderRCFilterConf<Self>;
     type S2Conf: private::S2ConfForSecondOrderRCFilterConf<Self>;
@@ -21,7 +21,7 @@ impl SecondOrderRCFilterConf for LowPass
 {
     type Conf = Self;
 
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 
     type S1Conf = LowPass;
     type S2Conf = LowPass;
@@ -30,7 +30,7 @@ impl SecondOrderRCFilterConf for BandPass<1>
 {
     type Conf = Self;
 
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 
     type S1Conf = HighPass;
     type S2Conf = LowPass;
@@ -39,7 +39,7 @@ impl SecondOrderRCFilterConf for BandPass<2>
 {
     type Conf = Self;
 
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 
     type S1Conf = LowPass;
     type S2Conf = HighPass;
@@ -48,43 +48,39 @@ impl SecondOrderRCFilterConf for HighPass
 {
     type Conf = Self;
 
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 
     type S1Conf = HighPass;
     type S2Conf = HighPass;
 }
 
 macro impl_composite_conf {
-    ($conf:ty: $conf0:ty, $($more:ty),+ => $($actual:ty),*) => {
+    ($conf:ty: $($more:ty),+ => $($actual:ty),*) => {
         impl SecondOrderRCFilterConf for $conf
         {
             type Conf = all!($($actual),*);
             
-            const OUTPUTS: usize = <$conf0 as SecondOrderRCFilterConf>::OUTPUTS $(+ <$more as SecondOrderRCFilterConf>::OUTPUTS)*;
+            type Outputs<U> = util::array_sum!($(<$more as SecondOrderRCFilterConf>::Outputs::<U>),+);
 
             type S1Conf = <all!(
-                <$conf0 as SecondOrderRCFilterConf>::S1Conf,
                 $(<$more as SecondOrderRCFilterConf>::S1Conf),*
             ) as FirstOrderRCFilterConf>::Conf;
             type S2Conf = <all!(
-                <$conf0 as SecondOrderRCFilterConf>::S2Conf,
                 $(<$more as SecondOrderRCFilterConf>::S2Conf),*
             ) as FirstOrderRCFilterConf>::Conf;
         }
     },
-    ($conf:ty: $conf0:ty, $($more:ty),+) => {
+    ($conf:ty: $($more:ty),+) => {
         impl SecondOrderRCFilterConf for $conf
         {
             type Conf = $conf;
             
-            const OUTPUTS: usize = <$conf0 as SecondOrderRCFilterConf>::OUTPUTS $(+ <$more as SecondOrderRCFilterConf>::OUTPUTS)*;
+            type Outputs<U> = util::array_sum!($(<$more as SecondOrderRCFilterConf>::Outputs::<U>),+);
 
             type S1Conf = <all!(
-                <$conf0 as SecondOrderRCFilterConf>::S1Conf,
                 $(<$more as SecondOrderRCFilterConf>::S1Conf),*
             ) as FirstOrderRCFilterConf>::Conf;
             type S2Conf = <all!(
-                <$conf0 as SecondOrderRCFilterConf>::S2Conf,
                 $(<$more as SecondOrderRCFilterConf>::S2Conf),*
             ) as FirstOrderRCFilterConf>::Conf;
         }

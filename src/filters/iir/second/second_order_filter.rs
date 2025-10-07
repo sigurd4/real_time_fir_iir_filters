@@ -154,8 +154,6 @@ crate::def_rtf!(
             )
         }
     }
-    where
-        [(); <C as SecondOrderFilterConf>::OUTPUTS]:
 );
 
 #[cfg(test)]
@@ -170,7 +168,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = SecondOrderFilter::<All>::new(OmegaZeta {omega: 10e3*TAU, zeta: 0.05});
+        let mut filter = SecondOrderFilter::<All>::new(OmegaZeta {omega: 10e3*TAU, zeta: 0.2});
         crate::tests::plot_freq(&mut filter).unwrap();
     }
 }

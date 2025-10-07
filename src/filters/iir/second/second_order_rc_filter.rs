@@ -282,8 +282,6 @@ crate::def_rtf!(
             )
         }
     }
-    where
-        [(); <C as SecondOrderRCFilterConf>::OUTPUTS]:
 );
 
 #[cfg(test)]
