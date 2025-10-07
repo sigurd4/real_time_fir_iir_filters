@@ -4,7 +4,7 @@ use std::{f64::consts::{TAU, PI}, ops::{Range, AddAssign, SubAssign}, fmt::Debug
 
 use linspace::Linspace;
 use num::{Complex, Float, traits::AsPrimitive, NumCast};
-use plotters::{prelude::*, element::PointCollection, coord::{ranged3d::{ProjectionMatrixBuilder, ProjectionMatrix, Cartesian3d}, ranged1d::{ValueFormatter, DefaultFormatting, AsRangedCoord, NoDefaultFormatting}}, style::full_palette::PURPLE, chart::MeshStyle};
+use plotters::{chart::MeshStyle, coord::{ranged1d::{AsRangedCoord, DefaultFormatting, NoDefaultFormatting, ValueFormatter}, ranged3d::{Cartesian3d, ProjectionMatrix, ProjectionMatrixBuilder}}, data::float::FloatPrettyPrinter, element::PointCollection, prelude::*, style::full_palette::PURPLE};
 
 const PLOT_RES: (u32, u32) = (1024, 760);
 const PLOT_CAPTION_FONT: (&str, u32) = ("sans", 20);
@@ -90,13 +90,13 @@ pub fn plot_pz(
     Ok(())
 }
 
-pub fn plot_bode<'a, F, const N: usize>(
-    plot_title: &str, plot_path: &'a str,
-    xy: [(F, Complex<F>); N],
+pub fn plot_bode<'a, F, const M: usize>(
+    plot_title: &str, plot_path: &'a str, legends: [&str; M],
+    xy: impl IntoIterator<Item = (F, [Complex<F>; M])>,
 ) -> Result<(), Box<dyn std::error::Error>>
 where
     F: Float + AddAssign + SubAssign + 'static,
-    Range<F>: AsRangedCoord<CoordDescType: ValueFormatter<<Range<F> as AsRangedCoord>::Value>, Value: Debug + Clone>,
+    Range<F>: AsRangedCoord<CoordDescType: ValueFormatter<<Range<F> as AsRangedCoord>::Value>, Value = F>,
     for<'b> &'b DynElement<'static, BitMapBackend<'a>, (F, F)>:
         PointCollection<'b, (
             <Range<F> as AsRangedCoord>::Value,
@@ -113,26 +113,47 @@ where
     let pi = F::from(PI).unwrap();
     let tau = F::from(TAU).unwrap();
     
-    let mut y_arg_prev = F::zero();
+    let mut y_arg_prev = [F::zero(); M];
 
-    let xy = xy.map(|(x, y)| {
-        let mut y_arg_offset = y.arg() - y_arg_prev;
-        while y_arg_offset > pi
-        {
-            y_arg_offset -= tau;
-        }
-        while y_arg_offset < -pi
-        {
-            y_arg_offset += tau;
-        }
-        let y_arg = y_arg_offset + y_arg_prev;
-        y_arg_prev = y_arg;
-        (x, y.norm(), y_arg*F::from(180.0/PI).unwrap())
-    });
+    let xy = xy.into_iter()
+        .map(|(x, y)| {
+            let y = y.into_iter()
+                .zip(y_arg_prev.iter_mut())
+                .map(|(y, y_arg_prev)| {
+                    let mut y_arg_offset = y.arg() - *y_arg_prev;
+                    while y_arg_offset > pi
+                    {
+                        y_arg_offset -= tau;
+                    }
+                    while y_arg_offset < -pi
+                    {
+                        y_arg_offset += tau;
+                    }
+                    let y_arg = y_arg_offset + *y_arg_prev;
+                    *y_arg_prev = y_arg;
+                    (y.norm(), y_arg*F::from(180.0/PI).unwrap())
+                }).array_chunks::<M>()
+                .next()
+                .unwrap();
+            (x, y)
+        }).collect::<Vec<_>>();
 
-    let ([x_min, y_norm_min, y_arg_min], [x_max, y_norm_max, y_arg_max]) = xy.into_iter()
-        .map(|(x, y_norm, y_arg)| ([x, y_norm, y_arg], [x, y_norm, y_arg]))
-        .reduce(|a, b| (core::array::from_fn(|i| a.0[i].min(b.0[i])), core::array::from_fn(|i| a.1[i].max(b.1[i]))))
+    let ([x_min, y_norm_min, y_arg_min], [x_max, y_norm_max, y_arg_max]) = xy.iter()
+        .map(|(x, y)| {
+            let ([y_norm_min, y_arg_min], [y_norm_max, y_arg_max]) = y.iter()
+                .map(|&(y_norm, y_arg)| [y_norm, y_arg])
+                .map(|y| (y, y))
+                .reduce(|a, b| (
+                    core::array::from_fn(|i| a.0[i].min(b.0[i])),
+                    core::array::from_fn(|i| a.1[i].max(b.1[i]))
+                ))
+                .unwrap();
+            ([*x, y_norm_min, y_arg_min], [*x, y_norm_max, y_arg_max])
+        })
+        .reduce(|a, b| (
+            core::array::from_fn(|i| a.0[i].min(b.0[i])),
+            core::array::from_fn(|i| a.1[i].max(b.1[i]))
+        ))
         .unwrap();
     
     let area = BitMapBackend::new(plot_path, PLOT_RES).into_drawing_area();
@@ -146,35 +167,56 @@ where
         .x_label_area_size(PLOT_LABEL_AREA_SIZE)
         .y_label_area_size(PLOT_LABEL_AREA_SIZE)
         .build_cartesian_2d(x_min..x_max, y_norm_min..y_norm_max)?;
-    
-    chart_norm.configure_mesh()
-        .set_all_tick_mark_size(0.1)
-        .draw()?;
-    
-    let xy_norm = xy.map(|(x, y_norm, _)| (x, y_norm));
 
-    chart_norm.draw_series(LineSeries::new(
-            xy_norm,
-            &BLUE
-        ))?;
-        
     let mut chart_arg = ChartBuilder::on(&area)
         .margin(PLOT_MARGIN)
         .margin_top(PLOT_RES.1/2 + PLOT_MARGIN)
         .x_label_area_size(PLOT_LABEL_AREA_SIZE)
         .y_label_area_size(PLOT_LABEL_AREA_SIZE)
         .build_cartesian_2d(x_min..x_max, y_arg_min..y_arg_max)?;
+
+    let formatter = FloatPrettyPrinter {
+        allow_scientific: true,
+        min_decimal: 1,
+        max_decimal: 2
+    };
+    let formatter = |x: &F| formatter.print(x.to_f64().unwrap());
+    
+    chart_norm.configure_mesh()
+        .x_desc("ω")
+        .y_desc("|H(jω)| [dB]")
+        .x_label_formatter(&formatter)
+        .y_label_formatter(&formatter)
+        .axis_desc_style(("sans-serif", 10).into_font())
+        .set_all_tick_mark_size(0.1)
+        .draw()?;
     
     chart_arg.configure_mesh()
+        .x_desc("ω")
+        .y_desc("θ(jω) [°]")
+        .x_label_formatter(&formatter)
+        .y_label_formatter(&formatter)
+        .axis_desc_style(("sans-serif", 10).into_font())
         .set_all_tick_mark_size(0.1)
         .draw()?;
 
-    let xy_arg = xy.map(|(x, _, y_arg)| (x, y_arg));
+    for i in 0..M
+    {
+        let color = Palette99::pick(i);
 
-    chart_arg.draw_series(LineSeries::new(
-            xy_arg,
-            &PURPLE
+        let xy_norm = xy.iter().map(|(x, y)| (*x, y[i].0));
+        let xy_arg = xy.iter().map(|(x, y)| (*x, y[i].1));
+
+        chart_norm.draw_series(LineSeries::new(
+            xy_norm,
+            &color
         ))?;
+
+        chart_arg.draw_series(LineSeries::new(
+            xy_arg,
+            &color
+        ))?;
+    }
         
     // To avoid the IO failure being ignored silently, we manually call the present function
     area.present().expect("Unable to write result to file");

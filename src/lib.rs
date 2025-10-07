@@ -835,21 +835,24 @@ macro_rules! def_rtf {
         type Internals<F> = $crate::internals::rtfinternals!(F, $outputs, $output_bufs, $sos_bufs, $sos_stages, $order, $is_iir);
 
         $($($docs)*)?
-        #[derive(Clone, Copy, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
-        pub struct $name
+        #[derive(Clone, Copy, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+        pub struct $name<F = f64>
         where
-            $param: $crate::param::FilterParam,
+            F: $crate::param::FilterFloat,
+            $param<F>: $crate::param::FilterParam<F = F>,
             $($($where)+)?
         {
-            pub param: $crate::param::Param<$param>,
-            pub internals: Internals<<$param as $crate::param::FilterParam>::F>
+            pub param: $crate::param::Param<$param<F>>,
+            pub internals: Internals<F>
         }
 
-        impl $name
+        impl<F> $name<F>
         where
+            F: $crate::param::FilterFloat,
+            $param<F>: $crate::param::FilterParam<F = F>,
             $($($where)+)?
         {
-            pub const fn new(param: $param) -> Self
+            pub const fn new(param: $param<F>) -> Self
             {
                 Self {
                     param: $crate::param::Param::new(param),
@@ -859,13 +862,15 @@ macro_rules! def_rtf {
         }
 
         #[allow(unused_braces)]
-        impl $crate::rtf::StaticRtf for $name
+        impl<F> $crate::rtf::StaticRtf for $name<F>
         where
+            F: $crate::param::FilterFloat,
+            $param<F>: $crate::param::FilterParam<F = F>,
             $($($where)+)?
         {
             type Conf = $crate::conf::All;
-            type Param = $param;
-            type F = <$param as $crate::param::FilterParam>::F;
+            type Param = $param<F>;
+            type F = F;
 
             type IsIir<U> = [U; $is_iir as usize];
             type Outputs<U> = [U; $outputs];
@@ -892,29 +897,29 @@ macro_rules! def_rtf {
             }
 
             #[allow(clippy::type_complexity)]
-                fn get_internals(&self) -> (&$crate::internals::RtfInternalsFor<Self>, &$crate::param::Param<$param>)
+                fn get_internals(&self) -> (&$crate::internals::RtfInternalsFor<Self>, &$crate::param::Param<$param<F>>)
             {
                 (&self.internals, &self.param)
             }
             #[allow(clippy::type_complexity)]
-                fn get_internals_mut(&mut self) -> (&mut $crate::internals::RtfInternalsFor<Self>, &mut $crate::param::Param<$param>)
+                fn get_internals_mut(&mut self) -> (&mut $crate::internals::RtfInternalsFor<Self>, &mut $crate::param::Param<$param<F>>)
             {
                 (&mut self.internals, &mut self.param)
             }
 
             #[allow(clippy::type_complexity)]
-            fn make_coeffs($arg_param: &$param, $arg_rate: Self::F) -> (
+            fn make_coeffs($arg_param: &$param<F>, $arg_rate: Self::F) -> (
                 $crate::internals::BInternalsFor<Self>,
                 Self::IsIir<$crate::internals::AInternalsFor<Self>>
             )
             {
-                fn make_coeffs<F>($arg_param: &$param, $arg_rate: F) -> (
+                fn make_coeffs<F>($arg_param: &$param<F>, $arg_rate: F) -> (
                     BInternals<F>,
                     [AInternals<F>; $is_iir as usize]
                 )
                 where
                     F: $crate::param::FilterFloat,
-                    $param: $crate::param::FilterParam<F = F>,
+                    $param<F>: $crate::param::FilterParam<F = F>,
                     $($($where)+)?
                 $make_coeffs
 
@@ -1040,7 +1045,7 @@ macro_rules! def_rtf {
 mod tests
 {
     use crate::{plot, rtf::Rtf};
-    use core::{f64::consts::PI, ops::Range};
+    use core::{f64::consts::PI, ops::{Deref, Range}};
     use linspace::Linspace;
     use num::{Complex, Float};
     use plotters::{
@@ -1101,24 +1106,10 @@ mod tests
         }
     }
 
-    pub fn plot_freq<F, T, const OUTPUTS: usize>(filter: &mut T, two_sided: bool) -> Result<(), Box<dyn std::error::Error>>
+    fn filter_name<T>() -> (&'static str, String)
     where
-        F: Display + Debug,
-        T: Rtf<F = F, Outputs<()> = [(); OUTPUTS]>,
-        //[(); T::OUTPUTS - 1]:,
-        F: Float + AddAssign + SubAssign + 'static,
-        Range<F>: AsRangedCoord<CoordDescType: ValueFormatter<<Range<F> as AsRangedCoord>::Value>, Value: Debug + Clone>,
-        for<'b, 'a> &'b DynElement<'static, BitMapBackend<'a>, (F, F)>: PointCollection<'b, (<Range<F> as AsRangedCoord>::Value, <Range<F> as AsRangedCoord>::Value)>
+        T: Rtf
     {
-        const N: usize = 256;
-        let omega: [F; N] = (if two_sided { -PI } else { f64::EPSILON }..PI)
-            .linspace_array()
-            .map(|omega| f!(omega));
-
-        let sampling_frequency = f!(44100.0);
-
-        let freq_response = omega.into_iter().map(|omega| filter.frequency_response(sampling_frequency, omega));
-
         let type_name = core::any::type_name::<T>();
         let filter_name = {
             let mut k = 0;
@@ -1166,29 +1157,39 @@ mod tests
                 }
             })
             .collect();
+        (filter_name, file_name_no_extension)
+    }
 
-        let freq_response = {
-            let mut h: [_; OUTPUTS] = core::array::from_fn(|_| Box::new([Complex::from(F::zero()); N]));
+    pub fn plot_freq<F, T, const OUTPUTS: usize>(filter: &mut T, two_sided: bool) -> Result<(), Box<dyn std::error::Error>>
+    where
+        F: Display + Debug,
+        T: Rtf<F = F, Outputs<Complex<F>> = [Complex<F>; OUTPUTS]>,
+        F: Float + AddAssign + SubAssign + 'static,
+        Range<F>: AsRangedCoord<CoordDescType: ValueFormatter<<Range<F> as AsRangedCoord>::Value>, Value = F>,
+        for<'b, 'a> &'b DynElement<'static, BitMapBackend<'a>, (F, F)>: PointCollection<'b, (<Range<F> as AsRangedCoord>::Value, <Range<F> as AsRangedCoord>::Value)>
+    {
+        const N: usize = 256;
+        let omega: [F; N] = (if two_sided { -PI } else { f64::EPSILON }..PI)
+            .linspace_array()
+            .map(|omega| f!(omega));
 
-            for (i, hh) in freq_response.into_iter().enumerate()
-            {
-                for (h, hh) in h.iter_mut().zip(hh)
-                {
-                    h[i] = hh;
-                }
-            }
+        let sampling_frequency = f!(44100.0);
 
-            h
-        };
+        let freq_response = omega.into_iter().map(|omega| filter.frequency_response(sampling_frequency, omega));
 
-        for (output_number, freq_response) in freq_response.into_iter().enumerate()
-        {
-            plot::plot_bode::<F, N>(
-                &format!("Frequency response of '{}', o = {}, fs = {}", filter_name, output_number, sampling_frequency),
-                &format!("{}/{}{}.png", PLOT_TARGET, file_name_no_extension, output_number),
-                core::array::from_fn(|i| (omega[i], freq_response[i]))
-            )?
-        }
+        let (filter_name, file_name) = filter_name::<T>();
+
+        let title = format!("Frequency response of '{filter_name}', fs = {sampling_frequency}");
+        let file = format!("{PLOT_TARGET}/{file_name}.png");
+        let legends = core::array::from_fn(|i| format!("{i}"));
+
+        plot::plot_bode::<F, OUTPUTS>(
+            &title,
+            &file,
+            legends.each_ref().map(Deref::deref),
+            omega.into_iter()
+                .zip(freq_response)
+        )?;
         Ok(())
     }
 
