@@ -63,15 +63,15 @@ const fn can_ln_be_calculated_through_recursion(cheb_type: bool, mut order: usiz
                 0 => return false,
                 1..=4 => return true,
                 _ => {
-                    if order % 4 == 0
+                    if order.is_multiple_of(4)
                     {
                         order /= 4
                     }
-                    else if order % 3 == 0
+                    else if order.is_multiple_of(3)
                     {
                         order /= 3
                     }
-                    else if order % 2 == 0
+                    else if order.is_multiple_of(2)
                     {
                         order /= 2
                     }

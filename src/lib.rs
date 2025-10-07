@@ -386,20 +386,14 @@ pub macro rtf_conf_const {
     },
 }
 
-pub macro array_minus1 {
-    ($a:ty) => {
-        <$a as $crate::util::ArrayMinus1>::Minus1
-    }
+pub macro array_minus1($a:ty) {
+    <$a as $crate::util::ArrayMinus1>::Minus1
 }
-pub macro array_min1 {
-    ($a:ty) => {
-        <$a as $crate::util::ArrayMin1>::Min1
-    }
+pub macro array_min1($a:ty) {
+    <$a as $crate::util::ArrayMin1>::Min1
 }
-pub macro array_plus1 {
-    ($a:ty) => {
-        <$a as $crate::util::ArrayPlus1>::Plus1
-    }
+pub macro array_plus1($a:ty) {
+    <$a as $crate::util::ArrayPlus1>::Plus1
 }
 
 #[macro_export]
@@ -527,7 +521,7 @@ macro_rules! rtfinternals {
         mod private
         {
             use super::*;
-            
+
             pub trait _Helper: $conf_trait_alias<Conf = Self> + $conf_trait
             {
                 type Outputs<U>: $crate::util::ArrayChunks<<Self as _Helper>::OutputBufs<U>, Elem = U, Rem = [U; 0]>;
@@ -1233,7 +1227,10 @@ macro_rules! def_rtf {
 mod tests
 {
     use crate::{plot, rtf::Rtf};
-    use core::{f64::consts::PI, ops::{Deref, Range}};
+    use core::{
+        f64::consts::PI,
+        ops::{Deref, Range}
+    };
     use linspace::Linspace;
     use num::{Complex, Float};
     use plotters::{
@@ -1360,14 +1357,11 @@ mod tests
         const DECIBEL: bool = false;
         const TWO_SIDED: bool = false;
 
-        let omega = (if TWO_SIDED { -PI } else { f64::EPSILON }..PI)
-            .linspace(N)
-            .map(|omega| f!(omega));
+        let omega = (if TWO_SIDED { -PI } else { f64::EPSILON }..PI).linspace(N).map(|omega| f!(omega));
 
         let sampling_frequency = f!(44100.0);
 
-        let data = omega.into_iter()
-            .map(|omega| (omega, filter.frequency_response(sampling_frequency, omega)));
+        let data = omega.into_iter().map(|omega| (omega, filter.frequency_response(sampling_frequency, omega)));
 
         let (filter_name, file_name) = filter_name::<T>();
 
@@ -1375,13 +1369,7 @@ mod tests
         let file = format!("{PLOT_TARGET}/{file_name}.png");
         let legends = core::array::from_fn(|i| format!("H_{i}"));
 
-        plot::plot_bode::<F, OUTPUTS>(
-            &title,
-            &file,
-            legends.each_ref().map(Deref::deref),
-            data,
-            DECIBEL
-        )?;
+        plot::plot_bode::<F, OUTPUTS>(&title, &file, legends.each_ref().map(Deref::deref), data, DECIBEL)?;
         Ok(())
     }
 
