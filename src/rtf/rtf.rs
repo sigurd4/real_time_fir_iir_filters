@@ -1,5 +1,4 @@
-use core::{iter::Sum, mem::MaybeUninit, ops::Add};
-use std::ops::MulAssign;
+use core::{iter::Sum, mem::MaybeUninit, ops::{Add, MulAssign}};
 
 use array_trait::AsArray;
 use num::{Complex, Float};

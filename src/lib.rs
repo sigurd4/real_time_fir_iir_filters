@@ -1,3 +1,4 @@
+#![cfg_attr(not(test), no_std)]
 #![allow(incomplete_features)]
 #![allow(internal_features)]
 #![feature(trait_alias)]

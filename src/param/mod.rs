@@ -248,7 +248,7 @@ impl<T> PartialOrd for Param<T>
 where
     T: PartialOrd
 {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering>
+    fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering>
     {
         (**self).partial_cmp(&**other)
     }
@@ -273,7 +273,7 @@ impl<T> Ord for Param<T>
 where
     T: Ord
 {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering
+    fn cmp(&self, other: &Self) -> core::cmp::Ordering
     {
         (**self).cmp(&**other)
     }
