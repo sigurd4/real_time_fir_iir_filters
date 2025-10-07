@@ -1,4 +1,4 @@
-use crate::conf::{all, All, BandPass, Conf, HighPass, InputOrFeedback, InputOrGND, LowPass};
+use crate::{conf::{all, All, BandPass, Conf, HighPass, InputOrFeedback, InputOrGND, LowPass}, util::{ArrayChunks, ArrayMul, ObviousArray}};
 
 use super::{FirstOrderRCFilterConf, SecondOrderSallenKeyFilterConf};
 
@@ -8,6 +8,9 @@ pub trait ThirdOrderSallenKeyFilterConf: Conf
 
     type S1Conf: private::S1ConfForThirdOrderSallenKeyFilterConf<Self>;
     type S2Conf: private::S2ConfForThirdOrderSallenKeyFilterConf<Self>;
+
+    type Outputs<U>: ObviousArray<Elem = U> + ArrayChunks<Self::OutputBufs<U>, Elem = U, Rem = [U; 0]>;
+    type OutputBufs<U>: ObviousArray<Elem = U>;
 
     const R1_CONF: InputOrGND = <Self::S1Conf as FirstOrderRCFilterConf>::R_CONF;
     const C1_CONF: InputOrGND = <Self::S1Conf as FirstOrderRCFilterConf>::C_CONF;
@@ -23,6 +26,9 @@ impl ThirdOrderSallenKeyFilterConf for LowPass
 
     type S1Conf = LowPass;
     type S2Conf = LowPass;
+
+    type Outputs<U> = <<Self::S2Conf as SecondOrderSallenKeyFilterConf>::Outputs<U> as ArrayMul<<<Self::S1Conf as FirstOrderRCFilterConf>::Conf as FirstOrderRCFilterConf>::Outputs<U>>>::Product;
+    type OutputBufs<U> = <Self::S2Conf as SecondOrderSallenKeyFilterConf>::Outputs<U>;
 }
 impl ThirdOrderSallenKeyFilterConf for BandPass<1>
 {
@@ -30,6 +36,9 @@ impl ThirdOrderSallenKeyFilterConf for BandPass<1>
 
     type S1Conf = HighPass;
     type S2Conf = LowPass;
+
+    type Outputs<U> = <<Self::S2Conf as SecondOrderSallenKeyFilterConf>::Outputs<U> as ArrayMul<<<Self::S1Conf as FirstOrderRCFilterConf>::Conf as FirstOrderRCFilterConf>::Outputs<U>>>::Product;
+    type OutputBufs<U> = <Self::S2Conf as SecondOrderSallenKeyFilterConf>::Outputs<U>;
 }
 impl ThirdOrderSallenKeyFilterConf for BandPass<2>
 {
@@ -37,6 +46,9 @@ impl ThirdOrderSallenKeyFilterConf for BandPass<2>
 
     type S1Conf = LowPass;
     type S2Conf = BandPass<1>;
+
+    type Outputs<U> = <<Self::S2Conf as SecondOrderSallenKeyFilterConf>::Outputs<U> as ArrayMul<<<Self::S1Conf as FirstOrderRCFilterConf>::Conf as FirstOrderRCFilterConf>::Outputs<U>>>::Product;
+    type OutputBufs<U> = <Self::S2Conf as SecondOrderSallenKeyFilterConf>::Outputs<U>;
 }
 impl ThirdOrderSallenKeyFilterConf for BandPass<3>
 {
@@ -44,6 +56,9 @@ impl ThirdOrderSallenKeyFilterConf for BandPass<3>
 
     type S1Conf = HighPass;
     type S2Conf = BandPass<1>;
+
+    type Outputs<U> = <<Self::S2Conf as SecondOrderSallenKeyFilterConf>::Outputs<U> as ArrayMul<<<Self::S1Conf as FirstOrderRCFilterConf>::Conf as FirstOrderRCFilterConf>::Outputs<U>>>::Product;
+    type OutputBufs<U> = <Self::S2Conf as SecondOrderSallenKeyFilterConf>::Outputs<U>;
 }
 impl ThirdOrderSallenKeyFilterConf for BandPass<4>
 {
@@ -51,6 +66,9 @@ impl ThirdOrderSallenKeyFilterConf for BandPass<4>
 
     type S1Conf = LowPass;
     type S2Conf = BandPass<2>;
+
+    type Outputs<U> = <<Self::S2Conf as SecondOrderSallenKeyFilterConf>::Outputs<U> as ArrayMul<<<Self::S1Conf as FirstOrderRCFilterConf>::Conf as FirstOrderRCFilterConf>::Outputs<U>>>::Product;
+    type OutputBufs<U> = <Self::S2Conf as SecondOrderSallenKeyFilterConf>::Outputs<U>;
 }
 impl ThirdOrderSallenKeyFilterConf for BandPass<5>
 {
@@ -58,6 +76,9 @@ impl ThirdOrderSallenKeyFilterConf for BandPass<5>
 
     type S1Conf = HighPass;
     type S2Conf = BandPass<2>;
+
+    type Outputs<U> = <<Self::S2Conf as SecondOrderSallenKeyFilterConf>::Outputs<U> as ArrayMul<<<Self::S1Conf as FirstOrderRCFilterConf>::Conf as FirstOrderRCFilterConf>::Outputs<U>>>::Product;
+    type OutputBufs<U> = <Self::S2Conf as SecondOrderSallenKeyFilterConf>::Outputs<U>;
 }
 impl ThirdOrderSallenKeyFilterConf for BandPass<6>
 {
@@ -65,6 +86,9 @@ impl ThirdOrderSallenKeyFilterConf for BandPass<6>
 
     type S1Conf = LowPass;
     type S2Conf = HighPass;
+
+    type Outputs<U> = <<Self::S2Conf as SecondOrderSallenKeyFilterConf>::Outputs<U> as ArrayMul<<<Self::S1Conf as FirstOrderRCFilterConf>::Conf as FirstOrderRCFilterConf>::Outputs<U>>>::Product;
+    type OutputBufs<U> = <Self::S2Conf as SecondOrderSallenKeyFilterConf>::Outputs<U>;
 }
 impl ThirdOrderSallenKeyFilterConf for HighPass
 {
@@ -72,6 +96,9 @@ impl ThirdOrderSallenKeyFilterConf for HighPass
 
     type S1Conf = HighPass;
     type S2Conf = HighPass;
+
+    type Outputs<U> = <<Self::S2Conf as SecondOrderSallenKeyFilterConf>::Outputs<U> as ArrayMul<<<Self::S1Conf as FirstOrderRCFilterConf>::Conf as FirstOrderRCFilterConf>::Outputs<U>>>::Product;
+    type OutputBufs<U> = <Self::S2Conf as SecondOrderSallenKeyFilterConf>::Outputs<U>;
 }
 
 macro impl_composite_conf {
@@ -88,6 +115,9 @@ macro impl_composite_conf {
                 <$conf0 as ThirdOrderSallenKeyFilterConf>::S2Conf,
                 $(<$more as ThirdOrderSallenKeyFilterConf>::S2Conf),*
             ) as SecondOrderSallenKeyFilterConf>::Conf;
+
+            type Outputs<U> = <<Self::S2Conf as SecondOrderSallenKeyFilterConf>::Outputs<U> as ArrayMul<<<Self::S1Conf as FirstOrderRCFilterConf>::Conf as FirstOrderRCFilterConf>::Outputs<U>>>::Product;
+            type OutputBufs<U> = <Self::S2Conf as SecondOrderSallenKeyFilterConf>::Outputs<U>;
         }
     },
     ($conf:ty: $conf0:ty, $($more:ty),+) => {
@@ -103,6 +133,9 @@ macro impl_composite_conf {
                 <$conf0 as ThirdOrderSallenKeyFilterConf>::S2Conf,
                 $(<$more as ThirdOrderSallenKeyFilterConf>::S2Conf),*
             ) as SecondOrderSallenKeyFilterConf>::Conf;
+
+            type Outputs<U> = <<Self::S2Conf as SecondOrderSallenKeyFilterConf>::Outputs<U> as ArrayMul<<<Self::S1Conf as FirstOrderRCFilterConf>::Conf as FirstOrderRCFilterConf>::Outputs<U>>>::Product;
+            type OutputBufs<U> = <Self::S2Conf as SecondOrderSallenKeyFilterConf>::Outputs<U>;
         }
     },
     ($conf0:ty, $($more:ty),+ $(=> $($actual:ty),+)?) => {

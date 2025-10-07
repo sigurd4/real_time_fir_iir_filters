@@ -148,6 +148,15 @@ pub trait BoolArray: Array
 impl<T> BoolArray for [T; 0] {}
 impl<T> BoolArray for [T; 1] {}
 
+pub const fn div_len(p: usize, q: usize) -> usize
+{
+    p.checked_div(q).unwrap_or(0)
+}
+pub const fn rem_len(p: usize, q: usize) -> usize
+{
+    p.checked_rem(q).unwrap_or(p)
+}
+
 pub trait ArrayChunks<Chunk>: Array
 where
     Chunk: Array<Elem = <Self as AsSlice>::Elem>
@@ -155,22 +164,47 @@ where
     type Chunks: Array<Elem = Chunk>;
     type Rem: Array<Elem = Self::Elem>;
 }
-impl<T, const N: usize, const M: usize> ArrayChunks<[T; N]> for [T; M]
+impl<T, Chunk> ArrayChunks<Chunk> for T
+where
+    T: Array,
+    Chunk: Array<Elem = <Self as AsSlice>::Elem>
 {
-    default type Chunks = [[T; N]; 0];
-    default type Rem = [T; M];
+    default type Chunks = [Chunk; 0];
+    default type Rem = [Self::Elem; 0];
 }
 impl<T, const N: usize, const M: usize> ArrayChunks<[T; N]> for [T; M]
 where
-    [(); M / N]:,
-    [(); M % N]:
+    [(); div_len(M, N)]:,
+    [(); rem_len(M, N)]:
 {
-    type Chunks = [[T; N]; M / N];
-    type Rem = [T; M % N];
+    type Chunks = [[T; N]; div_len(M, N)];
+    type Rem = [T; rem_len(M, N)];
 }
 
 pub trait ObviousArray = ArrayChunks<[<Self as AsSlice>::Elem; 1], Rem = [<Self as AsSlice>::Elem; 0]>
     + ArrayChunks<Self, Chunks = [Self; 1], Rem = [<Self as AsSlice>::Elem; 0]>;
+
+pub trait ArrayMul<Shelf>: Array
+where
+    Shelf: Array<Elem = <Self as AsSlice>::Elem>
+{
+    type Product: /*ArrayChunks<[Self::Elem; 1], Elem = Self::Elem, Rem = [Self::Elem; 0]>
+        + ArrayChunks<Self, Elem = Self::Elem, Rem = [Self::Elem; 0]>
+        + ArrayChunks<Shelf, Elem = Self::Elem, Rem = [Self::Elem; 0]>*/;
+}
+impl<T, Shelf> ArrayMul<Shelf> for T
+where
+    T: Array,
+    Shelf: Array<Elem = <Self as AsSlice>::Elem>
+{
+    default type Product = [Self::Elem; 0];
+}
+impl<T, const N: usize, const M: usize> ArrayMul<[T; N]> for [T; M]
+where
+    [(); M * N]:
+{
+    type Product = [T; M * N];
+}
 
 pub trait ZeroSized = SizedAt<0>;
 

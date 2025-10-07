@@ -3,7 +3,7 @@ use std::ops::MulAssign;
 
 use array_trait::AsArray;
 use num::{Complex, Float};
-use crate::{internals::{ainternals, binternals, rtfinternals, winternals}, param::{FilterFloat, Param}, rtf::StaticRtf, util::{ArrayChunks, ArrayMax, ArrayMin1, ArrayMinus1, ArrayPlus1}};
+use crate::{ainternals, binternals, rtfinternals, winternals, param::{FilterFloat, Param}, rtf::StaticRtf, util::{ArrayChunks, ArrayMax, ArrayMin1, ArrayMinus1, ArrayPlus1}};
 
 pub trait Rtf: StaticRtf
 {

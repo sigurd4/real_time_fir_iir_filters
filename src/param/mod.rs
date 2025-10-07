@@ -16,13 +16,13 @@ moddef::moddef!(
     }
 );
 
-pub trait FilterFloat: Float + FloatConst + Pod + Default
+pub trait FilterFloat: Float + FloatConst + Pod + Default + Debug
 {
 
 }
 impl<F> FilterFloat for F
 where
-    F: Float + FloatConst + Pod + Default
+    F: Float + FloatConst + Pod + Default + Debug
 {
 
 }

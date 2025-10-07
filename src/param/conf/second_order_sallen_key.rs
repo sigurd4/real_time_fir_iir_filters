@@ -1,4 +1,4 @@
-use crate::{util::{self, ObviousArray}, conf::{all, All, BandPass, Conf, HighPass, InputOrFeedback, InputOrGND, LowPass}};
+use crate::{conf::{all, All, BandPass, Conf, HighPass, InputOrFeedback, InputOrGND, LowPass}, util::{self, ArrayChunks, ArrayMul, ObviousArray}};
 
 use super::ThirdOrderSallenKeyFilterConf;
 
@@ -6,7 +6,7 @@ pub trait SecondOrderSallenKeyFilterConf: Conf
 {
     type Conf: private::SecondOrderSallenKeyFilterConfFinal<Self>;
 
-    type Outputs<U>: ObviousArray<Elem = U>;
+    type Outputs<U>: private::SecondOrderSallenKeyFilterOutputs<U>;
 
     type AsThirdOrderSallenKeyFilterConf: private::ThirdOrderSallenKeyFilterConfForSecondOrderSallenKeyFilterConf<Self>;
 
@@ -137,6 +137,17 @@ mod private
 
     use super::SecondOrderSallenKeyFilterConf;
 
+    pub trait SecondOrderSallenKeyFilterOutputs<U> = ObviousArray<Elem = U>
+        + ArrayMul<
+            [U; 1],
+            Elem = U,
+            Product: ObviousArray<Elem = U> + ArrayChunks<Self, Elem = U, Rem = [U; 0]>
+        > + ArrayMul<
+            [U; 2],
+            Elem = U,
+            Product: ObviousArray<Elem = U> + ArrayChunks<Self, Elem = U, Rem = [U; 0]>
+        >;
+        
     pub trait SecondOrderSallenKeyFilterConfFinal<C>: SecondOrderSallenKeyFilterConf<
         Conf = C::Conf,
         AsThirdOrderSallenKeyFilterConf = C::AsThirdOrderSallenKeyFilterConf

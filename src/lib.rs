@@ -16,6 +16,7 @@
 #![feature(specialization)]
 #![feature(const_trait_impl)]
 #![feature(non_lifetime_binders)]
+#![feature(const_option_ops)]
 
 //! Ever needed a low pass filter for your VST? This crate has a wide selection of filters for real-time usage. It's designed to have as little runtime overhead as
 //! possible.
@@ -386,6 +387,190 @@ pub macro rtf_conf_const {
 }
 
 #[macro_export]
+macro_rules! winternals {
+    ($f:ty, $o_buffers:expr, $sos_buffers:expr, $sos:expr, $order:expr) => {
+        (
+            [[[$f; 2]; $sos_buffers]; $sos],
+            [[$f; $order]; $o_buffers]
+        )
+    };
+    ($rtf:ty) => {
+        winternals!($rtf as StaticRtf)
+    };
+    ($rtf:ty as $($trait:tt)+) => {
+        winternals!($rtf where <$rtf as $($trait)+>::F as $($trait)+)
+    };
+    ($rtf:ty where $f:ty as $($trait:tt)+) => {
+        (
+            <$rtf as $($trait)+>::SosStages<<$rtf as $($trait)+>::SosBufs<[$f; 2]>>,
+            <$rtf as $($trait)+>::OutputBufs<<$rtf as $($trait)+>::Order<$f>>
+        )
+    }
+}
+#[macro_export]
+macro_rules! binternals {
+    ($f:ty, $outputs:expr, $o_buffers:expr, $sos_buffers:expr, $sos:expr, $order:expr) => {
+        (
+            <[[[$f; 3]; $sos_buffers]; $sos] as ArrayMinus1>::Minus1,
+            <[[[$f; 3]; $o_buffers]; $sos] as ArrayMin1>::Min1,
+            [<[$f; $order] as ArrayPlus1>::Plus1; $outputs]
+        )
+    };
+    ($rtf:ty) => {
+        binternals!($rtf as StaticRtf)
+    };
+    ($rtf:ty as $($trait:tt)+) => {
+        binternals!($rtf where <$rtf as $($trait)+>::F as $($trait)+)
+    };
+    ($rtf:ty where $f:ty as $($trait:tt)+) => {
+        (
+            <<$rtf as $($trait)+>::SosStages<<$rtf as $($trait)+>::SosBufs<[$f; 3]>> as ArrayMinus1>::Minus1,
+            <<$rtf as $($trait)+>::SosStages<<$rtf as $($trait)+>::OutputBufs<[$f; 3]>> as ArrayMin1>::Min1,
+            <$rtf as $($trait)+>::Outputs<<<$rtf as $($trait)+>::Order::<$f> as ArrayPlus1>::Plus1>
+        )
+    }
+}
+#[macro_export]
+macro_rules! ainternals {
+    ($f:ty, $o_buffers:expr, $sos_buffers:expr, $sos:expr, $order:expr) => {
+        ([[[$f; 3]; $sos_buffers]; $sos], [<[$f; $order] as ArrayPlus1>::Plus1; $o_buffers])
+    };
+    ($rtf:ty) => {
+        ainternals!($rtf as StaticRtf)
+    };
+    ($rtf:ty as $($trait:tt)+) => {
+        ainternals!($rtf where <$rtf as $($trait)+>::F as $($trait)+)
+    };
+    ($rtf:ty where $f:ty as $($trait:tt)+) => {
+        (
+            <$rtf as $($trait)+>::SosStages<<$rtf as $($trait)+>::SosBufs<[$f; 3]>>,
+            <$rtf as $($trait)+>::OutputBufs<<<$rtf as $($trait)+>::Order::<$f> as ArrayPlus1>::Plus1>
+        )
+    }
+}
+#[macro_export]
+macro_rules! rtfinternals {
+    ($f:ty, $outputs:expr, $o_buffers:expr, $sos_buffers:expr, $sos:expr, $order:expr, $is_iir:expr) => {
+        RtfInternals<$f,
+            winternals!($f, $o_buffers, $sos_buffers, $sos, $order),
+            binternals!($f, $outputs, $o_buffers, $sos_buffers, $sos, $order),
+            [ainternals!($f, $o_buffers, $sos_buffers, $sos, $order); $is_iir as usize]
+        >
+    };
+    (
+        type Conf: $conf_trait:ident;
+
+        $(type Outputs<$outputs_u:ident> = $outputs_ty:ty;)?
+        $(const OUTPUTS: usize = $outputs:expr;)?
+        $(type OutputBufs<$output_bufs_u:ident> = $output_bufs_ty:ty;)?
+        $(const OUTPUT_BUFS: usize = $output_bufs:expr;)?
+        $(type SosBufs<$sos_bufs_u:ident> = $sos_bufs_ty:ty;)?
+        $(const SOS_BUFS: usize = $sos_bufs:expr;)?
+        $(type SosStages<$sos_stages_u:ident> = $sos_stages_ty:ty;)?
+        $(const SOS_STAGES: usize = $sos_stages:expr;)?
+        $(type Order<$order_u:ident> = $order_ty:ty;)?
+        $(const ORDER: usize = $order:expr;)?
+        $(type IsIir<$is_iir_u:ident> = $is_iir_ty:ty;)?
+        $(const IS_IIR: bool = $is_iir:expr;)?
+    ) => {
+        rtfinternals!(
+            type Conf: $conf_trait as $conf_trait;
+
+            $(type Outputs<$outputs_u> = $outputs_ty;)?
+            $(const OUTPUTS: usize = $outputs;)?
+            $(type OutputBufs<$output_bufs_u> = $output_bufs_ty;)?
+            $(const OUTPUT_BUFS: usize = $output_bufs;)?
+            $(type SosBufs<$sos_bufs_u> = $sos_bufs_ty;)?
+            $(const SOS_BUFS: usize = $sos_bufs;)?
+            $(type SosStages<$sos_stages_u> = $sos_stages_ty;)?
+            $(const SOS_STAGES: usize = $sos_stages;)?
+            $(type Order<$order_u> = $order_ty;)?
+            $(const ORDER: usize = $order;)?
+            $(type IsIir<$is_iir_u> = $is_iir_ty;)?
+            $(const IS_IIR: bool = $is_iir;)?
+        );
+    };
+    (
+        type Conf: $conf_trait_alias:ident as $conf_trait:path;
+
+        $(type Outputs<$outputs_u:ident> = $outputs_ty:ty;)?
+        $(const OUTPUTS: usize = $outputs:expr;)?
+        $(type OutputBufs<$output_bufs_u:ident> = $output_bufs_ty:ty;)?
+        $(const OUTPUT_BUFS: usize = $output_bufs:expr;)?
+        $(type SosBufs<$sos_bufs_u:ident> = $sos_bufs_ty:ty;)?
+        $(const SOS_BUFS: usize = $sos_bufs:expr;)?
+        $(type SosStages<$sos_stages_u:ident> = $sos_stages_ty:ty;)?
+        $(const SOS_STAGES: usize = $sos_stages:expr;)?
+        $(type Order<$order_u:ident> = $order_ty:ty;)?
+        $(const ORDER: usize = $order:expr;)?
+        const IS_IIR: bool = $is_iir:expr;
+    ) => {
+        pub trait _Helper: $conf_trait_alias<Conf = Self> + $conf_trait
+        {
+            type Outputs<U>: $crate::util::ArrayChunks<<Self as _Helper>::OutputBufs<U>, Elem = U, Rem = [U; 0]>;
+            type IsIir<U>: $crate::util::BoolArray<Elem = U>;
+            type Order<U>: $crate::util::ArrayPlus1<Elem = U>;
+            type OutputBufs<U>: $crate::util::ArrayChunks<<Self as _Helper>::SosBufs<U>, Elem = U, Rem = [U; 0]>;
+            type SosBufs<U>: $crate::util::ArrayChunks<<Self as _Helper>::SosBufs<U>, Elem = U, Rem = [U; 0], Chunks = [<Self as _Helper>::SosBufs<U>; 1]>;
+            type SosStages<U>: $crate::util::ArrayMin1<Elem = U> + $crate::util::ArrayMinus1<Elem = U>;
+        }
+
+        impl<C> _Helper for C
+        where
+            C: $conf_trait_alias<Conf = C> + $conf_trait
+        {
+            type IsIir<U> = [U; $is_iir as usize];
+            $crate::rtf_conf_const!(
+                type Conf: $conf_trait_alias as $conf_trait = C;
+
+                const type Outputs$(<$outputs_u> = $outputs_ty)? $(<U> = [U; $outputs])?;
+            );
+            $crate::rtf_conf_const!(
+                type Conf: $conf_trait_alias as $conf_trait = C;
+
+                const type Order$(<$order_u> = $order_ty)? $(<U> = [U; $order])?;
+            );
+            $crate::rtf_conf_const!(
+                type Conf: $conf_trait_alias as $conf_trait = C;
+
+                const type OutputBufs$(<$output_bufs_u> = $output_bufs_ty)? $(<U> = [U; $output_bufs])?;
+            );
+            $crate::rtf_conf_const!(
+                type Conf: $conf_trait_alias as $conf_trait = C;
+
+                const type SosBufs$(<$sos_bufs_u> = $sos_bufs_ty)? $(<U> = [U; $sos_bufs])?;
+            );
+            $crate::rtf_conf_const!(
+                type Conf: $conf_trait_alias as $conf_trait = C;
+
+                const type SosStages$(<$sos_stages_u> = $sos_stages_ty)? $(<U> = [U; $sos_stages])?;
+            );
+        }
+        #[allow(unused)]
+        type BInternals<F, C> = binternals!(C where F as _Helper);
+        #[allow(unused)]
+        type AInternals<F, C> = ainternals!(C where F as _Helper);
+        #[allow(unused)]
+        type WInternals<F, C> = winternals!(C where F as _Helper);
+        #[allow(unused)]
+        type Internals<F, C> = rtfinternals!(C where F as _Helper);
+    };
+    ($rtf:ty) => {
+        rtfinternals!($rtf as StaticRtf)
+    };
+    ($rtf:ty as $trait:path) => {
+        rtfinternals!($rtf where <$rtf as $trait>::F as $trait)
+    };
+    ($rtf:ty where $f:ty as $trait:path) => {
+        $crate::internals::RtfInternals<$f,
+            winternals!($rtf where $f as $trait),
+            binternals!($rtf where $f as $trait),
+            <$rtf as $trait>::IsIir<ainternals!($rtf where $f as $trait)>
+        >
+    };
+}
+
+#[macro_export]
 macro_rules! def_rtf {
     (
         $({
@@ -548,7 +733,7 @@ macro_rules! def_rtf {
         $(where
             $($where:tt)+)?
     ) => {
-        pub trait __Helper<F>: $conf_trait_alias<Conf = Self> + $conf_trait
+        pub(crate) trait __Helper<F>: $conf_trait_alias<Conf = Self> + $conf_trait
         where
             F: $crate::param::FilterFloat
         {

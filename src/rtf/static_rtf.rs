@@ -1,4 +1,4 @@
-use crate::{conf, internals::{ainternals, binternals, rtfinternals}, param::{FilterFloat, Param}, util::{ArrayChunks, ArrayMin1, ArrayMinus1, ArrayPlus1, BoolArray}};
+use crate::{conf, ainternals, binternals, winternals, rtfinternals, param::{FilterFloat, Param}, util::{ArrayChunks, ArrayMin1, ArrayMinus1, ArrayPlus1, BoolArray}};
 
 pub trait StaticRtf: Sized
 {

@@ -1,31 +1,14 @@
-use crate::{calc::iir::third::ThirdOrderSallenKeyCalc, conf::{All, BandPass, HighPass, LowPass}, internals::{ainternals, binternals, rtfinternals}, param::{FilterFloat, FilterParam, FirstOrderRCFilterConf, Param, RC3GSallenKey, SecondOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParam}, rtf::{RtfBase, StaticRtf}};
+use core::fmt::Debug;
 
-#[allow(type_alias_bounds)]
-type BInternals<F, C1: FirstOrderRCFilterConf, C2: SecondOrderSallenKeyFilterConf> = binternals!(
-    F,
-    <C2 as SecondOrderSallenKeyFilterConf>::OUTPUTS*<C1 as FirstOrderRCFilterConf>::OUTPUTS,
-    <C2 as SecondOrderSallenKeyFilterConf>::OUTPUTS,
-    1,
-    0,
-    3
-);
-#[allow(type_alias_bounds)]
-type AInternals<F, C1: FirstOrderRCFilterConf, C2: SecondOrderSallenKeyFilterConf> = ainternals!(
-    F,
-    <C2 as SecondOrderSallenKeyFilterConf>::OUTPUTS,
-    1,
-    0,
-    3
-);
-#[allow(type_alias_bounds)]
-type Internals<F, C1: FirstOrderRCFilterConf, C2: SecondOrderSallenKeyFilterConf> = rtfinternals!(
-    F,
-    <C2 as SecondOrderSallenKeyFilterConf>::OUTPUTS*<C1 as FirstOrderRCFilterConf>::OUTPUTS,
-    <C2 as SecondOrderSallenKeyFilterConf>::OUTPUTS,
-    1,
-    0,
-    3,
-    true
+use crate::{calc::iir::third::ThirdOrderSallenKeyCalc, conf::{All, BandPass, HighPass, LowPass}, ainternals, binternals, winternals, rtfinternals, param::{FilterFloat, FilterParam, FirstOrderRCFilterConf, Param, RC3GSallenKey, SecondOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParam}, rtf::StaticRtf, util::{ArrayMin1, ArrayMinus1, ArrayMul, ArrayPlus1}};
+
+rtfinternals!(
+    type Conf: ThirdOrderSallenKeyFilterConf;
+
+    const SOS_BUFS: usize = 1;
+    const SOS_STAGES: usize = 0;
+    const ORDER: usize = 3;
+    const IS_IIR: bool = true;
 );
 
 /// # Configurations
@@ -181,7 +164,7 @@ type Internals<F, C1: FirstOrderRCFilterConf, C2: SecondOrderSallenKeyFilterConf
 /// <div>
 /// <img alt="Third order high-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_sallen_key_filter7.png" height="500">
 /// </div>
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ThirdOrderSallenKeyFilter<
     C,
@@ -196,11 +179,10 @@ where
     C: ThirdOrderSallenKeyFilterConf<Conf = C, S1Conf = C1, S2Conf = C2>,
     C1: FirstOrderRCFilterConf<Conf = C1>,
     C2: SecondOrderSallenKeyFilterConf<Conf = C2>,
-    [(); <C1 as FirstOrderRCFilterConf>::OUTPUTS]:,
-    [(); <C2 as SecondOrderSallenKeyFilterConf>::OUTPUTS*<C1 as FirstOrderRCFilterConf>::OUTPUTS]:
+    Internals<F, C>: Copy + Debug + PartialEq
 {
     pub param: Param<P>,
-    pub internals: Internals<F, C1, C2>,
+    pub internals: Internals<F, C>,
     #[serde(skip)]
     phantom: core::marker::PhantomData<C>
 }
@@ -211,14 +193,13 @@ where
     C: ThirdOrderSallenKeyFilterConf<Conf = C, S1Conf = C1, S2Conf = C2>,
     C1: FirstOrderRCFilterConf<Conf = C1>,
     C2: SecondOrderSallenKeyFilterConf<Conf = C2>,
-    [(); <C1 as FirstOrderRCFilterConf>::OUTPUTS]:,
-    [(); <C2 as SecondOrderSallenKeyFilterConf>::OUTPUTS*<C1 as FirstOrderRCFilterConf>::OUTPUTS]:
+    Internals<P::F, C>: Copy + Debug + PartialEq
 {
     pub const fn new(param: P) -> Self
     {
         Self {
             param: Param::new(param),
-            internals: Internals::new(),
+            internals: Internals::<P::F, C>::new(),
             phantom: core::marker::PhantomData
         }
     }
@@ -234,38 +215,37 @@ macro_rules! c {
         )*
     ) => {
         $(
-            impl<P, C> RtfBase for ThirdOrderSallenKeyFilter<C, <P as FilterParam>::F, P, $conf1, $conf2>
-            where
-                P: ThirdOrderSallenKeyFilterParam<C, Conf = C>,
-                C: ThirdOrderSallenKeyFilterConf<Conf = C, S1Conf = $conf1, S2Conf = $conf2>,
-                $($($where_c)+)?
-            {
-                type Conf = C;
-                type F = <P as FilterParam>::F;
-            
-                type IsIir<U> = [U; 1];
-                type Outputs<U> = [U; <$conf2 as SecondOrderSallenKeyFilterConf>::OUTPUTS*<$conf1 as FirstOrderRCFilterConf>::OUTPUTS];
-            }
             impl<P, C> StaticRtf for ThirdOrderSallenKeyFilter<C, <P as FilterParam>::F, P, $conf1, $conf2>
             where
                 P: ThirdOrderSallenKeyFilterParam<C, Conf = C>,
-                C: ThirdOrderSallenKeyFilterConf<Conf = C, S1Conf = $conf1, S2Conf = $conf2>,
+                C: ThirdOrderSallenKeyFilterConf<
+                    Conf = C,
+                    S1Conf = $conf1,
+                    S2Conf = $conf2,
+                    OutputBufs<[P::F; 3]> = <$conf2 as SecondOrderSallenKeyFilterConf>::Outputs<[P::F; 3]>,
+                    OutputBufs<[P::F; 4]> = <$conf2 as SecondOrderSallenKeyFilterConf>::Outputs<[P::F; 4]>,
+                    Outputs<[P::F; 4]> = <<$conf2 as SecondOrderSallenKeyFilterConf>::Outputs<[P::F; 4]> as ArrayMul<<$conf1 as FirstOrderRCFilterConf>::Outputs<[P::F; 4]>>>::Product
+                >,
+                //
+                $conf1: FirstOrderRCFilterConf<Conf = $conf1>,
+                $conf2: SecondOrderSallenKeyFilterConf<Conf = $conf2>,
+                Internals<P::F, C>: Copy + Debug + PartialEq,
                 $($($where_c)+)?
             {
                 type Param = P;
+                type Conf = C;
+                type F = <P as FilterParam>::F;
 
-                type OutputBufs<U> = [U; <$conf2 as SecondOrderSallenKeyFilterConf>::OUTPUTS];
-                type SosBufs<U> = [U; 1];
-                type SosStages<U> = [U; 0];
-                type Order<U> = [U; 3];
+                type IsIir<U> = <C as _Helper>::IsIir<U>;
+                type Outputs<U> = <C as _Helper>::Outputs<U>;
+                type Order<U> = <C as _Helper>::Order<U>;
+                type OutputBufs<U> = <C as _Helper>::OutputBufs<U>;
+                type SosBufs<U> = <C as _Helper>::SosBufs<U>;
+                type SosStages<U> = <C as _Helper>::SosStages<U>;
                 
                 fn from_param(param: Self::Param) -> Self
                 {
-                    Self {
-                        param: Param::new(param),
-                        internals: Internals::new(),
-                        phantom: core::marker::PhantomData
-                    }
+                    Self::new(param)
                 }
                 fn get_param(&self) -> &Self::Param
                 {
@@ -295,13 +275,20 @@ macro_rules! c {
                 )
                 {
                     fn make_coeffs<F, P, C>($arg_param: &P, $arg_rate: F) -> (
-                        BInternals<F, $conf1, $conf2>,
-                        [AInternals<F, $conf1, $conf2>; true as usize]
+                        BInternals<F, C>,
+                        [AInternals<F, C>; 1]
                     )
                     where
                         F: FilterFloat,
                         P: ThirdOrderSallenKeyFilterParam<C, Conf = C, F = F>,
-                        C: ThirdOrderSallenKeyFilterConf<Conf = C, S1Conf = $conf1, S2Conf = $conf2>,
+                        C: ThirdOrderSallenKeyFilterConf<
+                            Conf = C, S1Conf = $conf1, S2Conf = $conf2,
+                            OutputBufs<[P::F; 3]> = <$conf2 as SecondOrderSallenKeyFilterConf>::Outputs<[P::F; 3]>,
+                            OutputBufs<[P::F; 4]> = <$conf2 as SecondOrderSallenKeyFilterConf>::Outputs<[P::F; 4]>,
+                            Outputs<[P::F; 4]> = <<$conf2 as SecondOrderSallenKeyFilterConf>::Outputs<[P::F; 4]> as ArrayMul<<$conf1 as FirstOrderRCFilterConf>::Outputs<[P::F; 4]>>>::Product
+                        >,
+                        $conf1: FirstOrderRCFilterConf<Conf = $conf1>,
+                        $conf2: SecondOrderSallenKeyFilterConf<Conf = $conf2>,
                         $($($where_c)+)?
                     $make_coeffs
 
