@@ -1,4 +1,4 @@
-use crate::{conf::{all, All, BandPass, Conf, HighPass, InputOrFeedback, InputOrGND, LowPass}, util::{self, ArrayChunks, ArrayMul, ObviousArray}};
+use crate::{conf::{all, All, BandPass, Conf, HighPass, InputOrFeedback, InputOrGND, LowPass}, util};
 
 use super::ThirdOrderSallenKeyFilterConf;
 
@@ -133,7 +133,7 @@ impl_composite_conf!(LowPass, BandPass<1>, BandPass<2>, HighPass => All);
 
 mod private
 {
-    use crate::{conf::{InputOrFeedback, InputOrGND, LowPass}, param::{FirstOrderRCFilterConf, RC2GSallenKey, RC2SallenKey, SecondOrderSallenKeyFilterParam, ThirdOrderSallenKeyFilterConf}};
+    use crate::{conf::{InputOrFeedback, InputOrGND, LowPass}, param::{FirstOrderRCFilterConf, RC2GSallenKey, RC2SallenKey, SecondOrderSallenKeyFilterParam, ThirdOrderSallenKeyFilterConf}, util::{ArrayMul, ArrayChunks, ObviousArray}};
 
     use super::SecondOrderSallenKeyFilterConf;
 
