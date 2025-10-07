@@ -1,10 +1,10 @@
-use crate::{util::{self, ArrayChunks}, conf::{all, All, Conf, HighPass, LowPass}};
+use crate::{conf::{All, Conf, HighPass, LowPass, all}, util::{self, ObviousArray}};
 
 pub trait EllipticFilterConf: Conf
 {
     type Conf: private::EllipticFilterConfFinal<Self>;
 
-    type Outputs<U>: ArrayChunks<[U; 1], Elem = U, Rem = [U; 0]>;
+    type Outputs<U>: ObviousArray<Elem = U>;
 }
 
 impl EllipticFilterConf for LowPass

@@ -1,4 +1,4 @@
-use crate::{util::ArrayChunks, conf::Conf};
+use crate::{conf::Conf, util::ObviousArray};
 
 use super::{EllipticFilterConf, FirstOrderFilterConf, SecondOrderFilterConf, ThirdOrderFilterConf};
 
@@ -10,7 +10,7 @@ pub trait ButterworthFilterConf<const ORDER: usize>: Conf
 {
     type Conf: private::ButterworthFilterConfFinal<ORDER, Self>;
 
-    type Outputs<U>: ArrayChunks<[U; 1], Elem = U, Rem = [U; 0]>;
+    type Outputs<U>: ObviousArray<Elem = U>;
 }
 
 impl<C> ButterworthFilterConf<0> for C

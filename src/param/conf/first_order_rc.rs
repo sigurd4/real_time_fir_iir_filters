@@ -1,4 +1,4 @@
-use crate::{util::{self, ArrayChunks}, conf::{all, All, BandPass, HighPass, InputOrGND, LowPass}};
+use crate::{conf::{All, BandPass, HighPass, InputOrGND, LowPass, all}, util::{self, ObviousArray}};
 
 use super::{FirstOrderFilterConf, SecondOrderRLCFilterConf, SecondOrderRCFilterConf, ThirdOrderSallenKeyFilterConf};
 
@@ -6,7 +6,7 @@ pub trait FirstOrderRCFilterConf: FirstOrderFilterConf
 {
     type Conf: private::FirstOrderRCFilterConfFinal<Self>;
 
-    type Outputs<U>: ArrayChunks<[U; 1], Elem = U, Rem = [U; 0]>;
+    type Outputs<U>: ObviousArray<Elem = U>;
 
     type AsSecondOrderRLCFilterConf: private::SecondOrderRLCFilterConfForFirstOrderRCFilterConf<Self>;
     type AsSecondOrderRCFilterConf: private::SecondOrderRCFilterConfForFirstOrderRCFilterConf<Self>;

@@ -169,6 +169,9 @@ where
     type Rem = [T; M % N];
 }
 
+pub trait ObviousArray = ArrayChunks<[<Self as AsSlice>::Elem; 1], Rem = [<Self as AsSlice>::Elem; 0]>
+    + ArrayChunks<Self, Chunks = [Self; 1], Rem = [<Self as AsSlice>::Elem; 0]>;
+
 pub trait ZeroSized = SizedAt<0>;
 
 pub mod same

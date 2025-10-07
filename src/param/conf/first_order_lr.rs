@@ -1,4 +1,4 @@
-use crate::{util::{self, ArrayChunks}, conf::{all, All, HighPass, InputOrGND, LowPass}};
+use crate::{util::{self, ObviousArray}, conf::{all, All, HighPass, InputOrGND, LowPass}};
 
 use super::FirstOrderFilterConf;
 
@@ -6,7 +6,7 @@ pub trait FirstOrderLRFilterConf: FirstOrderFilterConf
 {
     type Conf: private::FirstOrderLRFilterConfFinal<Self>;
 
-    type Outputs<U>: ArrayChunks<[U; 1], Elem = U, Rem = [U; 0]>;
+    type Outputs<U>: ObviousArray<Elem = U>;
 
     const R_CONF: InputOrGND;
     const L_CONF: InputOrGND = Self::R_CONF.opposite();

@@ -1,10 +1,10 @@
-use crate::{util::{self, ArrayChunks}, conf::{all, All, Conf, HighPass, LowPass, Peak}};
+use crate::{util::{self, ObviousArray}, conf::{all, All, Conf, HighPass, LowPass, Peak}};
 
 pub trait SecondOrderFilterConf: Conf
 {
     type Conf: private::SecondOrderFilterConfFinal<Self>;
 
-    type Outputs<U>: ArrayChunks<[U; 1], Elem = U, Rem = [U; 0]>;
+    type Outputs<U>: ObviousArray<Elem = U>;
 }
 impl SecondOrderFilterConf for LowPass
 {

@@ -354,23 +354,34 @@ pub macro rtf_conf_const {
     (
         $(type Conf: $conf_trait_alias:ident $(as $conf_trait:path)?$( = $cc:ty)?;)?
 
-        const type $const:ident<$u:ty> = $outputs:ty;
+        const type $const:ident $(= $outputs:ty)?;
     ) => {
-        $outputs
+        rtf_conf_const!(
+            $(type Conf: $conf_trait_alias $(as $conf_trait)?$( = $cc)?;)?
+
+            const type $const<U> $(= $outputs)?;
+        );
+    },
+    (
+        $(type Conf: $conf_trait_alias:ident $(as $conf_trait:path)?$( = $cc:ty)?;)?
+
+        const type $const:ident<$u:ident> = $outputs:ty;
+    ) => {
+        type $const<$u> = $outputs;
     },
     (
         type Conf: $conf_trait_alias:ident as $conf_trait:path = $cc:ty;
 
-        const type $const:ident<$u:ty>;
+        const type $const:ident<$u:ident>;
     ) => {
-        <$cc as $conf_trait>::$const<$u>
+        type $const<$u> = <$cc as $conf_trait>::$const<$u>;
     },
     (
         type Conf: $conf_trait:ident = $cc:ty;
 
-        const type $const:ident<$u:ty>;
+        const type $const:ident<$u:ident>;
     ) => {
-        <$cc as $conf_trait>::$const<$u>
+        type $const<$u> = <$cc as $conf_trait>::$const<$u>;
     },
 }
 
@@ -385,17 +396,17 @@ macro_rules! def_rtf {
             $(type Conf: $conf_trait_alias:ident $(as $conf_trait:path)?)?;
             type Param$(: $param_trait:ident)? = $param_default:ident;
 
-            $(type Outputs = $outputs_ty:ty;)?
+            $(type Outputs<$outputs_u:ident> = $outputs_ty:ty;)?
             $(const OUTPUTS: usize = $outputs:expr;)?
-            $(type OutputBufs = $output_bufs_ty:ty;)?
+            $(type OutputBufs<$output_bufs_u:ident> = $output_bufs_ty:ty;)?
             $(const OUTPUT_BUFS: usize = $output_bufs:expr;)?
-            $(type SosBufs = $sos_bufs_ty:ty;)?
+            $(type SosBufs<$sos_bufs_u:ident> = $sos_bufs_ty:ty;)?
             $(const SOS_BUFS: usize = $sos_bufs:expr;)?
-            $(type SosStages = $sos_stages_ty:ty;)?
+            $(type SosStages<$sos_stages_u:ident> = $sos_stages_ty:ty;)?
             $(const SOS_STAGES: usize = $sos_stages:expr;)?
-            $(type Order = $order_ty:ty;)?
+            $(type Order<$order_u:ident> = $order_ty:ty;)?
             $(const ORDER: usize = $order:expr;)?
-            $(type IsIir = $is_iir_ty:ty;)?
+            $(type IsIir<$is_iir_u:ident> = $is_iir_ty:ty;)?
             $(const IS_IIR: bool = $is_iir:expr;)?
 
             $(
@@ -417,17 +428,17 @@ macro_rules! def_rtf {
                 $(type Conf: $conf_trait_alias $(as $conf_trait)?)?;
                 type Param<C>$(: $param_trait as $param_trait)? = $param_default;
 
-                $(type Outputs = $outputs_ty;)?
+                $(type Outputs<$outputs_u> = $outputs_ty;)?
                 $(const OUTPUTS: usize = $outputs;)?
-                $(type OutputBufs = $output_bufs_ty;)?
+                $(type OutputBufs<$output_bufs_u> = $output_bufs_ty;)?
                 $(const OUTPUT_BUFS: usize = $output_bufs;)?
-                $(type SosBufs = $sos_bufs_ty;)?
+                $(type SosBufs<$sos_bufs_u> = $sos_bufs_ty;)?
                 $(const SOS_BUFS: usize = $sos_bufs;)?
-                $(type SosStages = $sos_stages_ty;)?
+                $(type SosStages<$sos_stages_u> = $sos_stages_ty;)?
                 $(const SOS_STAGES: usize = $sos_stages;)?
-                $(type Order = $order_ty;)?
+                $(type Order<$order_u> = $order_ty;)?
                 $(const ORDER: usize = $order;)?
-                $(type IsIir = $is_iir_ty;)?
+                $(type IsIir<$is_iir_u> = $is_iir_ty;)?
                 $(const IS_IIR: bool = $is_iir;)?
 
                 $(
@@ -450,17 +461,17 @@ macro_rules! def_rtf {
             type Conf: $conf_trait:ident;
             type Param$(<$cc:ident>)?$(: $param_alias:ident $(as $param_trait:ident)?)? = $param_default:ident;
 
-            $(type Outputs = $outputs_ty:ty;)?
+            $(type Outputs<$outputs_u:ident> = $outputs_ty:ty;)?
             $(const OUTPUTS: usize = $outputs:expr;)?
-            $(type OutputBufs = $output_bufs_ty:ty;)?
+            $(type OutputBufs<$output_bufs_u:ident> = $output_bufs_ty:ty;)?
             $(const OUTPUT_BUFS: usize = $output_bufs:expr;)?
-            $(type SosBufs = $sos_bufs_ty:ty;)?
+            $(type SosBufs<$sos_bufs_u:ident> = $sos_bufs_ty:ty;)?
             $(const SOS_BUFS: usize = $sos_bufs:expr;)?
-            $(type SosStages = $sos_stages_ty:ty;)?
+            $(type SosStages<$sos_stages_u:ident> = $sos_stages_ty:ty;)?
             $(const SOS_STAGES: usize = $sos_stages:expr;)?
-            $(type Order = $order_ty:ty;)?
+            $(type Order<$order_u:ident> = $order_ty:ty;)?
             $(const ORDER: usize = $order:expr;)?
-            $(type IsIir = $is_iir_ty:ty;)?
+            $(type IsIir<$is_iir_u:ident> = $is_iir_ty:ty;)?
             $(const IS_IIR: bool = $is_iir:expr;)?
 
             $(
@@ -482,17 +493,17 @@ macro_rules! def_rtf {
                 type Conf: $conf_trait as $conf_trait;
                 type Param$(<$cc>)?$(: $param_alias $(as $param_trait)?)? = $param_default;
 
-                $(type Outputs = $outputs_ty;)?
+                $(type Outputs<$outputs_u> = $outputs_ty;)?
                 $(const OUTPUTS: usize = $outputs;)?
-                $(type OutputBufs = $output_bufs_ty;)?
+                $(type OutputBufs<$output_bufs_u> = $output_bufs_ty;)?
                 $(const OUTPUT_BUFS: usize = $output_bufs;)?
-                $(type SosBufs = $sos_bufs_ty;)?
+                $(type SosBufs<$sos_bufs_u> = $sos_bufs_ty;)?
                 $(const SOS_BUFS: usize = $sos_bufs;)?
-                $(type SosStages = $sos_stages_ty;)?
+                $(type SosStages<$sos_stages_u> = $sos_stages_ty;)?
                 $(const SOS_STAGES: usize = $sos_stages;)?
-                $(type Order = $order_ty;)?
+                $(type Order<$order_u> = $order_ty;)?
                 $(const ORDER: usize = $order;)?
-                $(type IsIir = $is_iir_ty;)?
+                $(type IsIir<$is_iir_u> = $is_iir_ty;)?
                 $(const IS_IIR: bool = $is_iir;)?
 
                 $(
@@ -515,15 +526,15 @@ macro_rules! def_rtf {
             type Conf: $conf_trait_alias:ident as $conf_trait:path;
             type Param<C>: $param_trait_alias:ident as $param_trait:ident = $param_default:ident;
 
-            $(type Outputs = $outputs_ty:ty;)?
+            $(type Outputs<$outputs_u:ident> = $outputs_ty:ty;)?
             $(const OUTPUTS: usize = $outputs:expr;)?
-            $(type OutputBufs = $output_bufs_ty:ty;)?
+            $(type OutputBufs<$output_bufs_u:ident> = $output_bufs_ty:ty;)?
             $(const OUTPUT_BUFS: usize = $output_bufs:expr;)?
-            $(type SosBufs = $sos_bufs_ty:ty;)?
+            $(type SosBufs<$sos_bufs_u:ident> = $sos_bufs_ty:ty;)?
             $(const SOS_BUFS: usize = $sos_bufs:expr;)?
-            $(type SosStages = $sos_stages_ty:ty;)?
+            $(type SosStages<$sos_stages_u:ident> = $sos_stages_ty:ty;)?
             $(const SOS_STAGES: usize = $sos_stages:expr;)?
-            $(type Order = $order_ty:ty;)?
+            $(type Order<$order_u:ident> = $order_ty:ty;)?
             $(const ORDER: usize = $order:expr;)?
             const IS_IIR: bool = $is_iir:expr;
 
@@ -555,30 +566,30 @@ macro_rules! def_rtf {
             C: $conf_trait_alias<Conf = C> + $conf_trait
         {
             type IsIir<U> = [U; $is_iir as usize];
-            type Outputs<U> = $crate::rtf_conf_const!(
+            $crate::rtf_conf_const!(
                 type Conf: $conf_trait_alias as $conf_trait = C;
 
-                const type Outputs<U> $(= $outputs_ty)? $(= [U; $outputs])?;
+                const type Outputs$(<$outputs_u> = $outputs_ty)? $(<U> = [U; $outputs])?;
             );
-            type Order<U> = $crate::rtf_conf_const!(
+            $crate::rtf_conf_const!(
                 type Conf: $conf_trait_alias as $conf_trait = C;
 
-                const type Order<U> $(= $order_ty)? $(= [U; $order])?;
+                const type Order$(<$order_u> = $order_ty)? $(<U> = [U; $order])?;
             );
-            type OutputBufs<U> = $crate::rtf_conf_const!(
+            $crate::rtf_conf_const!(
                 type Conf: $conf_trait_alias as $conf_trait = C;
 
-                const type OutputBufs<U> $(= $output_bufs_ty)? $(= [U; $output_bufs])?;
+                const type OutputBufs$(<$output_bufs_u> = $output_bufs_ty)? $(<U> = [U; $output_bufs])?;
             );
-            type SosBufs<U> = $crate::rtf_conf_const!(
+            $crate::rtf_conf_const!(
                 type Conf: $conf_trait_alias as $conf_trait = C;
 
-                const type SosBufs<U> $(= $sos_bufs_ty)? $(= [U; $sos_bufs])?;
+                const type SosBufs$(<$sos_bufs_u> = $sos_bufs_ty)? $(<U> = [U; $sos_bufs])?;
             );
-            type SosStages<U> = $crate::rtf_conf_const!(
+            $crate::rtf_conf_const!(
                 type Conf: $conf_trait_alias as $conf_trait = C;
 
-                const type SosStages<U> $(= $sos_stages_ty)? $(= [U; $sos_stages])?;
+                const type SosStages$(<$sos_stages_u> = $sos_stages_ty)? $(<U> = [U; $sos_stages])?;
             );
         }
 
