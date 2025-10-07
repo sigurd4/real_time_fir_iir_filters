@@ -1,10 +1,10 @@
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::{winternals, binternals, ainternals, param::FilterFloat, rtf::StaticRtf, serde::{DeserializeOrZeroed, MaybeSerialize}, util::{ArrayMin1, ArrayMinus1, ArrayPlus1}};
+use crate::{param::FilterFloat, rtf::StaticRtf, serde::{DeserializeOrZeroed, MaybeSerialize}};
 
-pub type WInternals<F, const OUTPUT_BUFS: usize, const SOS_BUFS: usize, const SOS_STAGES: usize, const ORDER: usize> = winternals!(F, OUTPUT_BUFS, SOS_BUFS, SOS_STAGES, ORDER);
-pub type BInternals<F, const OUTPUTS: usize, const OUTPUT_BUFS: usize, const SOS_BUFS: usize, const SOS_STAGES: usize, const ORDER: usize> = binternals!(F, OUTPUTS, OUTPUT_BUFS, SOS_BUFS, SOS_STAGES, ORDER);
-pub type AInternals<F, const OUTPUT_BUFS: usize, const SOS_BUFS: usize, const SOS_STAGES: usize, const ORDER: usize> = ainternals!(F, OUTPUT_BUFS, SOS_BUFS, SOS_STAGES, ORDER);
+pub type WInternals<F, const OUTPUT_BUFS: usize, const SOS_BUFS: usize, const SOS_STAGES: usize, const ORDER: usize> = crate::winternals!(F, OUTPUT_BUFS, SOS_BUFS, SOS_STAGES, ORDER);
+pub type BInternals<F, const OUTPUTS: usize, const OUTPUT_BUFS: usize, const SOS_BUFS: usize, const SOS_STAGES: usize, const ORDER: usize> = crate::binternals!(F, OUTPUTS, OUTPUT_BUFS, SOS_BUFS, SOS_STAGES, ORDER);
+pub type AInternals<F, const OUTPUT_BUFS: usize, const SOS_BUFS: usize, const SOS_STAGES: usize, const ORDER: usize> = crate::ainternals!(F, OUTPUT_BUFS, SOS_BUFS, SOS_STAGES, ORDER);
 
 pub type RtfInternalsGiven<F, const OUTPUTS: usize, const OUTPUT_BUFS: usize, const SOS_BUFS: usize, const SOS_STAGES: usize, const ORDER: usize, const IS_IIR: bool>
     = RtfInternals<F,
@@ -14,11 +14,11 @@ pub type RtfInternalsGiven<F, const OUTPUTS: usize, const OUTPUT_BUFS: usize, co
     >;
 
 #[allow(type_alias_bounds)]
-pub type WInternalsFor<Rtf: StaticRtf> = winternals!(Rtf);
+pub type WInternalsFor<Rtf: StaticRtf> = crate::winternals!(Rtf);
 #[allow(type_alias_bounds)]
-pub type BInternalsFor<Rtf: StaticRtf> = binternals!(Rtf);
+pub type BInternalsFor<Rtf: StaticRtf> = crate::binternals!(Rtf);
 #[allow(type_alias_bounds)]
-pub type AInternalsFor<Rtf: StaticRtf> = ainternals!(Rtf);
+pub type AInternalsFor<Rtf: StaticRtf> = crate::ainternals!(Rtf);
 
 #[allow(type_alias_bounds)]
 pub type RtfInternalsFor<Rtf: StaticRtf> = RtfInternals<Rtf::F, WInternalsFor<Rtf>, BInternalsFor<Rtf>, Rtf::IsIir<AInternalsFor<Rtf>>>;

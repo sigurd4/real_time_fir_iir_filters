@@ -1,4 +1,4 @@
-use crate::{conf, ainternals, binternals, winternals, rtfinternals, param::{FilterFloat, Param}, util::{ArrayChunks, ArrayMin1, ArrayMinus1, ArrayPlus1, BoolArray}};
+use crate::{conf, param::{FilterFloat, Param}, util::{ArrayChunks, ArrayMin1, ArrayMinus1, ArrayPlus1, BoolArray}};
 
 pub trait StaticRtf: Sized
 {
@@ -20,14 +20,14 @@ pub trait StaticRtf: Sized
     fn into_param(self) -> Self::Param;
     
     #[allow(clippy::type_complexity)]
-    fn get_internals(&self) -> (&rtfinternals!(Self), &Param<Self::Param>);
+    fn get_internals(&self) -> (&crate::rtfinternals!(Self), &Param<Self::Param>);
     #[allow(clippy::type_complexity)]
-    fn get_internals_mut(&mut self) -> (&mut rtfinternals!(Self), &mut Param<Self::Param>);
+    fn get_internals_mut(&mut self) -> (&mut crate::rtfinternals!(Self), &mut Param<Self::Param>);
     
     #[allow(clippy::type_complexity)]
     fn make_coeffs(param: &Self::Param, rate: Self::F) -> (
-        binternals!(Self),
-        Self::IsIir<ainternals!(Self)>
+        crate::binternals!(Self),
+        Self::IsIir<crate::ainternals!(Self)>
     );
 
     fn update_internals(&mut self, rate: Self::F)

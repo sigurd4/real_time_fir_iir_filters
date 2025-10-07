@@ -1,8 +1,8 @@
 use core::fmt::Debug;
 
-use crate::{calc::iir::third::ThirdOrderSallenKeyCalc, conf::{All, BandPass, HighPass, LowPass}, ainternals, binternals, winternals, rtfinternals, param::{FilterFloat, FilterParam, FirstOrderRCFilterConf, Param, RC3GSallenKey, SecondOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParam}, rtf::StaticRtf, util::{ArrayMin1, ArrayMinus1, ArrayMul, ArrayPlus1}};
+use crate::{calc::iir::third::ThirdOrderSallenKeyCalc, conf::{All, BandPass, HighPass, LowPass}, param::{FilterFloat, FilterParam, FirstOrderRCFilterConf, Param, RC3GSallenKey, SecondOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterConf, ThirdOrderSallenKeyFilterParam}, rtf::StaticRtf, util::ArrayMul};
 
-rtfinternals!(
+crate::rtfinternals!(
     type Conf: ThirdOrderSallenKeyFilterConf;
 
     const SOS_BUFS: usize = 1;
@@ -236,12 +236,12 @@ macro_rules! c {
                 type Conf = C;
                 type F = <P as FilterParam>::F;
 
-                type IsIir<U> = <C as _Helper>::IsIir<U>;
-                type Outputs<U> = <C as _Helper>::Outputs<U>;
-                type Order<U> = <C as _Helper>::Order<U>;
-                type OutputBufs<U> = <C as _Helper>::OutputBufs<U>;
-                type SosBufs<U> = <C as _Helper>::SosBufs<U>;
-                type SosStages<U> = <C as _Helper>::SosStages<U>;
+                type IsIir<U> = <C as private::_Helper>::IsIir<U>;
+                type Outputs<U> = <C as private::_Helper>::Outputs<U>;
+                type Order<U> = <C as private::_Helper>::Order<U>;
+                type OutputBufs<U> = <C as private::_Helper>::OutputBufs<U>;
+                type SosBufs<U> = <C as private::_Helper>::SosBufs<U>;
+                type SosStages<U> = <C as private::_Helper>::SosStages<U>;
                 
                 fn from_param(param: Self::Param) -> Self
                 {

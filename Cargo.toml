@@ -31,24 +31,24 @@ all-features = true
 
 [features]
 default = [
-    #"first_order_all_pass",
-    #"first_order",
-    #"first_order_lr",
-    #"first_order_rc",
-    #"pi",
-    #"pid",
-    #"second_order_butterworth",
-    #"second_order_chebyshev1",
-    #"second_order_chebyshev2",
-    #"second_order_elliptic",
-    #"second_order",
-    #"second_order_rc",
-    #"second_order_rlc",
-    #"second_order_sallen_key",
-    #"third_order_butterworth",
-    #"third_order",
+    "first_order_all_pass",
+    "first_order",
+    "first_order_lr",
+    "first_order_rc",
+    "pi",
+    "pid",
+    "second_order_butterworth",
+    "second_order_chebyshev1",
+    "second_order_chebyshev2",
+    "second_order_elliptic",
+    "second_order",
+    "second_order_rc",
+    "second_order_rlc",
+    "second_order_sallen_key",
+    "third_order_butterworth",
+    "third_order",
     "third_order_sallen_key",
-    #"wah"
+    "wah"
 ]
 
 first_order_all_pass = []
