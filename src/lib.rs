@@ -4,19 +4,12 @@
 #![feature(associated_const_equality)]
 #![feature(split_array)]
 #![feature(decl_macro)]
-#![feature(negative_impls)]
-#![feature(tuple_trait)]
-#![feature(iter_array_chunks)]
-#![feature(derive_const)]
-#![feature(associated_type_defaults)]
-#![feature(never_type)]
 #![feature(adt_const_params)]
-#![feature(core_intrinsics)]
 #![feature(generic_const_exprs)]
 #![feature(specialization)]
 #![feature(const_trait_impl)]
-#![feature(non_lifetime_binders)]
 #![feature(const_option_ops)]
+#![cfg_attr(test, feature(iter_array_chunks))]
 
 //! Ever needed a low pass filter for your VST? This crate has a wide selection of filters for real-time usage. It's designed to have as little runtime overhead as
 //! possible.
