@@ -297,6 +297,6 @@ mod test
     fn plot()
     {
         let mut filter = SecondOrderRCFilter::<All>::new(RC2 {r1: 22e3, c1: 4.7e-9, r2: 5.6e3, c2: 4.7e-9});
-        crate::tests::plot_freq(&mut filter, false).unwrap();
+        crate::tests::plot_freq(&mut filter).unwrap();
     }
 }

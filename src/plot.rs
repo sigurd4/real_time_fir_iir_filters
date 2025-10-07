@@ -8,8 +8,10 @@ use plotters::{chart::MeshStyle, coord::{ranged1d::{AsRangedCoord, DefaultFormat
 
 const PLOT_RES: (u32, u32) = (1024, 760);
 const PLOT_CAPTION_FONT: (&str, u32) = ("sans", 20);
+const AXIS_DESC_STYLE: (&str, u32) = ("sans", 15);
 const PLOT_MARGIN: u32 = 5;
 const PLOT_LABEL_AREA_SIZE: u32 = 30;
+const MAX_CURVE_COLOR_BRIGHTNESS: u16 = 225*2;
 
 fn isometric(mut pb: ProjectionMatrixBuilder) -> ProjectionMatrix
 {
@@ -93,6 +95,7 @@ pub fn plot_pz(
 pub fn plot_bode<'a, F, const M: usize>(
     plot_title: &str, plot_path: &'a str, legends: [&str; M],
     xy: impl IntoIterator<Item = (F, [Complex<F>; M])>,
+    decibel: bool
 ) -> Result<(), Box<dyn std::error::Error>>
 where
     F: Float + AddAssign + SubAssign + 'static,
@@ -103,12 +106,18 @@ where
             <Range<F> as AsRangedCoord>::Value
         )>
 {
-    fn db<F>(x: F) -> F
-    where
-        F: Float
-    {
-        F::from(20.0).unwrap()*(x).log10()
-    }
+    let twenty = F::from(20.0).unwrap();
+    let min_db = F::from(-40.0).unwrap();
+    let max_db = F::from(40.0).unwrap();
+    let min = F::from(1e1).unwrap().powf(min_db/twenty);
+    let max = F::from(1e1).unwrap().powf(max_db/twenty);
+    let db = |x: F| {
+        if x < min || x > max
+        {
+            return None
+        }
+        Some(twenty*x.log10())
+    };
 
     let pi = F::from(PI).unwrap();
     let tau = F::from(TAU).unwrap();
@@ -138,7 +147,7 @@ where
             (x, y)
         }).collect::<Vec<_>>();
 
-    let ([x_min, y_norm_min, y_arg_min], [x_max, y_norm_max, y_arg_max]) = xy.iter()
+    let ([x_min, mut y_norm_min, y_arg_min], [x_max, mut y_norm_max, y_arg_max]) = xy.iter()
         .map(|(x, y)| {
             let ([y_norm_min, y_arg_min], [y_norm_max, y_arg_max]) = y.iter()
                 .map(|&(y_norm, y_arg)| [y_norm, y_arg])
@@ -155,14 +164,19 @@ where
             core::array::from_fn(|i| a.1[i].max(b.1[i]))
         ))
         .unwrap();
+    if decibel
+    {
+        y_norm_min = db(y_norm_min).unwrap_or(min_db);
+        y_norm_max = db(y_norm_max).unwrap_or(max_db);
+    }
     
     let area = BitMapBackend::new(plot_path, PLOT_RES).into_drawing_area();
-    
     area.fill(&WHITE)?;
     
     let mut chart_norm = ChartBuilder::on(&area)
         .caption(plot_title, PLOT_CAPTION_FONT.into_font())
         .margin(PLOT_MARGIN)
+        .margin_right(PLOT_MARGIN)
         .margin_bottom(PLOT_RES.1/2 + PLOT_MARGIN)
         .x_label_area_size(PLOT_LABEL_AREA_SIZE)
         .y_label_area_size(PLOT_LABEL_AREA_SIZE)
@@ -181,42 +195,109 @@ where
         max_decimal: 2
     };
     let formatter = |x: &F| formatter.print(x.to_f64().unwrap());
+    let norm_formatter = |x: &F| if decibel
+    {
+        let s = formatter(x);
+        format!("{s} dB")
+    }
+    else
+    {
+        formatter(x)
+    };
+    let arg_formatter = |x: &F| {
+        let s = formatter(x);
+        format!("{s}°")
+    };
     
     chart_norm.configure_mesh()
         .x_desc("ω")
-        .y_desc("|H(jω)| [dB]")
+        .y_desc("|H(jω)|")
         .x_label_formatter(&formatter)
-        .y_label_formatter(&formatter)
-        .axis_desc_style(("sans-serif", 10).into_font())
+        .y_label_formatter(&norm_formatter)
+        .axis_desc_style(AXIS_DESC_STYLE.into_font())
         .set_all_tick_mark_size(0.1)
         .draw()?;
     
     chart_arg.configure_mesh()
         .x_desc("ω")
-        .y_desc("θ(jω) [°]")
+        .y_desc("∠H(jω)")
         .x_label_formatter(&formatter)
-        .y_label_formatter(&formatter)
-        .axis_desc_style(("sans-serif", 10).into_font())
+        .y_label_formatter(&arg_formatter)
+        .axis_desc_style(AXIS_DESC_STYLE.into_font())
         .set_all_tick_mark_size(0.1)
         .draw()?;
 
-    for i in 0..M
+    let mut c = 0;
+    for (i, legend) in legends.into_iter()
+        .enumerate()
     {
-        let color = Palette99::pick(i);
+        let mut color = Palette99::pick(c);
+        while {
+            let RGBAColor(r, g, b, _) = color.to_rgba();
+            r as u16 + g as u16 + b as u16 > MAX_CURVE_COLOR_BRIGHTNESS
+        }
+        {
+            c += 1;
+            color = Palette99::pick(c);
+        }
 
-        let xy_norm = xy.iter().map(|(x, y)| (*x, y[i].0));
-        let xy_arg = xy.iter().map(|(x, y)| (*x, y[i].1));
+        let mut first = true;
+        let mut series = |xy: Vec<(F, (F, F))>| {
+            let xy_norm = xy.iter().map(|(x, y)| (*x, y.0));
+            let xy_arg = xy.iter().map(|(x, y)| (*x, y.1));
 
-        chart_norm.draw_series(LineSeries::new(
-            xy_norm,
-            &color
-        ))?;
+            let s_norm = chart_norm.draw_series(LineSeries::new(
+                    xy_norm,
+                    &color
+                ))?;
 
-        chart_arg.draw_series(LineSeries::new(
-            xy_arg,
-            &color
-        ))?;
+            chart_arg.draw_series(LineSeries::new(
+                xy_arg,
+                &color
+            ))?;
+
+            if first
+            {
+                first = false;
+                let color = Palette99::pick(c);
+                s_norm.label(legend)
+                    .legend(move |(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &color));
+            }
+
+            Result::<_, DrawingAreaErrorKind<_>>::Ok(())
+        };
+
+        if decibel
+        {
+            let xy = xy.iter()
+                .map(|(x, y)| (*x, y[i]))
+                .map(|(x, (y_norm, y_arg))| db(y_norm).map(|y_norm| (x, (y_norm, y_arg))))
+                .collect::<Vec<_>>();
+            for xy in xy.split(|xy| xy.is_none())
+                .map(|xy| xy.into_iter()
+                    .filter_map(|&xy| xy)
+                    .collect::<Vec<_>>()
+                )
+            {
+                series(xy)?
+            }
+        }
+        else
+        {
+            let xy = xy.iter()
+                .map(|(x, y)| (*x, y[i]))
+                .collect();
+            series(xy)?
+        }
+
+        c += 1;
     }
+
+    chart_norm.configure_series_labels()
+        .border_style(BLACK)
+        .background_style(WHITE.mix(0.77))
+        .position(SeriesLabelPosition::UpperRight)
+        .draw()?;
         
     // To avoid the IO failure being ignored silently, we manually call the present function
     area.present().expect("Unable to write result to file");

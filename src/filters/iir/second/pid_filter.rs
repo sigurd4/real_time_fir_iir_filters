@@ -61,6 +61,6 @@ mod test
     fn plot()
     {
         let mut filter = PIDFilter::new(PID {p: 1.0, i: 0.001, d: 0.00001});
-        crate::tests::plot_freq(&mut filter, false).unwrap();
+        crate::tests::plot_freq(&mut filter).unwrap();
     }
 }

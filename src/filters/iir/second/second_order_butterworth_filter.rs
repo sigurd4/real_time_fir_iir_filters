@@ -152,8 +152,6 @@ crate::def_rtf!(
             )
         }
     }
-    where
-        [(); <C as ButterworthFilterConf<2>>::OUTPUTS]:
 );
 
 #[cfg(test)]
@@ -169,6 +167,6 @@ mod test
     fn plot()
     {
         let mut filter = SecondOrderButterworthFilter::<All>::new(Omega {omega: 10e3*TAU});
-        crate::tests::plot_freq(&mut filter, false).unwrap();
+        crate::tests::plot_freq(&mut filter).unwrap();
     }
 }

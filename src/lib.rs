@@ -1160,7 +1160,7 @@ mod tests
         (filter_name, file_name_no_extension)
     }
 
-    pub fn plot_freq<F, T, const OUTPUTS: usize>(filter: &mut T, two_sided: bool) -> Result<(), Box<dyn std::error::Error>>
+    pub fn plot_freq<F, T, const OUTPUTS: usize>(filter: &mut T) -> Result<(), Box<dyn std::error::Error>>
     where
         F: Display + Debug,
         T: Rtf<F = F, Outputs<Complex<F>> = [Complex<F>; OUTPUTS]>,
@@ -1168,27 +1168,31 @@ mod tests
         Range<F>: AsRangedCoord<CoordDescType: ValueFormatter<<Range<F> as AsRangedCoord>::Value>, Value = F>,
         for<'b, 'a> &'b DynElement<'static, BitMapBackend<'a>, (F, F)>: PointCollection<'b, (<Range<F> as AsRangedCoord>::Value, <Range<F> as AsRangedCoord>::Value)>
     {
-        const N: usize = 256;
-        let omega: [F; N] = (if two_sided { -PI } else { f64::EPSILON }..PI)
-            .linspace_array()
+        const N: usize = 4096;
+        const DECIBEL: bool = false;
+        const TWO_SIDED: bool = false;
+
+        let omega = (if TWO_SIDED { -PI } else { f64::EPSILON }..PI)
+            .linspace(N)
             .map(|omega| f!(omega));
 
         let sampling_frequency = f!(44100.0);
 
-        let freq_response = omega.into_iter().map(|omega| filter.frequency_response(sampling_frequency, omega));
+        let data = omega.into_iter()
+            .map(|omega| (omega, filter.frequency_response(sampling_frequency, omega)));
 
         let (filter_name, file_name) = filter_name::<T>();
 
         let title = format!("Frequency response of '{filter_name}', fs = {sampling_frequency}");
         let file = format!("{PLOT_TARGET}/{file_name}.png");
-        let legends = core::array::from_fn(|i| format!("{i}"));
+        let legends = core::array::from_fn(|i| format!("H_{i}"));
 
         plot::plot_bode::<F, OUTPUTS>(
             &title,
             &file,
             legends.each_ref().map(Deref::deref),
-            omega.into_iter()
-                .zip(freq_response)
+            data,
+            DECIBEL
         )?;
         Ok(())
     }

@@ -112,6 +112,6 @@ mod test
     fn plot()
     {
         let mut filter = FirstOrderLRFilter::<All>::new(LR {l: 100e-3, r: 10e3});
-        crate::tests::plot_freq(&mut filter, false).unwrap();
+        crate::tests::plot_freq(&mut filter).unwrap();
     }
 }

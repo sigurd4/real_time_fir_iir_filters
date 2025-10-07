@@ -59,6 +59,6 @@ mod test
     fn plot()
     {
         let mut filter = PIFilter::new(PI {p: 1.0, i: 0.001});
-        crate::tests::plot_freq(&mut filter, false).unwrap();
+        crate::tests::plot_freq(&mut filter).unwrap();
     }
 }

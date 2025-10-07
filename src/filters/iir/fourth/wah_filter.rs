@@ -76,6 +76,6 @@ mod test
     fn plot()
     {
         let mut filter = WahFilter::new(CrybabyGCB95 {x: 0.3});
-        crate::tests::plot_freq(&mut filter, false).unwrap();
+        crate::tests::plot_freq(&mut filter).unwrap();
     }
 }

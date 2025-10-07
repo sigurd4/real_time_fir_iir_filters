@@ -110,6 +110,6 @@ mod test
     fn plot()
     {
         let mut filter = SecondOrderEllipticFilter::<All>::new(OmegaEpsilonXi {omega: 10e3*TAU, epsilon: 0.5, xi: 1.5});
-        crate::tests::plot_freq(&mut filter, false).unwrap();
+        crate::tests::plot_freq(&mut filter).unwrap();
     }
 }
