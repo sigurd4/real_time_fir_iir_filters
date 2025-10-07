@@ -93,7 +93,7 @@ crate::def_rtf!(
         type Conf: SecondOrderSallenKeyFilterConf;
         type Param: SecondOrderSallenKeyFilterParam = RC2GSallenKey;
 
-        const OUTPUT_BUFS: usize = <C as SecondOrderSallenKeyFilterConf>::OUTPUTS;
+        type OutputBufs<U> = <C as SecondOrderSallenKeyFilterConf>::Outputs<U>;
         const SOS_BUFS: usize = 1;
         const SOS_STAGES: usize = 0;
         const ORDER: usize = 2;
@@ -314,8 +314,6 @@ crate::def_rtf!(
             )
         }
     }
-    where
-        [(); <C as SecondOrderSallenKeyFilterConf>::OUTPUTS]:
 );
 
 #[cfg(test)]

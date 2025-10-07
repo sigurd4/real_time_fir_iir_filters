@@ -276,8 +276,6 @@ crate::def_rtf!(
             )
         }
     }
-    where
-        [(); <C as ThirdOrderFilterConf>::OUTPUTS]:
 );
 
 #[cfg(test)]
@@ -292,7 +290,7 @@ mod test
     #[test]
     fn plot()
     {
-        let mut filter = ThirdOrderFilter::<All>::new(Omega2Zeta {omega1: 1e3*TAU, omega2: 10e3*TAU, zeta: 0.05});
+        let mut filter = ThirdOrderFilter::<All>::new(Omega2Zeta {omega1: 1e3*TAU, omega2: 10e3*TAU, zeta: 0.2});
         crate::tests::plot_freq(&mut filter).unwrap();
     }
 }

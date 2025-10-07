@@ -44,11 +44,11 @@ default = [
     "second_order",
     "second_order_rc",
     "second_order_rlc",
-    #"second_order_sallen_key",
-    #"third_order_butterworth",
-    #"third_order",
+    "second_order_sallen_key",
+    "third_order_butterworth",
+    "third_order",
     #"third_order_sallen_key",
-    #"wah"
+    "wah"
 ]
 
 first_order_all_pass = []

@@ -273,8 +273,6 @@ crate::def_rtf!(
             )
         }
     }
-    where
-        [(); <C as ButterworthFilterConf<3>>::OUTPUTS]:
 );
 
 #[cfg(test)]
