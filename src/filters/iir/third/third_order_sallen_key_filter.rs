@@ -117,52 +117,8 @@ crate::rtfinternals!(
 /// 
 /// G = 1.38
 /// 
-/// ## Low-pass
-/// 
 /// <div>
-/// <img alt="Third order low-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_sallen_key_filter0.png" height="500">
-/// </div>
-/// 
-/// ## Band-pass 1
-/// 
-/// <div>
-/// <img alt="Third order band-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_sallen_key_filter1.png" height="500">
-/// </div>
-/// 
-/// ## Band-pass 2
-/// 
-/// <div>
-/// <img alt="Third order band-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_sallen_key_filter2.png" height="500">
-/// </div>
-/// 
-/// ## Band-pass 3
-/// 
-/// <div>
-/// <img alt="Third order band-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_sallen_key_filter3.png" height="500">
-/// </div>
-/// 
-/// ## Band-pass 4
-/// 
-/// <div>
-/// <img alt="Third order band-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_sallen_key_filter4.png" height="500">
-/// </div>
-/// 
-/// ## Band-pass 5
-/// 
-/// <div>
-/// <img alt="Third order band-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_sallen_key_filter5.png" height="500">
-/// </div>
-/// 
-/// ## Band-pass 6
-/// 
-/// <div>
-/// <img alt="Third order band-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_sallen_key_filter6.png" height="500">
-/// </div>
-/// 
-/// ## High-pass
-/// 
-/// <div>
-/// <img alt="Third order high-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_sallen_key_filter7.png" height="500">
+/// <img alt="Third order sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_sallen_key_filter.png" height="500">
 /// </div>
 #[derive(Clone, Copy, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)]

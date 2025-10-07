@@ -16,14 +16,10 @@ crate::def_rtf!(
         /// 
         /// # Frequency response
         /// 
-        /// ## Parameters
-        /// 
         /// τ = 1 ms
         /// 
-        /// ## All-pass
-        /// 
         /// <div>
-        /// <img alt="First order all-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/first_order_all_pass_filter0.png" height="500">
+        /// <img alt="First order all-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/first_order_all_pass_filter.png" height="500">
         /// </div>
     }
     FirstOrderAllPassFilter

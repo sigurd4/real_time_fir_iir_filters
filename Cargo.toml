@@ -36,6 +36,7 @@ default = [
     "pi",
     "pid",
     "second_order_butterworth",
+    "second_order_bessel",
     "second_order_chebyshev1",
     "second_order_chebyshev2",
     "second_order_elliptic",
@@ -57,6 +58,7 @@ pi = []
 
 pid = []
 second_order_butterworth = []
+second_order_bessel = []
 second_order_chebyshev1 = []
 second_order_chebyshev2 = []
 second_order_chebyshev = ["second_order_chebyshev1", "second_order_chebyshev2"]
@@ -73,6 +75,7 @@ third_order_sallen_key = []
 wah = []
 
 butterworth = ["first_order", "second_order_butterworth", "third_order_butterworth"]
+bessel = ["first_order", "second_order_bessel"]
 chebyshev1 = ["second_order_chebyshev1"]
 chebyshev2 = ["second_order_chebyshev2"]
 chebyshev = ["chebyshev1", "chebyshev2", "second_order_chebyshev"]

@@ -12,18 +12,14 @@ crate::def_rtf!(
         /// 
         /// # Frequency response
         /// 
-        /// ## Parameters
-        /// 
         /// P = 1
         /// 
         /// I = 1 mHz
         /// 
         /// D = 10 μs
         /// 
-        /// ## Output
-        /// 
         /// <div>
-        /// <img alt="PID-filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/p_i_d_filter0.png" height="500">
+        /// <img alt="PID-filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/p_i_d_filter.png" height="500">
         /// </div>
     }
     PIDFilter

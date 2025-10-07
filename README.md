@@ -91,6 +91,7 @@ filter.reset();
 | 1     | `PIFilter`                     | `PI`                                                               | -                                                                                                        |
 | 2     | `PIDFilter`                    | `PI` `PID`                                                         | -                                                                                                        |
 | 2     | `SecondOrderButterworthFilter` | `Omega`                                                            | `LowPass` `Peak` `HighPass`                                                                              |
+| 2     | `SecondOrderBesselFilter`      | `Omega`                                                            | `LowPass` `HighPass`                                                                                     |
 | 2     | `SecondOrderChebyshev1Filter`  | `Omega` `OmegaEpsilon`                                             | `LowPass` `HighPass`                                                                                     |
 | 2     | `SecondOrderChebyshev2Filter`  | `Omega` `OmegaEpsilon`                                             | `LowPass` `HighPass`                                                                                     |
 | 2     | `SecondOrderEllipticFilter`    | `Omega` `OmegaEpsilon` `OmegaEpsilonXi`                            | `LowPass` `HighPass`                                                                                     |

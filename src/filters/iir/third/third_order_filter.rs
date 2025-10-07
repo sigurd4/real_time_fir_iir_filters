@@ -35,36 +35,14 @@ crate::def_rtf!(
         /// 
         /// # Frequency response
         /// 
-        /// ## Parameters
-        /// 
         /// ω₁ = 1 kHz 2π
         /// 
         /// ω₂ = 10 kHz 2π
         /// 
-        /// ζ = 0.05
-        /// 
-        /// ## Low-pass
+        /// ζ = 0.2
         /// 
         /// <div>
-        /// <img alt="Third order low-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_filter0.png" height="500">
-        /// </div>
-        /// 
-        /// ## Peak 1
-        /// 
-        /// <div>
-        /// <img alt="Third order peak filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_filter1.png" height="500">
-        /// </div>
-        /// 
-        /// ## Peak 2
-        /// 
-        /// <div>
-        /// <img alt="Third order peak filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_filter2.png" height="500">
-        /// </div>
-        /// 
-        /// ## High-pass
-        /// 
-        /// <div>
-        /// <img alt="Third order high-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_filter3.png" height="500">
+        /// <img alt="Third order filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_filter.png" height="500">
         /// </div>
     }
     ThirdOrderFilter

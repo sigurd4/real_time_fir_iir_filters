@@ -29,26 +29,10 @@ crate::def_rtf!(
         /// 
         /// # Frequency response
         /// 
-        /// ## Parameters
-        /// 
         /// ω = 10 kHz 2π
         /// 
-        /// ## Low-pass
-        /// 
         /// <div>
-        /// <img alt="Second order butterworth low-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_butterworth_filter0.png" height="500">
-        /// </div>
-        /// 
-        /// ## Peak
-        /// 
-        /// <div>
-        /// <img alt="Second order butterworth peak filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_butterworth_filter1.png" height="500">
-        /// </div>
-        /// 
-        /// ## High-pass
-        /// 
-        /// <div>
-        /// <img alt="Second order butterworth high-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_butterworth_filter2.png" height="500">
+        /// <img alt="Second order butterworth filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_butterworth_filter.png" height="500">
         /// </div>
     }
     SecondOrderButterworthFilter
@@ -153,7 +137,7 @@ crate::def_rtf!(
         }
     }
 );
-
+ 
 #[cfg(test)]
 mod test
 {

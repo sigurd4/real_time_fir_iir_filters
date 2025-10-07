@@ -39,8 +39,6 @@ crate::def_rtf!(
         /// 
         /// # Frequency response
         /// 
-        /// ## Parameters
-        /// 
         /// R₁ = 22 kΩ
         /// 
         /// C₁ = 4.7 nF
@@ -49,28 +47,8 @@ crate::def_rtf!(
         /// 
         /// C₂ = 4.7 nF
         /// 
-        /// ## Low-pass
-        /// 
         /// <div>
-        /// <img alt="Second order low-pass RC-filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_r_c_filter0.png" height="500">
-        /// </div>
-        /// 
-        /// ## Band-pass 1
-        /// 
-        /// <div>
-        /// <img alt="Second order band-pass RC-filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_r_c_filter1.png" height="500">
-        /// </div>
-        /// 
-        /// ## Band-pass 2
-        /// 
-        /// <div>
-        /// <img alt="Second order band-pass RC-filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_r_c_filter2.png" height="500">
-        /// </div>
-        /// 
-        /// ## High-pass
-        /// 
-        /// <div>
-        /// <img alt="Second order high-pass RC-filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_r_c_filter3.png" height="500">
+        /// <img alt="Second order RC-filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_r_c_filter.png" height="500">
         /// </div>
     }
     SecondOrderRCFilter

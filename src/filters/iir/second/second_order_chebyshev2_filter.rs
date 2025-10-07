@@ -23,22 +23,12 @@ crate::def_rtf!(
         /// 
         /// # Frequency response
         /// 
-        /// ## Parameters
-        /// 
         /// ω = 10 kHz 2π
         /// 
         /// ε = 0.5
         /// 
-        /// ## Low-pass
-        /// 
         /// <div>
-        /// <img alt="Second order chebyshev2 low-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_chebyshev2_filter0.png" height="500">
-        /// </div>
-        /// 
-        /// ## High-pass
-        /// 
-        /// <div>
-        /// <img alt="Second order chebyshev2 high-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_chebyshev2_filter1.png" height="500">
+        /// <img alt="Second order chebyshev2 filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_chebyshev2_filter.png" height="500">
         /// </div>
     }
     SecondOrderChebyshev2Filter

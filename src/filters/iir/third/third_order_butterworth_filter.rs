@@ -36,32 +36,10 @@ crate::def_rtf!(
         /// 
         /// # Frequency response
         /// 
-        /// ## Parameters
-        /// 
         /// ω = 10 kHz 2π
         /// 
-        /// ## Low-pass
-        /// 
         /// <div>
-        /// <img alt="Third order butterworth low-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_butterworth_filter0.png" height="500">
-        /// </div>
-        /// 
-        /// ## Peak 1
-        /// 
-        /// <div>
-        /// <img alt="Third order butterworth peak filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_butterworth_filter1.png" height="500">
-        /// </div>
-        /// 
-        /// ## Peak 2
-        /// 
-        /// <div>
-        /// <img alt="Third order butterworth peak filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_butterworth_filter2.png" height="500">
-        /// </div>
-        /// 
-        /// ## High-pass
-        /// 
-        /// <div>
-        /// <img alt="Third order butterworth high-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_butterworth_filter3.png" height="500">
+        /// <img alt="Third order butterworth filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/third_order_butterworth_filter.png" height="500">
         /// </div>
     }
     ThirdOrderButterworthFilter

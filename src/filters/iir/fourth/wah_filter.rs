@@ -31,14 +31,10 @@ crate::def_rtf!(
         /// 
         /// # Frequency response
         /// 
-        /// ## Parameters
-        /// 
         /// x = 0.3
         /// 
-        /// ## Output
-        /// 
         /// <div>
-        /// <img alt="Wah filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/wah_filter0.png" height="500">
+        /// <img alt="Wah filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/wah_filter.png" height="500">
         /// </div>
     }
     WahFilter

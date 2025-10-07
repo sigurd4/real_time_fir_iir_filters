@@ -22,20 +22,8 @@ crate::def_rtf!(
         /// 
         /// # Frequency response
         /// 
-        /// ## Parameters
-        /// 
-        /// ω = 10 kHz 2π
-        /// 
-        /// ## Low-pass
-        /// 
         /// <div>
-        /// <img alt="First order low-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/first_order_filter0.png" height="500">
-        /// </div>
-        /// 
-        /// ## High-pass
-        /// 
-        /// <div>
-        /// <img alt="First order high-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/first_order_filter1.png" height="500">
+        /// <img alt="First order filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/first_order_filter.png" height="500">
         /// </div>
     }
     FirstOrderFilter

@@ -52,8 +52,6 @@ crate::def_rtf!(
         /// 
         /// # Frequency response
         /// 
-        /// ## Parameters
-        /// 
         /// R₁ = 15 kΩ
         /// 
         /// C₁ = 2.7 nF
@@ -64,28 +62,8 @@ crate::def_rtf!(
         /// 
         /// G = 2
         /// 
-        /// ## Low-pass
-        /// 
         /// <div>
-        /// <img alt="Second order low-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_sallen_key_filter0.png" height="500">
-        /// </div>
-        /// 
-        /// ## Band-pass 1
-        /// 
-        /// <div>
-        /// <img alt="Second order band-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_sallen_key_filter1.png" height="500">
-        /// </div>
-        /// 
-        /// ## Band-pass 2
-        /// 
-        /// <div>
-        /// <img alt="Second order band-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_sallen_key_filter2.png" height="500">
-        /// </div>
-        /// 
-        /// ## High-pass
-        /// 
-        /// <div>
-        /// <img alt="Second order high-pass sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_sallen_key_filter3.png" height="500">
+        /// <img alt="Second order sallen-key filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_sallen_key_filter.png" height="500">
         /// </div>
     }
     SecondOrderSallenKeyFilter

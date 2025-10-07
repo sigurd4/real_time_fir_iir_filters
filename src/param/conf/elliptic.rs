@@ -84,6 +84,8 @@ mod private
         >,
         /*OmegaDyn<f32>: DynOrderButterworthFilterParam<CC, Conf = CC>,
         OmegaDyn<f64>: DynOrderButterworthFilterParam<CC, Conf = CC>,
+        OmegaDyn<f32>: DynOrderBesselFilterParam<CC, Conf = CC>,
+        OmegaDyn<f64>: DynOrderBesselFilterParam<CC, Conf = CC>,
         OmegaEpsilonCheb1Dyn<f32>: DynOrderChebyshev1FilterParam<CC, Conf = CC>,
         OmegaEpsilonCheb1Dyn<f64>: DynOrderChebyshev1FilterParam<CC, Conf = CC>,
         OmegaEpsilonCheb2Dyn<f32>: DynOrderChebyshev2FilterParam<CC, Conf = CC>,
@@ -93,6 +95,8 @@ mod private
 
         OmegaFirstOrder<f32>: FirstOrderButterworthFilterParam<CC, Conf = CC>,
         OmegaFirstOrder<f64>: FirstOrderButterworthFilterParam<CC, Conf = CC>,
+        OmegaFirstOrder<f32>: FirstOrderBesselFilterParam<CC, Conf = CC>,
+        OmegaFirstOrder<f64>: FirstOrderBesselFilterParam<CC, Conf = CC>,
         OmegaEpsilonCheb1FirstOrder<f32>: FirstOrderChebyshev1FilterParam<CC, Conf = CC>,
         OmegaEpsilonCheb1FirstOrder<f64>: FirstOrderChebyshev1FilterParam<CC, Conf = CC>,
         OmegaEpsilonCheb2FirstOrder<f32>: FirstOrderChebyshev2FilterParam<CC, Conf = CC>,
@@ -102,6 +106,8 @@ mod private
         
         OmegaSecondOrder<f32>: SecondOrderButterworthFilterParam<CC, Conf = CC>,
         OmegaSecondOrder<f64>: SecondOrderButterworthFilterParam<CC, Conf = CC>,
+        OmegaSecondOrder<f32>: SecondOrderBesselFilterParam<CC, Conf = CC>,
+        OmegaSecondOrder<f64>: SecondOrderBesselFilterParam<CC, Conf = CC>,
         OmegaEpsilonCheb1SecondOrder<f32>: SecondOrderChebyshev1FilterParam<CC, Conf = CC>,
         OmegaEpsilonCheb1SecondOrder<f64>: SecondOrderChebyshev1FilterParam<CC, Conf = CC>,
         OmegaEpsilonCheb2SecondOrder<f32>: SecondOrderChebyshev2FilterParam<CC, Conf = CC>,

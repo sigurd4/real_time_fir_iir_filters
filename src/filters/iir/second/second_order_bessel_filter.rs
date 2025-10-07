@@ -1,4 +1,4 @@
-use crate::{calc::iir::second::SecondOrderChebyshev1Calc, conf::{All, HighPass, LowPass}, param::{EllipticFilterConf, OmegaEpsilonCheb1SecondOrder, SecondOrderChebyshev1FilterParam}};
+use crate::{calc::iir::second::SecondOrderBesselCalc, conf::{All, HighPass, LowPass}, param::{EllipticFilterConf, OmegaSecondOrder, SecondOrderBesselFilterParam}};
 
 crate::def_rtf!(
     {
@@ -10,31 +10,35 @@ crate::def_rtf!(
         /// <pre>
         /// 0) LOW-PASS:
         /// 
-        ///                  1
-        /// |H(s)| = -----------------
-        ///          √(1 + ε²T₂²(s/ω))
+        ///         θ₂(0)         3ω²
+        /// H(s) = ------- = --------------
+        ///        θ₂(s/ω)   s² + 3ωs + 3ω²
         /// 
-        /// 1) HIGH-PASS:
+        /// 2) HIGH-PASS:
         /// 
-        ///                  1
-        /// |H(s)| = -----------------
-        ///          √(1 + ε²T₂²(ω/s))
+        ///         θ₂(0)         3s²
+        /// H(s) = ------- = --------------
+        ///        θ₂(ω/s)   3s² + 3ωs + ω²
+        /// </pre>
+        /// 
+        /// ## Where
+        /// 
+        /// <pre>
+        /// θ₂(s) = s² + 3s + 3
         /// </pre>
         /// 
         /// # Frequency response
         /// 
         /// ω = 10 kHz 2π
         /// 
-        /// ε = 0.5
-        /// 
         /// <div>
-        /// <img alt="Second order chebyshev1 filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_chebyshev1_filter.png" height="500">
+        /// <img alt="Second order bessel filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_bessel_filter.png" height="500">
         /// </div>
     }
-    SecondOrderChebyshev1Filter
+    SecondOrderBesselFilter
     {
         type Conf: EllipticFilterConf;
-        type Param: SecondOrderChebyshev1FilterParam = OmegaEpsilonCheb1SecondOrder;
+        type Param: SecondOrderBesselFilterParam = OmegaSecondOrder;
 
         type OutputBufs<U> = <C as EllipticFilterConf>::Outputs<U>;
         const SOS_BUFS: usize = 1;
@@ -44,7 +48,7 @@ crate::def_rtf!(
 
         fn make_coeffs<All>(param, rate) -> _
         {
-            let calc = SecondOrderChebyshev1Calc::new(param.omega_epsilon(), rate);
+            let calc = SecondOrderBesselCalc::new(param.omega(), rate);
             (
                 ([], [], [
                     calc.b_low(),
@@ -58,7 +62,7 @@ crate::def_rtf!(
         }
         fn make_coeffs<LowPass>(param, rate) -> _
         {
-            let calc = SecondOrderChebyshev1Calc::new(param.omega_epsilon(), rate);
+            let calc = SecondOrderBesselCalc::<_, _, ()>::new(param.omega(), rate);
             (
                 ([], [], [
                     calc.b_low()
@@ -70,7 +74,7 @@ crate::def_rtf!(
         }
         fn make_coeffs<HighPass>(param, rate) -> _
         {
-            let calc = SecondOrderChebyshev1Calc::new(param.omega_epsilon(), rate);
+            let calc = SecondOrderBesselCalc::<_, (), _>::new(param.omega(), rate);
             (
                 ([], [], [
                     calc.b_high()
@@ -88,14 +92,14 @@ mod test
 {
     use std::f64::consts::TAU;
 
-    use crate::{conf::All, param::OmegaEpsilon};
+    use crate::{conf::All, param::Omega};
 
-    use super::SecondOrderChebyshev1Filter;
+    use super::SecondOrderBesselFilter;
 
     #[test]
     fn plot()
     {
-        let mut filter = SecondOrderChebyshev1Filter::<All>::new(OmegaEpsilon {omega: 10e3*TAU, epsilon: 0.5});
+        let mut filter = SecondOrderBesselFilter::<All>::new(Omega {omega: 10e3*TAU});
         crate::tests::plot_freq(&mut filter).unwrap();
     }
 }

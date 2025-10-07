@@ -32,22 +32,12 @@ crate::def_rtf!(
         /// 
         /// # Frequency response
         /// 
-        /// ## Parameters
-        /// 
         /// L = 100 mH
         /// 
         /// R = 10 kΩ
         /// 
-        /// ## Low-pass
-        /// 
         /// <div>
-        /// <img alt="First order low-pass LR-filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/first_order_l_r_filter0.png" height="500">
-        /// </div>
-        /// 
-        /// ## High-pass
-        /// 
-        /// <div>
-        /// <img alt="First order high-pass LR-filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/first_order_l_r_filter1.png" height="500">
+        /// <img alt="First order LR-filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/first_order_l_r_filter.png" height="500">
         /// </div>
     }
     FirstOrderLRFilter

@@ -1,8 +1,6 @@
 use num::One;
 
-use super::ButterworthFilterParam;
-
-use crate::{conf::{All, Conf}, param::{ChebyshevFilterParamBase, EllipticFilterConf, EllipticFilterParamBase, FilterFloat, FilterParam, Omega, OmegaDyn, OmegaEpsilon, OmegaEpsilonCheb1}, util::same::Same};
+use crate::{conf::{All, Conf}, param::{BesselFilterParam, ChebyshevFilterParamBase, EllipticFilterConf, EllipticFilterParamBase, FilterFloat, FilterParam, Omega, OmegaDyn, OmegaEpsilon, OmegaEpsilonCheb1}, util::same::Same};
 
 pub trait ChebyshevFilterParam<
     C,
@@ -63,7 +61,7 @@ special!(ThirdOrderChebyshev2FilterParam = true, 3);
 
 impl<F, P, C, const ORDER: usize> ChebyshevFilterParam<C, OmegaDyn<F>> for P
 where
-    P: ButterworthFilterParam<C, F = F, ORDER = {ORDER}, Omega = Omega<F, ORDER>, Conf: EllipticFilterConf>, // TODO generalize for different orders
+    P: BesselFilterParam<C, F = F, ORDER = {ORDER}, Omega = Omega<F, ORDER>>,
     C: Conf,
     F: FilterFloat,
     OmegaEpsilonCheb1<F, ORDER>: Same<OmegaEpsilon<F, {<Self as ChebyshevFilterParamBase<C>>::TYPE}, {Self::ORDER}>>,
@@ -76,6 +74,7 @@ where
 
     fn omega_epsilon(&self) -> Self::OmegaEpsilon
     {
+        // TODO generalize for different orders
         let Omega {omega} = self.omega();
         let x = omega.recip();
         let x2 = x*x;

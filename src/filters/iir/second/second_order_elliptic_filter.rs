@@ -23,24 +23,14 @@ crate::def_rtf!(
         /// 
         /// # Frequency response
         /// 
-        /// ## Parameters
-        /// 
         /// ω = 10 kHz 2π
         /// 
         /// ε = 0.5
         /// 
         /// ξ = 1.5
         /// 
-        /// ## Low-pass
-        /// 
         /// <div>
-        /// <img alt="Second order elliptic low-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_elliptic_filter0.png" height="500">
-        /// </div>
-        /// 
-        /// ## High-pass
-        /// 
-        /// <div>
-        /// <img alt="Second order elliptic high-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_elliptic_filter1.png" height="500">
+        /// <img alt="Second order elliptic filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_elliptic_filter.png" height="500">
         /// </div>
     }
     SecondOrderEllipticFilter

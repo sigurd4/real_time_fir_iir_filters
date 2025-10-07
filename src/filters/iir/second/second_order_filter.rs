@@ -29,28 +29,12 @@ crate::def_rtf!(
         /// 
         /// # Frequency response
         /// 
-        /// ## Parameters
-        /// 
         /// ω = 10 kHz 2π
         /// 
-        /// ζ = 0.05
-        /// 
-        /// ## Low-pass
+        /// ζ = 0.2
         /// 
         /// <div>
-        /// <img alt="Second order low-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_filter0.png" height="500">
-        /// </div>
-        /// 
-        /// ## Peak
-        /// 
-        /// <div>
-        /// <img alt="Second order peak filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_filter1.png" height="500">
-        /// </div>
-        /// 
-        /// ## High-pass
-        /// 
-        /// <div>
-        /// <img alt="Second order high-pass filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_filter2.png" height="500">
+        /// <img alt="Second order filter response" src="https://raw.githubusercontent.com/sigurd4/real_time_fir_iir_filters/refs/heads/master/plots/second_order_filter.png" height="500">
         /// </div>
     }
     SecondOrderFilter
