@@ -1,4 +1,4 @@
-use crate::conf::{all, All, BandPass, HighPass, InputOrGND, LowPass};
+use crate::{util::{self, ArrayChunks}, conf::{all, All, BandPass, HighPass, InputOrGND, LowPass}};
 
 use super::{FirstOrderFilterConf, SecondOrderRLCFilterConf, SecondOrderRCFilterConf, ThirdOrderSallenKeyFilterConf};
 
@@ -6,7 +6,7 @@ pub trait FirstOrderRCFilterConf: FirstOrderFilterConf
 {
     type Conf: private::FirstOrderRCFilterConfFinal<Self>;
 
-    const OUTPUTS: usize;
+    type Outputs<U>: ArrayChunks<[U; 1], Elem = U, Rem = [U; 0]>;
 
     type AsSecondOrderRLCFilterConf: private::SecondOrderRLCFilterConfForFirstOrderRCFilterConf<Self>;
     type AsSecondOrderRCFilterConf: private::SecondOrderRCFilterConfForFirstOrderRCFilterConf<Self>;
@@ -20,7 +20,7 @@ impl FirstOrderRCFilterConf for LowPass
 {
     type Conf = Self;
 
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 
     type AsSecondOrderRLCFilterConf = LowPass;
     type AsSecondOrderRCFilterConf = LowPass;
@@ -32,7 +32,7 @@ impl FirstOrderRCFilterConf for HighPass
 {
     type Conf = Self;
 
-    const OUTPUTS: usize = 1;
+    type Outputs<U> = [U; 1];
 
     type AsSecondOrderRLCFilterConf = BandPass;
     type AsSecondOrderRCFilterConf = BandPass<1>;
@@ -42,54 +42,46 @@ impl FirstOrderRCFilterConf for HighPass
 }
 
 macro impl_composite_conf {
-    ($conf:ty: $conf0:ty, $($more:ty),+) => {
+    ($conf:ty: $($more:ty),+) => {
         impl FirstOrderRCFilterConf for $conf
         {
             type Conf = $conf;
 
-            const OUTPUTS: usize = <$conf0 as FirstOrderRCFilterConf>::OUTPUTS $(+ <$more as FirstOrderRCFilterConf>::OUTPUTS)*;
+            type Outputs<U> = util::array_sum!($(<$more as FirstOrderRCFilterConf>::Outputs::<U>),+);
             
             type AsSecondOrderRLCFilterConf = <all!(
-                <$conf0 as FirstOrderRCFilterConf>::AsSecondOrderRLCFilterConf,
                 $(<$more as FirstOrderRCFilterConf>::AsSecondOrderRLCFilterConf),*
             ) as SecondOrderRLCFilterConf>::Conf;
             type AsSecondOrderRCFilterConf = <all!(
-                <$conf0 as FirstOrderRCFilterConf>::AsSecondOrderRCFilterConf,
                 $(<$more as FirstOrderRCFilterConf>::AsSecondOrderRCFilterConf),*
             ) as SecondOrderRCFilterConf>::Conf;
             type AsThirdOrderSallenKeyFilterConf = <all!(
-                <$conf0 as FirstOrderRCFilterConf>::AsThirdOrderSallenKeyFilterConf,
                 $(<$more as FirstOrderRCFilterConf>::AsThirdOrderSallenKeyFilterConf),*
             ) as ThirdOrderSallenKeyFilterConf>::Conf;
 
             const R_CONF: InputOrGND = InputOrGND::all([
-                <$conf0 as FirstOrderRCFilterConf>::R_CONF,
                 $(<$more as FirstOrderRCFilterConf>::R_CONF),*
             ]);
         }
     },
-    ($conf:ty: $conf0:ty, $($more:ty),+ => $($actual:ty),+) => {
+    ($conf:ty: $($more:ty),+ => $($actual:ty),+) => {
         impl FirstOrderRCFilterConf for $conf
         {
             type Conf = all!($($actual),+);
 
-            const OUTPUTS: usize = <$conf0 as FirstOrderRCFilterConf>::OUTPUTS $(+ <$more as FirstOrderRCFilterConf>::OUTPUTS)*;
+            type Outputs<U> = util::array_sum!($(<$more as FirstOrderRCFilterConf>::Outputs::<U>),+);
             
             type AsSecondOrderRLCFilterConf = <all!(
-                <$conf0 as FirstOrderRCFilterConf>::AsSecondOrderRLCFilterConf,
                 $(<$more as FirstOrderRCFilterConf>::AsSecondOrderRLCFilterConf),*
             ) as SecondOrderRLCFilterConf>::Conf;
             type AsSecondOrderRCFilterConf = <all!(
-                <$conf0 as FirstOrderRCFilterConf>::AsSecondOrderRCFilterConf,
                 $(<$more as FirstOrderRCFilterConf>::AsSecondOrderRCFilterConf),*
             ) as SecondOrderRCFilterConf>::Conf;
             type AsThirdOrderSallenKeyFilterConf = <all!(
-                <$conf0 as FirstOrderRCFilterConf>::AsThirdOrderSallenKeyFilterConf,
                 $(<$more as FirstOrderRCFilterConf>::AsThirdOrderSallenKeyFilterConf),*
             ) as ThirdOrderSallenKeyFilterConf>::Conf;
 
             const R_CONF: InputOrGND = InputOrGND::all([
-                <$conf0 as FirstOrderRCFilterConf>::R_CONF,
                 $(<$more as FirstOrderRCFilterConf>::R_CONF),*
             ]);
         }
@@ -128,7 +120,6 @@ mod private
     impl<
         CC,
         C,
-        const OUTPUTS: usize,
         const R_CONF: InputOrGND,
         const C_CONF: InputOrGND
     > FirstOrderRCFilterConfFinal<C> for CC
@@ -138,12 +129,11 @@ mod private
             AsSecondOrderRLCFilterConf = C::AsSecondOrderRLCFilterConf,
             AsSecondOrderRCFilterConf = C::AsSecondOrderRCFilterConf,
             AsThirdOrderSallenKeyFilterConf = C::AsThirdOrderSallenKeyFilterConf,
-            OUTPUTS = {OUTPUTS},
+            Outputs<()> = <C as FirstOrderRCFilterConf>::Outputs<()>,
             R_CONF = {R_CONF},
             C_CONF = {C_CONF}
         >,
         C: FirstOrderRCFilterConf<
-            OUTPUTS = {OUTPUTS},
             R_CONF = {R_CONF},
             C_CONF = {C_CONF}
         >,

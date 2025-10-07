@@ -99,8 +99,6 @@ crate::def_rtf!(
             )
         }
     }
-    where
-        [(); <C as FirstOrderRCFilterConf>::OUTPUTS]:
 );
 
 #[cfg(test)]
