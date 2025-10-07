@@ -386,6 +386,22 @@ pub macro rtf_conf_const {
     },
 }
 
+pub macro array_minus1 {
+    ($a:ty) => {
+        <$a as $crate::util::ArrayMinus1>::Minus1
+    }
+}
+pub macro array_min1 {
+    ($a:ty) => {
+        <$a as $crate::util::ArrayMin1>::Min1
+    }
+}
+pub macro array_plus1 {
+    ($a:ty) => {
+        <$a as $crate::util::ArrayPlus1>::Plus1
+    }
+}
+
 #[macro_export]
 macro_rules! winternals {
     ($f:ty, $o_buffers:expr, $sos_buffers:expr, $sos:expr, $order:expr) => {
@@ -411,9 +427,9 @@ macro_rules! winternals {
 macro_rules! binternals {
     ($f:ty, $outputs:expr, $o_buffers:expr, $sos_buffers:expr, $sos:expr, $order:expr) => {
         (
-            <[[[$f; 3]; $sos_buffers]; $sos] as $crate::util::ArrayMinus1>::Minus1,
-            <[[[$f; 3]; $o_buffers]; $sos] as $crate::util::ArrayMin1>::Min1,
-            [<[$f; $order] as $crate::util::ArrayPlus1>::Plus1; $outputs]
+            $crate::array_minus1!([[[$f; 3]; $sos_buffers]; $sos]),
+            $crate::array_min1!([[[$f; 3]; $o_buffers]; $sos]),
+            [$crate::array_plus1!([$f; $order]); $outputs]
         )
     };
     ($rtf:ty) => {
@@ -424,16 +440,19 @@ macro_rules! binternals {
     };
     ($rtf:ty where $f:ty as $($trait:tt)+) => {
         (
-            <<$rtf as $($trait)+>::SosStages<<$rtf as $($trait)+>::SosBufs<[$f; 3]>> as $crate::util::ArrayMinus1>::Minus1,
-            <<$rtf as $($trait)+>::SosStages<<$rtf as $($trait)+>::OutputBufs<[$f; 3]>> as $crate::util::ArrayMin1>::Min1,
-            <$rtf as $($trait)+>::Outputs<<<$rtf as $($trait)+>::Order::<$f> as $crate::util::ArrayPlus1>::Plus1>
+            $crate::array_minus1!(<$rtf as $($trait)+>::SosStages<<$rtf as $($trait)+>::SosBufs<[$f; 3]>>),
+            $crate::array_min1!(<$rtf as $($trait)+>::SosStages<<$rtf as $($trait)+>::OutputBufs<[$f; 3]>>),
+            <$rtf as $($trait)+>::Outputs<$crate::array_plus1!(<$rtf as $($trait)+>::Order::<$f>)>
         )
     }
 }
 #[macro_export]
 macro_rules! ainternals {
     ($f:ty, $o_buffers:expr, $sos_buffers:expr, $sos:expr, $order:expr) => {
-        ([[[$f; 3]; $sos_buffers]; $sos], [<[$f; $order] as $crate::util::ArrayPlus1>::Plus1; $o_buffers])
+        (
+            [[[$f; 3]; $sos_buffers]; $sos],
+            [$crate::array_plus1!([$f; $order]); $o_buffers]
+        )
     };
     ($rtf:ty) => {
         $crate::ainternals!($rtf as StaticRtf)
@@ -444,7 +463,7 @@ macro_rules! ainternals {
     ($rtf:ty where $f:ty as $($trait:tt)+) => {
         (
             <$rtf as $($trait)+>::SosStages<<$rtf as $($trait)+>::SosBufs<[$f; 3]>>,
-            <$rtf as $($trait)+>::OutputBufs<<<$rtf as $($trait)+>::Order::<$f> as $crate::util::ArrayPlus1>::Plus1>
+            <$rtf as $($trait)+>::OutputBufs<$crate::array_plus1!(<$rtf as $($trait)+>::Order::<$f>)>
         )
     }
 }
