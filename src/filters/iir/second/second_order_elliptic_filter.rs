@@ -48,7 +48,7 @@ crate::def_rtf!(
         type Conf: EllipticFilterConf;
         type Param: SecondOrderEllipticFilterParam = OmegaEpsilonXiSecondOrder;
 
-        const OUTPUT_BUFS: usize = <C as EllipticFilterConf>::OUTPUTS;
+        type OutputBufs<U> = <C as EllipticFilterConf>::Outputs<U>;
         const SOS_BUFS: usize = 1;
         const SOS_STAGES: usize = 0;
         const ORDER: usize = 2;
@@ -93,8 +93,6 @@ crate::def_rtf!(
             )
         }
     }
-    where
-        [(); <C as EllipticFilterConf>::OUTPUTS]:
 );
 
 #[cfg(test)]
