@@ -79,9 +79,9 @@ where
     pub fn a_low(&self) -> [F; 3]
     {
         [
-            self.four_rate2 - self.six_rate_omega + self.three_omega2,
-            -self.eight_rate2 + self.six_omega2,
             self.four_rate2 + self.six_rate_omega + self.three_omega2,
+            -self.eight_rate2 + self.six_omega2,
+            self.four_rate2 - self.six_rate_omega + self.three_omega2,
         ]
     }
 }
@@ -101,9 +101,9 @@ where
     pub fn a_high(&self) -> [F; 3]
     {
         [
-            self.twelve_rate2 - self.six_rate_omega + self.omega2,
+            self.twelve_rate2 + self.six_rate_omega + self.omega2,
             -self.twenty_four_rate2 + self.two_omega2,
-            self.twelve_rate2 + self.six_rate_omega + self.omega2
+            self.twelve_rate2 - self.six_rate_omega + self.omega2
         ]
     }
 }
