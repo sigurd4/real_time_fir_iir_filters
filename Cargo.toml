@@ -17,11 +17,11 @@ num = "0.4.3"
 moddef = "0.3.0"
 bytemuck = "1.24.0"
 serde = {version = "1.0.228", features = ["derive"]}
-array_trait = "1.1.1"
+array_trait = "1.1.4"
 
 [dev-dependencies]
 plotters = "0.3.7"
-linspace = "0.2.1"
+linspace = "0.2.3"
 
 [package.metadata.docs.rs]
 rustdoc-args = ["--html-in-header", "katex-header.html"]
