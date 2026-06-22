@@ -21,7 +21,7 @@ array_trait = "1.1.4"
 
 [dev-dependencies]
 plotters = "0.3.7"
-linspace = "0.2.3"
+linspace = "0.3.0"
 
 [package.metadata.docs.rs]
 rustdoc-args = ["--html-in-header", "katex-header.html"]
